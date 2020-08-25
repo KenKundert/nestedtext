@@ -105,7 +105,7 @@ Indentation is always a multiple of 4 spaces and you can only increase one level
 at a time. Thus the start of a key, a list item dash or the start of a string 
 always starts after exactly a multiple of 4 spaces.  You can start the lines in 
 your multi-line strings after the point were they are expected to begin to add 
-leading spaces to your string. For example:
+leading spaces to your string. For example::
 
     greeting: Dearest Katherine:
     body:
@@ -168,7 +168,7 @@ Here is typical example::
 Notice that even though some values are given as integers, their values are 
 retained as strings.
 
-You can read a data file using:
+You can read a data file using::
 
     >>> import udif
     >>> from inform import display, fatal, os_error, render
