@@ -22,6 +22,7 @@
 # Imports {{{1
 from inform import indent, Error
 
+
 # dump {{{1
 def dump(obj, *, sort=None, renderers=None, default=None, level=0):
     """Recursively convert object to string with reasonable formatting.
