@@ -141,29 +141,31 @@ a leading dash-space on a line, or the first colon-space are treated as special.
 
 Here is typical example::
 
-    # backup settings for root
-    src_dir: /
-    excludes:
-        - /dev
-        - /home/*/.cache
-        - /root/*/.cache
-        - /proc
-        - /sys
-        - /tmp
-        - /var/cache
-        - /var/lock
-        - /var/run
-        - /var/tmp
-    keep:
-        hourly: 24
-        daily: 7
-        weekly: 4
-        monthly: 12
-        yearly: 5
-    passphrase:
-        trouper segregate militia airway pricey sweetmeat tartan bookstall
-        obsession charlady twosome silky puffball grubby ranger notation
-        rosebud replicate freshen javelin abbot autocue beater byway
+    >>> contents = """
+    ...     # backup settings for root
+    ...     src_dir: /
+    ...     excludes:
+    ...         - /dev
+    ...         - /home/*/.cache
+    ...         - /root/*/.cache
+    ...         - /proc
+    ...         - /sys
+    ...         - /tmp
+    ...         - /var/cache
+    ...         - /var/lock
+    ...         - /var/run
+    ...         - /var/tmp
+    ...     keep:
+    ...         hourly: 24
+    ...         daily: 7
+    ...         weekly: 4
+    ...         monthly: 12
+    ...         yearly: 5
+    ...     passphrase:
+    ...         trouper segregate militia airway pricey sweetmeat tartan bookstall
+    ...         obsession charlady twosome silky puffball grubby ranger notation
+    ...         rosebud replicate freshen javelin abbot autocue beater byway
+    ... """
 
 Notice that even though some values are given as integers, their values are 
 retained as strings.
@@ -171,19 +173,15 @@ retained as strings.
 You can read a data file using::
 
     >>> import udif
-    >>> from inform import display, fatal, os_error, render
+    >>> from inform import render
+    >>> from textwrap import dedent
 
-    >>> filename = 'filename'
     >>> try:
-    ...     with open(filename) as f
-    ...         contents = f.read()
-    ...     data = udif.loads(contents, filename)
-    >>> except OSError as e:
-    ...     fatal(os_error(e))
-    >>> except udif.Error as e:
+    ...     data = udif.load(dedent(contents))
+    ... except udif.Error as e:
     ...     e.report()
 
-    >>> display(render(data))
+    >>> print(render(data))
     {
         'src_dir': '/',
         'excludes': [
@@ -212,8 +210,33 @@ You can read a data file using::
         """,
     }
 
-A rendering function for converting Python dictionaries, lists and strings to 
-Udif format is planned but not yet available.
+Given a data structure consisting of dictionaries, lists, strings, and Nones, 
+you can use `udif.dump()` to serialize it::
+
+    >>> print(udif.dump(data))
+    src_dir: /
+    excludes:
+        - /dev
+        - /home/*/.cache
+        - /root/*/.cache
+        - /proc
+        - /sys
+        - /tmp
+        - /var/cache
+        - /var/lock
+        - /var/run
+        - /var/tmp
+    keep:
+        hourly: 24
+        daily: 7
+        weekly: 4
+        monthly: 12
+        yearly: 5
+    passphrase:
+        trouper segregate militia airway pricey sweetmeat tartan bookstall
+        obsession charlady twosome silky puffball grubby ranger notation
+        rosebud replicate freshen javelin abbot autocue beater byway
+
 
 
 Releases

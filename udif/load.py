@@ -203,7 +203,7 @@ def read_string(lines, depth):
 
 
 # load() {{{1
-def load(contents, filename):
+def load(contents, filename=None):
 
     with set_culprit(filename):
         lines = Lines(contents)
