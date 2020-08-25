@@ -10,10 +10,14 @@ exceptions that need to be remembered when creating a file.  The result is
 a data file that can be created, modified, or viewed  with a text editor and can 
 be understood and used by both programmers and non-programmers.
 
-A dictionary is a collection of dictionary items, which are key/value pairs 
-where the key and value are separated by a colon and the value is terminated by 
-an end of line. The colon must be followed by a space or a newline to act as the 
-key/value separator. So for example::
+
+File Format
+-----------
+
+A dictionary is represented as a collection of dictionary items, which are 
+key/value pairs where the key and value are separated by a colon and the value 
+is terminated by an end of line. The colon must be followed by a space or 
+a newline to act as the key/value separator. So for example::
 
     name: Katheryn McDaniel
     phone: 1-210-835-5297
@@ -22,8 +26,8 @@ key/value separator. So for example::
 In this example both the keys and values are strings.  Keys are always strings, 
 but as shown in a bit, the values may be strings, dictionaries or lists.
 
-A list is a collection of list items, which are values that are introduced with 
-a dash and end at the end of line. So for example::
+A list is represented as a collection of list items, which are values that are 
+introduced with a dash and end at the end of line. So for example::
 
     - Alabama
     - Alaska
@@ -100,7 +104,6 @@ whereas::
 
 becomes ``{'days': ['Monday', 'Tuesday', '', 'Wednesday', 'Friday']}``.
 
-
 Indentation is always a multiple of 4 spaces and you can only increase one level 
 at a time. Thus the start of a key, a list item dash or the start of a string 
 always starts after exactly a multiple of 4 spaces.  You can start the lines in 
@@ -112,6 +115,7 @@ leading spaces to your string. For example::
             It has been such a long time. I am very much looking forward to
         seeing both you and Margaret again.
     closing: See you soon.
+    signature: -Rupert
 
 In this example, the value of *body* is a multi-line string for which the first 
 line is indented by 4 spaces.  The second line in *body* has no leading space.
@@ -121,16 +125,6 @@ what is required by the format is retained. Also retained is any trailing space
 on each line.  This differs from single line strings: leading and trailing 
 spaces are trimmed from single line strings.
 
-If a key contains a colon or a leading space, you can add quotes (either single 
-or double quotes) to clarify the extent of the key.  This is only necessary if 
-the quote or dash in the key is followed by a space or if the key begins or ends 
-with spaces.  Spaces before or after a key or single-line string value are 
-ignored. They can be included by quoting the values.  Either single or double 
-matching quotes may be used. For example::
-
-    sep: ' — '
-    '- key: ': "- value: "
-
 Blank lines within dictionaries or lists are ignored, but in multi-line strings 
 blank lines act to continue the string even if no indentation is present.  Lines 
 that start with a hash ``#`` are ignored.
@@ -138,6 +132,16 @@ that start with a hash ``#`` are ignored.
 Also notice in the last example that the value for *greeting* ends in a colon.  
 This does not represent an issue. Only a hash as the first character on a line, 
 a leading dash-space on a line, or the first colon-space are treated as special.
+
+Multiline keys are not supported; a key must not contain a newline. If a key 
+contains leading or trailing spaces, a leading '- ', or a ': ' anywhere in the 
+key, you should quote the key.  Either single or double matching quotes may be 
+used.  Single line string values should also be quoted in leading or trailing 
+spaces are significant. The quotes clarify the extent of the value.
+For example::
+
+    sep: ' — '
+    '- key: ': "- value: "
 
 Here is typical example::
 
@@ -169,6 +173,10 @@ Here is typical example::
 
 Notice that even though some values are given as integers, their values are 
 retained as strings.
+
+
+Reader
+------
 
 You can read a data file using::
 
@@ -210,10 +218,17 @@ You can read a data file using::
         """,
     }
 
-Given a data structure consisting of dictionaries, lists, strings, and Nones, 
-you can use `udif.dump()` to serialize it::
 
-    >>> print(udif.dump(data))
+Writer
+------
+
+You can use `udif.dump()` to convert a data structure consisting of 
+dictionaries, lists, tuples, sets, strings, integers, and nones.
+
+    >>> try:
+    ...     print(udif.dump(data))
+    ... except udif.Error as e:
+    ...     e.report()
     src_dir: /
     excludes:
         - /dev
@@ -237,6 +252,49 @@ you can use `udif.dump()` to serialize it::
         obsession charlady twosome silky puffball grubby ranger notation
         rosebud replicate freshen javelin abbot autocue beater byway
 
+There are two approaches to handling object that are othewise unsupported, like 
+floats and Booleans.
+
+In the first you simply specify a default renderer, which is a function that 
+converts objects to strings. Typically values are *str* and *repr*.
+
+    >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
+
+    >>> try:
+    ...     print(udif.dump(data))
+    ... except udif.Error as e:
+    ...     print(str(e))
+    unsupported type: 3.1415926
+
+    >>> try:
+    ...     print(udif.dump(data, default=repr))
+    ... except udif.Error as e:
+    ...     e.report()
+    key: 42
+    value: 3.1415926
+    valid: True
+
+In the second, you specify a dictionary of renderers. The dictionary maps the 
+object type to a render function.
+
+    **Example**::
+
+        >>> renderers = {
+        ...     bool: lambda b: 'yes' if b else 'no',
+        ...     int: hex,
+        ...     float: lambda f: f'{f:0.3}'
+        ... }
+
+        >>> try:
+        ...    print(udif.dump(data, renderers=renderers))
+        ... except udif.Error as e:
+        ...     e.report()
+        key: 0x2a
+        value: 3.14
+        valid: yes
+
+Finally, you can uses both methods together.  Any normally unsupported type that 
+is not contained in *renderers* is handled by *default*.
 
 
 Releases

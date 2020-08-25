@@ -1,3 +1,24 @@
+# Udif Load
+# encoding: utf8
+#
+# Converts Udif into Python data hierarchies.
+
+# License {{{1
+# Copyright (c) 2020 Kenneth S. Kundert
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see http://www.gnu.org/licenses/.
+
 # Imports {{{1
 import re
 from inform import (
@@ -203,9 +224,34 @@ def read_string(lines, depth):
 
 
 # load() {{{1
-def load(contents, filename=None):
+def load(contents, culprit=None):
+    """
+    Loads Udiff from string.
 
-    with set_culprit(filename):
+    Args:
+        contents 9str):
+            String that contains Udif data.
+        culprit (str):
+            Optional culprit. It is prepended to any error messages but is
+            otherwise unused.
+
+    **Example**::
+
+        >>> import udif
+        >>> contents = '''
+        ... name: Deryl McKinnon
+        ... phone: 212-590-3107
+        ... '''
+
+        try:
+            data = udif.load(contents)
+            print(data)
+        except udif.Error as e:
+            e.report()
+        {'name': 'Deryl McKinnon', 'phone': 'phone: 212-590-3107'}
+
+    """
+    with set_culprit(culprit):
         lines = Lines(contents)
 
         if lines.type_of_next() not in ["list item", "dict item"]:
@@ -214,5 +260,5 @@ def load(contents, filename=None):
             data = read_value(lines, 0)
 
         if errors_accrued():
-            raise Error("could not be read.", culprit=filename)
+            raise Error("could not be read.", culprit=culprit)
         return data
