@@ -16,7 +16,7 @@ setup(
     license = 'GPLv3+',
     zip_safe = False,
     packages = ['udif'],
-    install_requires = 'inform'.split(),
+    install_requires = 'inform>=1.23'.split(),
     python_requires = '>=3.6',
     keywords = 'data'.split(),
     classifiers = [
