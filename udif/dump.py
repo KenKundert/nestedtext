@@ -126,12 +126,12 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
 
     # render string
     def render_str(s, is_key=False):
-        stripped = s.strip()
+        stripped = s.strip(' ')
         if not s or len(stripped) < len(s):
             return repr(s)
         if is_key:
             if '\n' in s:
-                raise Error(s, template='keys must not contain newlines.')
+                raise Error(s, template='keys must not contain newlines.', culprit=repr(s))
             if s[0] == "#" or s.startswith("- ") or s.endswith(":"):
                 return repr(s)
         return s

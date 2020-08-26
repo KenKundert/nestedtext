@@ -1,7 +1,7 @@
 # encoding: utf8
 import pytest
 from textwrap import dedent
-from udif import load, dump
+import udif
 from inform import Info, render
 
 # Utilities {{{1
@@ -22,8 +22,11 @@ testcases = dict(
         given = dedent("""\
             # this is a comment, it is ignored
             key 1: value 1
+
             "- key2:": "value2:"
+
             '  #key3  ': '  #value3  '
+
             key 4:
                 key 4.1: value 4.1
                 key 4.2: value 4.2
@@ -32,6 +35,7 @@ testcases = dict(
                     key 4.3.2: value 4.3.2
                 key 4.4:
                     - value 4.4.1
+
                     - value 4.4.2
                     -
                         - value 4.4.3.1
@@ -288,25 +292,167 @@ testcases = dict(
 def test_testcase1():
     name = 'testcase1'
     case = testcases[name]
-    result = load(case.given, name)
+    result = udif.load(case.given, name)
     assert result == case.expected, render(result)
-    assert dump(result) == case.invarient
+    assert udif.dump(result) == case.invarient
 
 # test_testcase2() {{{1
 def test_testcase2():
     name = 'testcase2'
     case = testcases[name]
-    result = load(case.given, name)
+    result = udif.load(case.given, name)
     assert result == case.expected, render(result)
-    assert dump(result) == case.invarient
+    assert udif.dump(result) == case.invarient
 
 # test_testcase3() {{{1
 def test_testcase3():
     name = 'testcase3'
     case = testcases[name]
-    result = load(case.given, name)
+    result = udif.load(case.given, name)
     assert result == case.expected, render(result)
-    assert dump(result) == case.invarient
+    assert udif.dump(result) == case.invarient
+
+
+# test_errors() {{{1
+def test_errors():
+    content = dedent("""
+        ingredients:
+          green chilies
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content)
+    assert str(exception.value) == '2: indentation must be a multiple of 4 spaces.'
+    assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«  green chilies»\n ↑',),
+        line = '  green chilies',
+        loc = 0,
+    )
+    assert exception.value.line == '  green chilies'
+    assert exception.value.loc == 0
+
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content, 'hominey')
+    assert str(exception.value) == 'hominey, 2: indentation must be a multiple of 4 spaces.'
+    assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
+    assert exception.value.kwargs == dict(
+        culprit = ('hominey', 2),
+        codicil = ('«  green chilies»\n ↑',),
+        line = '  green chilies',
+        loc = 0,
+    )
+    assert exception.value.line == '  green chilies'
+    assert exception.value.loc == 0
+
+    content = dedent("""
+        ingredients:
+        - green chilies
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content)
+    assert str(exception.value) == '2: expected dictionary item.'
+    assert exception.value.args == ('expected dictionary item.',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«- green chilies»',),
+        line = '- green chilies',
+    )
+    assert exception.value.line == '- green chilies'
+    assert exception.value.loc == None
+
+    content = dedent("""
+        - green chilies
+        ingredients:
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content)
+    assert str(exception.value) == '2: expected list item.'
+    assert exception.value.args == ('expected list item.',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«ingredients:»',),
+        line = 'ingredients:',
+    )
+    assert exception.value.line == 'ingredients:'
+    assert exception.value.loc == None
+
+    content = dedent("""
+        ingredients:
+                - green chilies
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content)
+    assert str(exception.value) == '2: unexpected indent.'
+    assert exception.value.args == ('unexpected indent.',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«        - green chilies»\n     ↑',),
+        line = '        - green chilies',
+        loc = 4,
+    )
+    assert exception.value.line == '        - green chilies'
+    assert exception.value.loc == 4
+
+    content = dedent("""
+        ingredients
+        green chilies
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.load(content)
+    assert str(exception.value) == '1: expected list or dictionary item.'
+    assert exception.value.args == ('expected list or dictionary item.',)
+    assert exception.value.kwargs == dict(
+        culprit = (1,),
+        codicil = ('«ingredients»',),
+        line = 'ingredients',
+    )
+    assert exception.value.line == 'ingredients'
+    assert exception.value.loc == None
+
+    data = {'peach': 3, 'apricot\n': 8, 'blueberry': '1 lb', 'orange': 4}
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dump(data)
+    assert str(exception.value) == "'apricot\\n': keys must not contain newlines."
+    assert exception.value.args == ('apricot\n',)
+    assert exception.value.kwargs == dict(
+        culprit = ("'apricot\\n'",),
+        template = 'keys must not contain newlines.',
+    )
+
+# test_dump() {{{1
+def test_dump():
+    data = {'peach', 'apricot', 'blueberry', 'orange'}
+    content = udif.dump(data, sort=True)
+    expected = dedent('''
+        - apricot
+        - blueberry
+        - orange
+        - peach
+    ''').strip()
+    assert content == expected
+
+    data = ('peach', 'apricot', 'blueberry', 42, 'orange')
+    content = udif.dump(data, sort=True)
+    expected = dedent('''
+        - peach
+        - apricot
+        - blueberry
+        - 42
+        - orange
+    ''').strip()
+    assert content == expected
+
+    val = Info(val=42)
+    renderers = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
+    content = udif.dump(dict(name = val), renderers=renderers)
+    expected = dedent('''
+        name:
+            Info(
+                val=42
+            )
+    ''').strip()
+    assert content == expected
 
 
 # main {{{1

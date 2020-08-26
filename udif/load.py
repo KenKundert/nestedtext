@@ -25,7 +25,6 @@ from inform import (
     codicil,
     error,
     full_stop,
-    errors_accrued,
     set_culprit,
     get_culprit,
     Error,
@@ -61,15 +60,20 @@ def join_and_dequote(l):
     return s
 
 
-def report(msg, line, loc=None):
+def report(message, line, loc=None):
+    message = full_stop(message)
+    kwargs = {}
     if line:
-        error(full_stop(msg), culprit=get_culprit(line.num))
+        kwargs['culprit'] = get_culprit(line.num)
         if loc is not None:
-            codicil(f"«{line.text}»\n {loc*' '}↑")
+            kwargs['codicil'] = f"«{line.text}»\n {loc*' '}↑"
+            kwargs['loc'] = loc
         else:
-            codicil(f"«{line.text}»")
+            kwargs['codicil'] = f"«{line.text}»"
+        kwargs['line'] = line.text
     else:
-        error(full_stop(msg), culprit=get_culprit())
+        kwargs['culprit'] = get_culprit(line.num)
+    raise Error(message, **kwargs)
 
 
 def indentation_error(line, depth):
@@ -257,8 +261,4 @@ def load(contents, culprit=None):
         if lines.type_of_next() not in ["list item", "dict item"]:
             report("expected list or dictionary item.", lines.get_next())
         else:
-            data = read_value(lines, 0)
-
-        if errors_accrued():
-            raise Error("could not be read.", culprit=culprit)
-        return data
+            return read_value(lines, 0)
