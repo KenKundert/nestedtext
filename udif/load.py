@@ -22,7 +22,6 @@
 # Imports {{{1
 import re
 from inform import (
-    error,
     full_stop,
     set_culprit,
     get_culprit,
