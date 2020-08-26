@@ -31,25 +31,26 @@ BASIC_RENDERERS = {
 }
 
 
-# dump {{{1
-def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
+# dumps {{{1
+def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
     """Recursively convert object to string with reasonable formatting.
 
     Args:
         obj:
-            The object to dump
+            The object to convert.
         sort_keys (bool):
             Dictionary items are sorted by their key if *sort_keys* is true.
         renderers (dict):
             A dictionary where the keys are types and the values are render
             functions (functions that take an object and convert it to a string).
-            These will be used to convert values to strings during the dump.
+            These will be used to convert values to strings during the
+            conversion.
         default (func):
             The default renderer. Use to render otherwise unrecognized objects
             to strings. If not provided an error will be raised for unsupported
             data types. Typical values are *repr* or *str*.
         level (int):
-            The indent level.  When dump is invoked recursively this is used to
+            The indent level.  When dumps is invoked recursively this is used to
             increment the level and so the indent.  Generally not specified by
             the user, but can be useful in unusual situations to specify an
             initial indent.
@@ -59,7 +60,7 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         >>> import udif
 
         >>> try:
-        ...     print(udif.dump({'a': ['0', '1'], 'b': ['2', '3', '4']}))
+        ...     print(udif.dumps({'a': ['0', '1'], 'b': ['2', '3', '4']}))
         ... except udif.Error as e:
         ...     e.report()
         a:
@@ -70,7 +71,7 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             - 3
             - 4
 
-    *dump* has built in support for the base Python types of *str*, *list*, and
+    *dumps* has built in support for the base Python types of *str*, *list*, and
     *dict*.
 
     You must make special arrangements to handle objects of other types.  There
@@ -82,13 +83,13 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
         >>>
         >>> try:
-        ...     print(udif.dump(data))
+        ...     print(udif.dumps(data))
         ... except udif.Error as e:
         ...     print(str(e))
         unsupported type: 42
 
         >>> try:
-        ...     print(udif.dump(data, default=repr))
+        ...     print(udif.dumps(data, default=repr))
         ... except udif.Error as e:
         ...     e.report()
         key: 42
@@ -106,7 +107,7 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         ... }
 
         >>> try:
-        ...     print(udif.dump(data, renderers=renderers))
+        ...     print(udif.dumps(data, renderers=renderers))
         ... except udif.Error as e:
         ...     e.report()
         key: 0x2a
@@ -117,15 +118,15 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
 
     # define sort function
     if sort_keys:
-        def order(keys):
+        def sort(keys):
             return sorted(keys, key=sort_keys if callable(sort_keys) else None)
     else:
-        def order(keys):
+        def sort(keys):
             return keys
 
-    # define dump function for recursion
-    def rdump(v):
-        return dump(
+    # define dumps function for recursion
+    def rdumps(v):
+        return dumps(
             v,
             sort_keys = sort_keys,
             renderers = renderers,
@@ -181,14 +182,14 @@ def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
     elif isinstance(obj, dict):
         content = format_multiline_entry(
             "\n".join(
-                add_prefix(render_str(k, True) + ":", rdump(obj[k]))
-                for k in order(obj)
+                add_prefix(render_str(k, True) + ":", rdumps(obj[k]))
+                for k in sort(obj)
             )
         )
     elif isinstance(obj, (list, tuple, set)):
         content = format_multiline_entry(
             "\n".join(
-                add_prefix("-", rdump(v))
+                add_prefix("-", rdumps(v))
                 for v in obj
             )
         )

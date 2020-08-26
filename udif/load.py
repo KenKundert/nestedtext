@@ -225,8 +225,8 @@ def read_string(lines, depth):
     return "\n".join(data)
 
 
-# load() {{{1
-def load(contents, culprit=None):
+# loads() {{{1
+def loads(contents, culprit=None):
     """
     Loads Udiff from string.
 
@@ -235,7 +235,8 @@ def load(contents, culprit=None):
             String that contains Udif data.
         culprit (str):
             Optional culprit. It is prepended to any error messages but is
-            otherwise unused.
+            otherwise unused. Is often the name of the file that originally
+            contained contents.
 
     **Example**::
 
@@ -246,7 +247,7 @@ def load(contents, culprit=None):
         ... '''
 
         try:
-            data = udif.load(contents)
+            data = udif.loads(contents)
             print(data)
         except udif.Error as e:
             e.report()

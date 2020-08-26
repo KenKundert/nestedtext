@@ -160,7 +160,7 @@ You can read a data file using::
     >>> from textwrap import dedent
 
     >>> try:
-    ...     data = udif.load(dedent(contents))
+    ...     data = udif.loads(dedent(contents))
     ... except udif.Error as e:
     ...     e.report()
 
@@ -197,11 +197,11 @@ You can read a data file using::
 Writer
 ------
 
-You can use `udif.dump()` to convert a data structure consisting of 
+You can use `udif.dumps()` to convert a data structure consisting of 
 dictionaries, lists, and strings.
 
     >>> try:
-    ...     print(udif.dump(data))
+    ...     print(udif.dumps(data))
     ... except udif.Error as e:
     ...     e.report()
     src_dir: /
@@ -236,13 +236,13 @@ converts objects to strings. Typically values are *str* and *repr*.
     >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
     >>> try:
-    ...     print(udif.dump(data))
+    ...     print(udif.dumps(data))
     ... except udif.Error as e:
     ...     print(str(e))
     unsupported type: 42
 
     >>> try:
-    ...     print(udif.dump(data, default=repr))
+    ...     print(udif.dumps(data, default=repr))
     ... except udif.Error as e:
     ...     e.report()
     key: 42
@@ -261,7 +261,7 @@ object type to a render function.
         ... }
 
         >>> try:
-        ...    print(udif.dump(data, renderers=renderers))
+        ...    print(udif.dumps(data, renderers=renderers))
         ... except udif.Error as e:
         ...     e.report()
         key: 0x2a
