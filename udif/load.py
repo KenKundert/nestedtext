@@ -62,7 +62,7 @@ def report(message, line, loc=None):
     message = full_stop(message)
     kwargs = {}
     if line:
-        kwargs['culprit'] = get_culprit(line.num+1)
+        kwargs['culprit'] = get_culprit(line.num)
         if loc is not None:
             kwargs['codicil'] = f"«{line.text}»\n {loc*' '}↑"
             kwargs['loc'] = loc
@@ -70,7 +70,7 @@ def report(message, line, loc=None):
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
     else:
-        kwargs['culprit'] = get_culprit(line.num+1)
+        kwargs['culprit'] = get_culprit(line.num)
     raise Error(message, **kwargs)
 
 
@@ -126,7 +126,7 @@ class Lines:
                     kind = "string"
                     value = line
             yield self.Line(
-                text=line, num=lineno, kind=kind, depth=depth, key=key, value=value
+                text=line, num=lineno+1, kind=kind, depth=depth, key=key, value=value
             )
 
     # type_of_next() {{{2
