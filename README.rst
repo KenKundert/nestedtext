@@ -131,7 +131,8 @@ that start with a hash ``#`` are ignored.
 
 Also notice in the last example that the value for *greeting* ends in a colon.  
 This does not represent an issue. Only a hash as the first character on a line, 
-a leading dash-space on a line, or the first colon-space are treated as special.
+a leading dash-space on a line, or the first non-quoted colon-space are treated 
+as special.
 
 Multiline keys are not supported; a key must not contain a newline. If a key 
 contains leading or trailing spaces, a leading '- ', or a ': ' anywhere in the 
@@ -293,7 +294,7 @@ object type to a render function.
         value: 3.14
         valid: yes
 
-Finally, you can uses both methods together.  Any normally unsupported type that 
+Finally, you can use both methods together.  Any normally unsupported type that 
 is not contained in *renderers* is handled by *default*.
 
 

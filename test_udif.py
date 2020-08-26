@@ -258,6 +258,7 @@ testcases = dict(
             dux:
                 - bux
                 -
+                -
 
 
                 - crux
@@ -270,7 +271,7 @@ testcases = dict(
         expected = dict(
             tux = None,
             jux = 'lux',
-            dux = ['bux', '\n', 'crux', '', ' — ']
+            dux = ['bux', None, '\n', 'crux', '', ' — ']
         ),
         # invarient {{{3
         invarient = dedent("""
@@ -278,6 +279,7 @@ testcases = dict(
             jux: lux
             dux:
                 - bux
+                -
                 -
 
 
