@@ -301,8 +301,8 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.0.1
-    | Released: 2020-08-25
+    | Version: 0.0.2
+    | Released: 2020-08-26
 
 
 Open Questions
