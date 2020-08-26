@@ -77,33 +77,6 @@ A value can also be a list or another dictionary::
 
 Dictionaries and lists can be nested to an arbitrary depth.
 
-Unspecified values are converted to None. Be aware that a blank line that 
-follows a dictionary or list item without a value is treated as a multi-line 
-string. So the following::
-
-    days:
-        - Monday
-        - Tuesday
-        -
-        - Thursday
-        - Friday
-
-becomes ``{'days': ['Monday', 'Tuesday', None, 'Wednesday', 'Friday']}``, 
-whereas::
-
-    days:
-        - Monday
-
-        - Tuesday
-
-        -
-
-        - Thursday
-
-        - Friday
-
-becomes ``{'days': ['Monday', 'Tuesday', '', 'Wednesday', 'Friday']}``.
-
 Indentation is always a multiple of 4 spaces and you can only increase one level 
 at a time. Thus the start of a key, a list item dash or the start of a string 
 always starts after exactly a multiple of 4 spaces.  You can start the lines in 
@@ -134,11 +107,12 @@ This does not represent an issue. Only a hash as the first character on a line,
 a leading dash-space on a line, or the first non-quoted colon-space are treated 
 as special.
 
-Multiline keys are not supported; a key must not contain a newline. If a key 
-contains leading or trailing spaces, a leading '- ', or a ': ' anywhere in the 
-key, you should quote the key.  Either single or double matching quotes may be 
-used.  Single line string values should also be quoted in leading or trailing 
-spaces are significant. The quotes clarify the extent of the value.
+Multiline keys are not supported; a key must not contain a newline. In addition, 
+all keys in the same dictionary must be unique. If a key contains leading or 
+trailing spaces, a leading '- ', or a ': ' anywhere in the key, you should quote 
+the key.  Either single or double matching quotes may be used.  Single line 
+string values should also be quoted in leading or trailing spaces are 
+significant. The quotes clarify the extent of the value.
 For example::
 
     sep: ' — '
@@ -224,7 +198,7 @@ Writer
 ------
 
 You can use `udif.dump()` to convert a data structure consisting of 
-dictionaries, lists, tuples, sets, strings, integers, and nones.
+dictionaries, lists, and strings.
 
     >>> try:
     ...     print(udif.dump(data))
@@ -253,8 +227,8 @@ dictionaries, lists, tuples, sets, strings, integers, and nones.
         obsession charlady twosome silky puffball grubby ranger notation
         rosebud replicate freshen javelin abbot autocue beater byway
 
-There are two approaches to handling object that are othewise unsupported, like 
-floats and Booleans.
+There are two approaches to handling object that are otherwise unsupported, like 
+integers, floats, and Booleans.
 
 In the first you simply specify a default renderer, which is a function that 
 converts objects to strings. Typically values are *str* and *repr*.
@@ -265,7 +239,7 @@ converts objects to strings. Typically values are *str* and *repr*.
     ...     print(udif.dump(data))
     ... except udif.Error as e:
     ...     print(str(e))
-    unsupported type: 3.1415926
+    unsupported type: 42
 
     >>> try:
     ...     print(udif.dump(data, default=repr))

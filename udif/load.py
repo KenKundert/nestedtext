@@ -62,7 +62,7 @@ def report(message, line, loc=None):
     message = full_stop(message)
     kwargs = {}
     if line:
-        kwargs['culprit'] = get_culprit(line.num)
+        kwargs['culprit'] = get_culprit(line.num+1)
         if loc is not None:
             kwargs['codicil'] = f"«{line.text}»\n {loc*' '}↑"
             kwargs['loc'] = loc
@@ -70,7 +70,7 @@ def report(message, line, loc=None):
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
     else:
-        kwargs['culprit'] = get_culprit(line.num)
+        kwargs['culprit'] = get_culprit(line.num+1)
     raise Error(message, **kwargs)
 
 
@@ -187,7 +187,7 @@ def read_list(lines, depth):
             if lines.next_indented(depth):
                 value = read_value(lines, increment(depth))
             else:
-                value = None
+                value = ''
             data.append(value)
     return data
 
@@ -211,7 +211,7 @@ def read_dict(lines, depth):
             if lines.next_indented(depth):
                 value = read_value(lines, increment(depth))
             else:
-                value = None
+                value = ''
             data.update({line.key: value})
     return data
 

@@ -23,22 +23,23 @@
 from inform import indent, Error
 
 
+# Globals {{{1
+BASIC_RENDERERS = {
+    bool: lambda v: str(v),
+    int: lambda v: str(v),
+    float: lambda v: str(v),
+}
+
+
 # dump {{{1
-def dump(obj, *, sort=None, renderers=None, default=None, level=0):
+def dump(obj, *, sort_keys=False, renderers=None, default=None, level=0):
     """Recursively convert object to string with reasonable formatting.
 
     Args:
         obj:
             The object to dump
-        sort (bool):
-            Dictionary keys and set values are sorted if *sort* is *True*.
-            Sometimes this is not possible because the values are not
-            comparable, in which case *dump* reverts to using the natural
-            order.
-        level (int):
-            The indent level.
-            If not specified and dump is called recursively the indent
-            will be incremented, otherwise the indent is 0.
+        sort_keys (bool):
+            Dictionary items are sorted by their key if *sort_keys* is true.
         renderers (dict):
             A dictionary where the keys are types and the values are render
             functions (functions that take an object and convert it to a string).
@@ -47,13 +48,18 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
             The default renderer. Use to render otherwise unrecognized objects
             to strings. If not provided an error will be raised for unsupported
             data types. Typical values are *repr* or *str*.
+        level (int):
+            The indent level.  When dump is invoked recursively this is used to
+            increment the level and so the indent.  Generally not specified by
+            the user, but can be useful in unusual situations to specify an
+            initial indent.
 
     **Example**::
 
         >>> import udif
 
         >>> try:
-        ...     print(udif.dump({'a': (0, 1), 'b': [2, 3, 4]}))
+        ...     print(udif.dump({'a': ['0', '1'], 'b': ['2', '3', '4']}))
         ... except udif.Error as e:
         ...     e.report()
         a:
@@ -64,11 +70,12 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
             - 3
             - 4
 
-    *dump* has built in support for the base Python types of (*None*,
-    *int*, *str*, *set*, *tuple*, *list*, and *dict*.  You will need to make special
-    arrangements to handle objects of other types. There are two approaches that can
-    be used separately or together. You can specify a default renderer that used to convert
-    any unknown object type to a string.
+    *dump* has built in support for the base Python types of *str*, *list*, and
+    *dict*.
+
+    You must make special arrangements to handle objects of other types.  There
+    are two approaches that can be used separately or together. You can specify
+    a default renderer that converts any unknown object type to a string.
 
     **Example**::
 
@@ -78,7 +85,7 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
         ...     print(udif.dump(data))
         ... except udif.Error as e:
         ...     print(str(e))
-        unsupported type: 3.1415926
+        unsupported type: 42
 
         >>> try:
         ...     print(udif.dump(data, default=repr))
@@ -109,31 +116,39 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
     """
 
     # define sort function
-    if sort:
+    if sort_keys:
         def order(keys):
-            try:
-                return sorted(keys)
-            except TypeError:
-                # keys are not homogeneous, cannot sort
-                return keys
+            return sorted(keys, key=sort_keys if callable(sort_keys) else None)
     else:
         def order(keys):
             return keys
 
     # define dump function for recursion
     def rdump(v):
-        return dump(v, sort=sort, renderers=renderers, default=default, level=level+1)
+        return dump(
+            v,
+            sort_keys = sort_keys,
+            renderers = renderers,
+            default = default,
+            level = level + 1
+        )
 
     # render string
     def render_str(s, is_key=False):
         stripped = s.strip(' ')
-        if not s or len(stripped) < len(s):
-            return repr(s)
         if is_key:
             if '\n' in s:
                 raise Error(s, template='keys must not contain newlines.', culprit=repr(s))
-            if s[0] == "#" or s.startswith("- ") or s.endswith(":"):
+            if (
+                not s
+                or len(stripped) < len(s)
+                or s[0] == "#"
+                or s.startswith("- ")
+                or s.endswith(":")
+            ):
                 return repr(s)
+        if len(stripped) < len(s):
+            return repr(s)
         return s
 
     def add_prefix(prefix, suffix):
@@ -153,8 +168,11 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
             return "\n" + indent(s)
 
     # render content
-    render = renderers.get(type(obj), None) if renderers else None
-    if render:
+    error = None
+    render = renderers.get(type(obj)) if renderers else None
+    if render is False:
+        error = "unsupported type: {!r}"
+    elif render:
         content = render(obj)
         if '\n' in content:
             content = format_multiline_entry(content)
@@ -168,8 +186,6 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
             )
         )
     elif isinstance(obj, (list, tuple, set)):
-        if sort and isinstance(obj, set):
-            obj = order(obj)
         content = format_multiline_entry(
             "\n".join(
                 add_prefix("-", rdump(v))
@@ -177,21 +193,25 @@ def dump(obj, *, sort=None, renderers=None, default=None, level=0):
             )
         )
     elif isinstance(obj, str):
+        if level == 0:
+            error = 'expected dictionary or list.'
         if "\n" in obj:
+            if obj.startswith('- '):
+                error = "multi-line string must not start with '- '."
             content = format_multiline_entry(obj)
         else:
             content = render_str(obj)
-    elif isinstance(obj, int) and not isinstance(obj, bool):
-        content = str(obj)
-    elif obj is None:
-        content = ""
     elif default:
+        if level == 0:
+            error = 'expected dictionary or list.'
         content = default(obj)
         if '\n' in content:
             content = format_multiline_entry(content)
         else:
             content = render_str(content)
     else:
-        raise Error(f"unsupported type: {obj!r}")
+        error = "unsupported type: {!r}"
+    if error:
+        raise Error(obj, template=error, codicil=repr(obj))
 
     return content
