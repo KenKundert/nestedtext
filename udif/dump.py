@@ -213,10 +213,6 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         if level == 0:
             error = 'expected dictionary or list.'
         content = default(obj)
-        if '\n' in content:
-            content = format_multiline_entry(content)
-        else:
-            content = render_str(content)
     else:
         error = "unsupported type: {!r}."
 
