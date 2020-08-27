@@ -307,7 +307,7 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.0.2
+    | Version: 0.0.3
     | Released: 2020-08-26
 
 
