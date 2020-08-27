@@ -198,7 +198,7 @@ Writer
 ------
 
 You can use `udif.dumps()` to convert a data structure consisting of 
-dictionaries, lists, and strings.
+dictionaries, lists, and strings::
 
     >>> try:
     ...     print(udif.dumps(data))
@@ -236,7 +236,7 @@ list-like options such as *tuple* and *set*. This implies that a round trip
 through *dumps* and *loads* could result in the types of values being 
 transformed. You can prevent this by passing `default='strict'` to *dump*. Doing 
 so means that values that are not dictionaries, lists, or strings generate 
-exceptions.
+exceptions::
 
     >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
@@ -256,7 +256,7 @@ exceptions.
 
 Alternatively, you can specify a function to *default*, which is used to convert 
 values to strings.  It is used if no other converter is available.  Typical 
-values are *str* and *repr*.
+values are *str* and *repr*::
 
     >>> class Color:
     ...     def __init__(self, color):
@@ -280,7 +280,7 @@ values are *str* and *repr*.
     house: red
 
 You can also specify a dictionary of renderers. The dictionary maps the object 
-type to a render function.
+type to a render function::
 
     >>> renderers = {
     ...     bool: lambda b: 'yes' if b else 'no',
