@@ -6,5 +6,5 @@ __version__ = "0.0.2"
 __released__ = "2020-08-26"
 
 from .load import loads
-from .dump import dumps, BASIC_RENDERERS
+from .dump import dumps
 from inform import Error

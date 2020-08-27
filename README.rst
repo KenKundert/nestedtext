@@ -227,49 +227,80 @@ dictionaries, lists, and strings.
         obsession charlady twosome silky puffball grubby ranger notation
         rosebud replicate freshen javelin abbot autocue beater byway
 
-There are two approaches to handling object that are otherwise unsupported, like 
-integers, floats, and Booleans.
+There are several mechanisms for to handling object that are otherwise 
+unsupported by the format.
 
-In the first you simply specify a default renderer, which is a function that 
-converts objects to strings. Typically values are *str* and *repr*.
+By default, *dumps* is configured to be rather forgiving, so it will render many 
+of the base Python data types, such as *None*, *bool*, *int*, *float* and 
+list-like options such as *tuple* and *set*. This implies that a round trip 
+through *dumps* and *loads* could result in the types of values being 
+transformed. You can prevent this by passing `default='strict'` to *dump*. Doing 
+so means that values that are not dictionaries, lists, or strings generate 
+exceptions.
 
     >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
     >>> try:
     ...     print(udif.dumps(data))
     ... except udif.Error as e:
-    ...     print(str(e))
-    unsupported type: 42
-
-    >>> try:
-    ...     print(udif.dumps(data, default=repr))
-    ... except udif.Error as e:
     ...     e.report()
     key: 42
     value: 3.1415926
     valid: True
 
-In the second, you specify a dictionary of renderers. The dictionary maps the 
-object type to a render function.
+    >>> try:
+    ...     print(udif.dumps(data, default='strict'))
+    ... except udif.Error as e:
+    ...     print(str(e))
+    unsupported type: 42.
 
-    **Example**::
+Alternatively, you can specify a function to *default*, which is used to convert 
+values to strings.  It is used if no other converter is available.  Typical 
+values are *str* and *repr*.
 
-        >>> renderers = {
-        ...     bool: lambda b: 'yes' if b else 'no',
-        ...     int: hex,
-        ...     float: lambda f: f'{f:0.3}'
-        ... }
+    >>> class Color:
+    ...     def __init__(self, color):
+    ...         self.color = color
+    ...     def __repr__(self):
+    ...         return f'Color({self.color!r})'
+    ...     def __str__(self):
+    ...         return self.color
 
-        >>> try:
-        ...    print(udif.dumps(data, renderers=renderers))
-        ... except udif.Error as e:
-        ...     e.report()
-        key: 0x2a
-        value: 3.14
-        valid: yes
+    >>> data['house'] = Color('red')
+    >>> print(udif.dumps(data, default=repr))
+    key: 42
+    value: 3.1415926
+    valid: True
+    house: Color('red')
 
-Finally, you can use both methods together.  Any normally unsupported type that 
-is not contained in *renderers* is handled by *default*.
+    >>> print(udif.dumps(data, default=str))
+    key: 42
+    value: 3.1415926
+    valid: True
+    house: red
+
+You can also specify a dictionary of renderers. The dictionary maps the object 
+type to a render function.
+
+    >>> renderers = {
+    ...     bool: lambda b: 'yes' if b else 'no',
+    ...     int: hex,
+    ...     float: lambda f: f'{f:0.3}',
+    ...     Color: lambda c: c.color,
+    ... }
+
+    >>> try:
+    ...    print(udif.dumps(data, renderers=renderers))
+    ... except udif.Error as e:
+    ...     e.report()
+    key: 0x2a
+    value: 3.14
+    valid: yes
+    house: red
+
+Both *default* and *renderers* may be used together. *renderers* has priority 
+over the built-in types and *default*. When a function is specified as 
+*default*, it is always applied as a last resort.
 
 
 Releases
