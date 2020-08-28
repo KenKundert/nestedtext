@@ -50,7 +50,7 @@ quotes.  An empty value represents an empty string.
     after:
 
 A multi-line string is a newline followed by one or more indented text lines 
-where each line is introduced with '> '.
+where each line is introduced with '> '::
 
     name: Katheryn McDaniel
     address:
