@@ -324,5 +324,5 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.0.3
-    | Released: 2020-08-26
+    | Version: 0.0.4
+    | Released: 2020-08-27
