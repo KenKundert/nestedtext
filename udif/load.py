@@ -53,7 +53,10 @@ is_quoted = re.compile(r"\A *" + quoted + r" *\Z")
 def increment(depth):
     return depth + indent_spaces
 
+
 highlight = InformantFactory(message_color='blue')
+
+
 def dbg(line, kind):
     if line.depth is None:
         indents = ' '
@@ -61,7 +64,6 @@ def dbg(line, kind):
         indents = line.depth//indent_spaces
     highlight(f'{indents}{kind}{line.num:>4}:{line.text}')
 
-highlight = InformantFactory(message_color='blue')
 
 def join_and_dequote(l):
     s = "".join(l).strip()
