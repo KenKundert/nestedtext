@@ -27,20 +27,23 @@ from inform import (
     get_culprit,
     Error,
     Info,
+    InformantFactory,
 )
 
 # Globals {{{1
 indent_spaces = 4
-colon = ": "
-dash = "- "
+dict_tag = ": "
+list_tag = "- "
+str_tag = "> "
 quoted = "|".join([
     r'"[^"\n]*"',  # "string"
     r"'[^'\n]*'",  # 'string'
 ])
 splitters = (
-    quoted,        # "string" or 'string'
-    colon,         # colon-space -- key/value separator
-    dash,          # dash-space -- introduces list item
+    quoted,           # "string" or 'string' (must be first)
+    dict_tag,         # key/value separator in dictionary item
+    list_tag,         # introduces list item
+    str_tag,          # introduces a line in a multi-line string
 )
 splitter = re.compile("(" + "|".join(f"(?:{s})" for s in splitters) + ")")
 is_quoted = re.compile(r"\A *" + quoted + r" *\Z")
@@ -50,6 +53,15 @@ is_quoted = re.compile(r"\A *" + quoted + r" *\Z")
 def increment(depth):
     return depth + indent_spaces
 
+highlight = InformantFactory(message_color='blue')
+def dbg(line, kind):
+    if line.depth is None:
+        indents = ' '
+    else:
+        indents = line.depth//indent_spaces
+    highlight(f'{indents}{kind}{line.num:>4}:{line.text}')
+
+highlight = InformantFactory(message_color='blue')
 
 def join_and_dequote(l):
     s = "".join(l).strip()
@@ -114,16 +126,19 @@ class Lines:
                 stripped = line.lstrip(" ")
                 depth = len(line) - len(stripped)
                 components = splitter.split(line + " ")
-                if dash == "".join(components[:2]).lstrip(" "):
+                if list_tag == "".join(components[:2]).lstrip(" "):
                     kind = "list item"
                     value = join_and_dequote(components[2:])
-                elif colon in components:
+                elif dict_tag in components:
                     kind = "dict item"
-                    split_loc = components.index(colon)
+                    split_loc = components.index(dict_tag)
                     key = join_and_dequote(components[:split_loc])
                     value = join_and_dequote(components[split_loc + 1 :])
-                else:
+                elif str_tag == "".join(components[:2]).lstrip(" "):
                     kind = "string"
+                    value = "".join(components[2:]).strip()
+                else:
+                    kind = "unrecognized"
                     value = line
             yield self.Line(
                 text=line, num=lineno+1, kind=kind, depth=depth, key=key, value=value
@@ -137,12 +152,17 @@ class Lines:
     # still_within_level() {{{2
     def still_within_level(self, depth):
         if self.next_line:
-            return self.next_line.kind == "empty" or self.next_line.depth >= depth
+            return self.next_line.depth >= depth
+
+    # still_within_string() {{{2
+    def still_within_string(self, depth):
+        if self.next_line:
+            return self.next_line.kind == "string" and self.next_line.depth == depth
 
     # next_indented() {{{2
     def next_indented(self, depth):
         if self.next_line:
-            return self.next_line.kind == "empty" or self.next_line.depth > depth
+            return self.next_line.depth > depth
 
     # get_next() {{{2
     def get_next(self):
@@ -153,9 +173,11 @@ class Lines:
         # access the next upcoming line.
         while self.next_line:
             self.next_line = next(self.generator, None)
-            if not self.next_line or self.next_line.kind != "comment":
+            if not self.next_line or self.next_line.kind not in ["empty", "comment"]:
                 break
 
+        if this_line.kind == "unrecognized":
+            report('unrecognized line.', this_line)
         return this_line
 
 
@@ -173,15 +195,15 @@ def read_list(lines, depth):
     data = []
     while lines.still_within_level(depth):
         line = lines.get_next()
-        if line.kind == "empty":
-            continue
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "list item":
             report("expected list item", line)
         if line.value:
+            dbg(line, 'lv')
             data.append(line.value)
         else:
+            dbg(line, 'l↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
             if lines.next_indented(depth):
@@ -197,15 +219,15 @@ def read_dict(lines, depth):
     data = {}
     while lines.still_within_level(depth):
         line = lines.get_next()
-        if line.kind == "empty":
-            continue
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "dict item":
             report("expected dictionary item", line)
         if line.value:
+            dbg(line, 'dv')
             data.update({line.key: line.value})
         else:
+            dbg(line, 'd↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
             if lines.next_indented(depth):
@@ -219,9 +241,10 @@ def read_dict(lines, depth):
 # read_string() {{{1
 def read_string(lines, depth):
     data = []
-    while lines.still_within_level(depth):
+    while lines.still_within_string(depth):
         line = lines.get_next()
-        data.append(line.text[depth:])
+        dbg(line, '""')
+        data.append(line.value)
     return "\n".join(data)
 
 

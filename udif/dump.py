@@ -204,9 +204,10 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             for v in obj
         )
     elif is_a_str(obj):
-        if "\n" in obj and obj.startswith('- '):
-            error = "multi-line string must not start with '- '."
-        content = obj
+        if "\n" in obj:
+            content = indent(obj, '> ')
+        else:
+            content = obj
     elif is_a_scalar(obj):
         content = str(obj)
     elif default and callable(default):

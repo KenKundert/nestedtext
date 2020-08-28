@@ -41,14 +41,15 @@ testcases = dict(
                         - value 4.4.3.1
                         - value 4.4.3.2
             key 5:
-                value 5 part 1
+                > value 5 part 1
             key 6:
-                value 6 part 1
-                value 6 part 2
+                > value 6 part 1
+                > value 6 part 2
             key 7:
-                value 7 part 1
-
-                value 7 part 3
+                > value 7 part 1
+                >
+                > value 7 part 3
+                >
 
             key 8:
                 - value 8.1
@@ -59,18 +60,18 @@ testcases = dict(
                 - value 9.1
                 - value 9.2
             key 10:
-                This is a multi-line string.  It should end without a newline.
+                > This is a multi-line string.  It should end without a newline.
             key 11:
-                This is a multi-line string.  It should end with a newline.
-
+                > This is a multi-line string.  It should end with a newline.
+                >
             key 12:
-
-                This is another
-                multi-line string.
-
-                This continues the same string.
-
-
+                >
+                > This is another
+                > multi-line string.
+                >
+                > This continues the same string.
+                >
+                >
             key 13:
         """),
         # expected {{{3
@@ -135,13 +136,13 @@ testcases = dict(
                         - value 4.4.3.2
             key 5: value 5 part 1
             key 6:
-                value 6 part 1
-                value 6 part 2
+                > value 6 part 1
+                > value 6 part 2
             key 7:
-                value 7 part 1
-
-                value 7 part 3
-
+                > value 7 part 1
+                >
+                > value 7 part 3
+                >
             key 8:
                 - value 8.1
                 - value 8.2
@@ -150,16 +151,16 @@ testcases = dict(
                 - value 9.2
             key 10: This is a multi-line string.  It should end without a newline.
             key 11:
-                This is a multi-line string.  It should end with a newline.
-
+                > This is a multi-line string.  It should end with a newline.
+                >
             key 12:
-
-                This is another
-                multi-line string.
-
-                This continues the same string.
-
-
+                >
+                > This is another
+                > multi-line string.
+                >
+                > This continues the same string.
+                >
+                >
             key 13:
         """).strip('\n'),
     ),
@@ -188,9 +189,10 @@ testcases = dict(
                 monthly: 12
                 yearly: 5
             passphrase:
-                trouper segregate militia airway pricey sweetmeat tartan bookstall
-                obsession charlady twosome silky puffball grubby ranger notation
-                rosebud replicate freshen javelin abbot autocue beater byway
+                > trouper segregate militia airway pricey sweetmeat tartan bookstall
+                > obsession charlady twosome silky puffball grubby ranger notation
+                > rosebud replicate freshen javelin abbot autocue beater byway
+                >
 
         """),
         # expected {{{3
@@ -242,10 +244,11 @@ testcases = dict(
                 monthly: 12
                 yearly: 5
             passphrase:
-                trouper segregate militia airway pricey sweetmeat tartan bookstall
-                obsession charlady twosome silky puffball grubby ranger notation
-                rosebud replicate freshen javelin abbot autocue beater byway
-        """).lstrip('\n'),
+                > trouper segregate militia airway pricey sweetmeat tartan bookstall
+                > obsession charlady twosome silky puffball grubby ranger notation
+                > rosebud replicate freshen javelin abbot autocue beater byway
+                >
+        """).strip('\n'),
     ),
 
     # testcase3 {{{2
@@ -259,7 +262,8 @@ testcases = dict(
                 - bux
                 -
                 -
-
+                    >
+                    >
 
                 - crux
                 -
@@ -281,8 +285,8 @@ testcases = dict(
                 - bux
                 -
                 -
-
-
+                    >
+                    >
                 - crux
                 -
                 - ' — '
@@ -319,7 +323,7 @@ def test_testcase3():
 def test_errors():
     content = dedent("""
         ingredients:
-          green chilies
+          > green chilies
     """)
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
@@ -327,11 +331,11 @@ def test_errors():
     assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
     assert exception.value.kwargs == dict(
         culprit = (3,),
-        codicil = ('«  green chilies»\n ↑',),
-        line = '  green chilies',
+        codicil = ('«  > green chilies»\n ↑',),
+        line = '  > green chilies',
         loc = 0,
     )
-    assert exception.value.line == '  green chilies'
+    assert exception.value.line == '  > green chilies'
     assert exception.value.loc == 0
 
     with pytest.raises(udif.Error) as exception:
@@ -340,11 +344,11 @@ def test_errors():
     assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 3),
-        codicil = ('«  green chilies»\n ↑',),
-        line = '  green chilies',
+        codicil = ('«  > green chilies»\n ↑',),
+        line = '  > green chilies',
         loc = 0,
     )
-    assert exception.value.line == '  green chilies'
+    assert exception.value.line == '  > green chilies'
     assert exception.value.loc == 0
 
     content = dedent("""
@@ -397,8 +401,8 @@ def test_errors():
     assert exception.value.loc == 4
 
     content = dedent("""
-        ingredients
-        green chilies
+        > ingredients
+        > green chilies
     """).lstrip()
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
@@ -406,10 +410,10 @@ def test_errors():
     assert exception.value.args == ('expected list or dictionary item.',)
     assert exception.value.kwargs == dict(
         culprit = (1,),
-        codicil = ('«ingredients»',),
-        line = 'ingredients',
+        codicil = ('«> ingredients»',),
+        line = '> ingredients',
     )
-    assert exception.value.line == 'ingredients'
+    assert exception.value.line == '> ingredients'
     assert exception.value.loc == None
 
     data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
@@ -421,6 +425,22 @@ def test_errors():
         culprit = ("'apricot\\n'",),
         template = 'keys must not contain newlines.',
     )
+
+    content = dedent("""
+        ingredients:
+            green chilies
+    """).lstrip()
+    with pytest.raises(udif.Error) as exception:
+        udif.loads(content)
+    assert str(exception.value) == '2: unrecognized line.'
+    assert exception.value.args == ('unrecognized line.',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«    green chilies»',),
+        line = '    green chilies',
+    )
+    assert exception.value.line == '    green chilies'
+    assert exception.value.loc == None
 
 # test_dump() {{{1
 def test_dump():
