@@ -84,7 +84,7 @@ def report(message, line, loc=None):
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
     else:
-        kwargs['culprit'] = get_culprit(line.num)
+        kwargs['culprit'] = get_culprit()
     raise Error(message, **kwargs)
 
 
@@ -178,7 +178,7 @@ class Lines:
             if not self.next_line or self.next_line.kind not in ["empty", "comment"]:
                 break
 
-        if this_line.kind == "unrecognized":
+        if this_line and this_line.kind == "unrecognized":
             report('unrecognized line.', this_line)
         return this_line
 
@@ -202,10 +202,10 @@ def read_list(lines, depth):
         if line.kind != "list item":
             report("expected list item", line)
         if line.value:
-            dbg(line, 'lv')
+            # dbg(line, 'lv')
             data.append(line.value)
         else:
-            dbg(line, 'l↵')
+            # dbg(line, 'l↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
             if lines.next_indented(depth):
@@ -226,10 +226,12 @@ def read_dict(lines, depth):
         if line.kind != "dict item":
             report("expected dictionary item", line)
         if line.value:
-            dbg(line, 'dv')
+            # dbg(line, 'dv')
+            if line.key in data:
+                report(f'duplicate key: {line.key}.', line)
             data.update({line.key: line.value})
         else:
-            dbg(line, 'd↵')
+            # dbg(line, 'd↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
             if lines.next_indented(depth):
@@ -245,7 +247,7 @@ def read_string(lines, depth):
     data = []
     while lines.still_within_string(depth):
         line = lines.get_next()
-        dbg(line, '""')
+        # dbg(line, '""')
         data.append(line.value)
     return "\n".join(data)
 
@@ -256,12 +258,16 @@ def loads(contents, culprit=None):
     Loads Udiff from string.
 
     Args:
-        contents 9str):
-            String that contains Udif data.
+        contents (str):
+            String that contains encoded data.
         culprit (str):
             Optional culprit. It is prepended to any error messages but is
             otherwise unused. Is often the name of the file that originally
             contained contents.
+
+    Returns:
+        A dictionary or list containing the data.  If contents is empty, an
+        empty dictionary is returned.
 
     **Example**::
 
@@ -282,7 +288,11 @@ def loads(contents, culprit=None):
     with set_culprit(culprit):
         lines = Lines(contents)
 
-        if lines.type_of_next() not in ["list item", "dict item"]:
-            report("expected list or dictionary item.", lines.get_next())
+        type_of_first = lines.type_of_next()
+        if type_of_first not in ["list item", "dict item"]:
+            if type_of_first:
+                report("expected list or dictionary item.", lines.get_next())
+            else:
+                return {}
         else:
             return read_value(lines, 0)

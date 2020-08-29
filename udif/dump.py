@@ -97,7 +97,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         key: 42
         value: 3.1415926
         valid: True
-        color: Color('red')
+        color: "Color('red')"
 
         >>> print(udif.dumps(data, default=str))
         key: 42
@@ -166,14 +166,20 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             if '\n' in s:
                 raise Error(s, template='keys must not contain newlines.', culprit=repr(s))
             if (
-                not s
-                or len(stripped) < len(s)
-                or s[0] == "#"
+                len(stripped) < len(s)
+                or s[:1] == "#"
                 or s.startswith("- ")
-                or s.endswith(":")
+                or s.startswith("> ")
+                or ': ' in s
+                or '"' in s
+                or "'" in s
             ):
                 return repr(s)
-        if len(stripped) < len(s):
+        if (
+            len(stripped) < len(s)
+            or '"' in s
+            or "'" in s
+        ):
             return repr(s)
         return s
 

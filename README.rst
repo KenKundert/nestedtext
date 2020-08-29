@@ -288,7 +288,7 @@ values are *str* and *repr*::
     key: 42
     value: 3.1415926
     valid: True
-    house: Color('red')
+    house: "Color('red')"
 
     >>> print(udif.dumps(data, default=str))
     key: 42
