@@ -2,8 +2,8 @@
 Udif: human readable, writable, and editable data interchange format
 """
 
-__version__ = "0.0.5"
-__released__ = "2020-08-28"
+__version__ = "0.0.6"
+__released__ = "2020-08-29"
 
 from .load import loads
 from .dump import dumps
