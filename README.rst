@@ -269,7 +269,7 @@ exceptions::
     ...     print(udif.dumps(data, default='strict'))
     ... except udif.Error as e:
     ...     print(str(e))
-    unsupported type: 42.
+    42: unsupported type.
 
 Alternatively, you can specify a function to *default*, which is used to convert 
 values to strings.  It is used if no other converter is available.  Typical 

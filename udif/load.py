@@ -57,7 +57,7 @@ def increment(depth):
 highlight = InformantFactory(message_color='blue')
 
 
-def dbg(line, kind):
+def dbg(line, kind):  # pragma: no cover
     if line.depth is None:
         indents = ' '
     else:
@@ -72,9 +72,8 @@ def join_and_dequote(l):
     return s
 
 
-def report(message, line, loc=None):
+def report(message, line, *args, loc=None, **kwargs):
     message = full_stop(message)
-    kwargs = {}
     if line:
         kwargs['culprit'] = get_culprit(line.num)
         if loc is not None:
@@ -84,8 +83,8 @@ def report(message, line, loc=None):
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
     else:
-        kwargs['culprit'] = get_culprit()
-    raise Error(message, **kwargs)
+        kwargs['culprit'] = get_culprit()  # pragma: no cover
+    raise Error(template=message, *args, **kwargs)
 
 
 def indentation_error(line, depth):
@@ -228,7 +227,7 @@ def read_dict(lines, depth):
         if line.value:
             # dbg(line, 'dv')
             if line.key in data:
-                report(f'duplicate key: {line.key}.', line)
+                report('duplicate key: {}.', line, line.key)
             data.update({line.key: line.value})
         else:
             # dbg(line, 'd↵')

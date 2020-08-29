@@ -91,7 +91,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         ...     print(udif.dumps(data))
         ... except udif.Error as e:
         ...     print(str(e))
-        unsupported type: Color('red').
+        Color('red'): unsupported type.
 
         >>> print(udif.dumps(data, default=repr))
         key: 42
@@ -196,7 +196,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
     content = ''
     render = renderers.get(type(obj)) if renderers else None
     if render is False:
-        error = "unsupported type: {!r}."
+        error = "unsupported type."
     elif render:
         content = render(obj)
     elif is_a_dict(obj):
@@ -217,11 +217,9 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
     elif is_a_scalar(obj):
         content = str(obj)
     elif default and callable(default):
-        if level == 0:
-            error = 'expected dictionary or list.'
         content = default(obj)
     else:
-        error = "unsupported type: {!r}."
+        error = "unsupported type."
 
     if level == 0:
         if not is_collection(obj):
@@ -233,6 +231,6 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             content = render_str(content)
 
     if error:
-        raise Error(obj, template=error, codicil=repr(obj))
+        raise Error(obj, template=error, culprit=repr(obj))
 
     return content

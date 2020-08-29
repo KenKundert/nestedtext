@@ -319,8 +319,15 @@ def test_testcase3():
     assert udif.dumps(result) == case.invarient
 
 
-# test_errors() {{{1
-def test_errors():
+# test_loads() {{{1
+def test_loads():
+    content = ''
+    data = udif.loads(content)
+    assert data == {}
+
+
+# test_loads_errors() {{{1
+def test_loads_errors():
     content = dedent("""
         ingredients:
           > green chilies
@@ -328,12 +335,13 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '3: indentation must be a multiple of 4 spaces.'
-    assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«  > green chilies»\n ↑',),
         line = '  > green chilies',
         loc = 0,
+        template = 'indentation must be a multiple of 4 spaces.',
     )
     assert exception.value.line == '  > green chilies'
     assert exception.value.loc == 0
@@ -341,12 +349,13 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content, 'recipe')
     assert str(exception.value) == 'recipe, 3: indentation must be a multiple of 4 spaces.'
-    assert exception.value.args == ('indentation must be a multiple of 4 spaces.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 3),
         codicil = ('«  > green chilies»\n ↑',),
         line = '  > green chilies',
         loc = 0,
+        template = 'indentation must be a multiple of 4 spaces.',
     )
     assert exception.value.line == '  > green chilies'
     assert exception.value.loc == 0
@@ -358,11 +367,12 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '3: expected dictionary item.'
-    assert exception.value.args == ('expected dictionary item.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«- green chilies»',),
         line = '- green chilies',
+        template = 'expected dictionary item.',
     )
     assert exception.value.line == '- green chilies'
     assert exception.value.loc == None
@@ -374,11 +384,12 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '3: expected list item.'
-    assert exception.value.args == ('expected list item.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«ingredients:»',),
         line = 'ingredients:',
+        template = 'expected list item.',
     )
     assert exception.value.line == 'ingredients:'
     assert exception.value.loc == None
@@ -390,12 +401,13 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '3: unexpected indent.'
-    assert exception.value.args == ('unexpected indent.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«        - green chilies»\n     ↑',),
         line = '        - green chilies',
         loc = 4,
+        template = 'unexpected indent.',
     )
     assert exception.value.line == '        - green chilies'
     assert exception.value.loc == 4
@@ -407,24 +419,15 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '1: expected list or dictionary item.'
-    assert exception.value.args == ('expected list or dictionary item.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (1,),
         codicil = ('«> ingredients»',),
         line = '> ingredients',
+        template = 'expected list or dictionary item.',
     )
     assert exception.value.line == '> ingredients'
     assert exception.value.loc == None
-
-    data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data)
-    assert str(exception.value) == "'apricot\\n': keys must not contain newlines."
-    assert exception.value.args == ('apricot\n',)
-    assert exception.value.kwargs == dict(
-        culprit = ("'apricot\\n'",),
-        template = 'keys must not contain newlines.',
-    )
 
     content = dedent("""
         ingredients:
@@ -433,13 +436,31 @@ def test_errors():
     with pytest.raises(udif.Error) as exception:
         udif.loads(content)
     assert str(exception.value) == '2: unrecognized line.'
-    assert exception.value.args == ('unrecognized line.',)
+    assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (2,),
         codicil = ('«    green chilies»',),
         line = '    green chilies',
+        template = 'unrecognized line.',
     )
     assert exception.value.line == '    green chilies'
+    assert exception.value.loc == None
+
+    content = dedent("""
+        key: value 1
+        key: value 2
+    """).lstrip()
+    with pytest.raises(udif.Error) as exception:
+        udif.loads(content)
+    assert str(exception.value) == '2: duplicate key: key.'
+    assert exception.value.args == ('key',)
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«key: value 2»',),
+        line = 'key: value 2',
+        template = 'duplicate key: {}.',
+    )
+    assert exception.value.line == 'key: value 2'
     assert exception.value.loc == None
 
 # test_dump() {{{1
@@ -477,6 +498,52 @@ def test_dump():
             )
     ''').strip()
     assert content == expected
+
+
+# test_dumps_errors() {{{1
+def test_dumps_errors():
+
+    data = ""
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data)
+    assert str(exception.value) == "'': expected dictionary or list."
+    assert exception.value.args == ('',)
+    assert exception.value.kwargs == dict(
+        culprit = ("''",),
+        template = 'expected dictionary or list.',
+    )
+
+    data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data)
+    assert str(exception.value) == "'apricot\\n': keys must not contain newlines."
+    assert exception.value.args == ('apricot\n',)
+    assert exception.value.kwargs == dict(
+        culprit = ("'apricot\\n'",),
+        template = 'keys must not contain newlines.',
+    )
+
+    data = dict(name=42)
+    renderers = {int: False}
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data, renderers=renderers)
+    assert str(exception.value) == "42: unsupported type."
+    assert exception.value.args == (42,)
+    assert exception.value.kwargs == dict(
+        culprit = ('42',),
+        template = 'unsupported type.',
+    )
+
+    data = 42
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data)
+    assert str(exception.value) == "42: expected dictionary or list."
+    assert exception.value.args == (42,)
+    assert exception.value.kwargs == dict(
+        culprit = ('42',),
+        template = 'expected dictionary or list.',
+    )
+
 
 
 # main {{{1
