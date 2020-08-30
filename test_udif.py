@@ -624,6 +624,46 @@ def test_dumps_errors():
     )
 
     data = dict(name=42)
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data, default='strict')
+    assert str(exception.value) == "42: unsupported type."
+    assert exception.value.args == (42,)
+    assert exception.value.kwargs == dict(
+        culprit = ('42',),
+        template = 'unsupported type.',
+    )
+
+    data = dict(name=42.0)
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data, default='strict')
+    assert str(exception.value) == "42.0: unsupported type."
+    assert exception.value.args == (42.0,)
+    assert exception.value.kwargs == dict(
+        culprit = ('42.0',),
+        template = 'unsupported type.',
+    )
+
+    data = dict(name=True)
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data, default='strict')
+    assert str(exception.value) == "True: unsupported type."
+    assert exception.value.args == (True,)
+    assert exception.value.kwargs == dict(
+        culprit = ('True',),
+        template = 'unsupported type.',
+    )
+
+    data = dict(name=None)
+    with pytest.raises(udif.Error) as exception:
+        content = udif.dumps(data, default='strict')
+    assert str(exception.value) == "None: unsupported type."
+    assert exception.value.args == (None,)
+    assert exception.value.kwargs == dict(
+        culprit = ('None',),
+        template = 'unsupported type.',
+    )
+
+    data = dict(name=42)
     renderers = {int: False}
     with pytest.raises(udif.Error) as exception:
         content = udif.dumps(data, renderers=renderers)

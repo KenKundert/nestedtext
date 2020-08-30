@@ -1,7 +1,7 @@
 Reader
 ------
 
-You can read a data file using :func:`udif.loads()`::
+You can read a data file using :func:`udif.loads()`:
 
 .. code-block:: python
 
@@ -89,7 +89,7 @@ plumbing the data can be transformed to the needed form.  This will be
 demonstrated with a very simple example.
 
 In order for *voluptuous* to convert the data to the desired type, a converter 
-function is helpful::
+function is helpful:
 
 .. code-block:: python
 

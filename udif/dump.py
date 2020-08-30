@@ -48,7 +48,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             If a function is passed in, it is used as the key function.
         indent (int):
             The number of spaces to use to represent a single level of
-            indentation.  Must be positive.
+            indentation.  Must be one or greater.
         renderers (dict):
             A dictionary where the keys are types and the values are render
             functions (functions that take an object and convert it to a string).
@@ -85,7 +85,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             - 4
 
     *dumps* has built in support for the base Python types of *None*, *bool*,
-    *str*, *float*, *list*, *tuple*, *set*, and *dict*.  If *default*='strict'
+    *str*, *float*, *list*, *tuple*, *set*, and *dict*.  If *default* = 'strict'
     is specified, that list shrinks to *str*, *list*, and *dict*.
 
     You must make special arrangements to handle objects of other types.  There
