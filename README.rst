@@ -333,5 +333,5 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.0.6
+    | Version: 0.0.7
     | Released: 2020-08-29
