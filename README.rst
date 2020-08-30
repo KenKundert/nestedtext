@@ -1,6 +1,18 @@
 Udif: A Human Readable and Writable Data Interchange Format
 ===========================================================
 
+.. image:: https://img.shields.io/travis/KenKundert/udif/master.svg
+    :target: https://travis-ci.org/KenKundert/udif
+
+.. image:: https://img.shields.io/coveralls/KenKundert/udif.svg
+    :target: https://coveralls.io/r/KenKundert/udif
+
+
+:Author: Ken Kundert
+:Version: 0.0.7
+:Released: 2020-08-29
+
+
 Provides a file format for exchanging data held in strings, lists, and 
 dictionaries.  In this way it is similar to JSON, YaML, or StrictYaML, but with 
 a restricted set of supported data types, the file format is simpler. It is 
