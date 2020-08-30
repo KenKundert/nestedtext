@@ -17,7 +17,8 @@ Udif: A Human Readable and Writable Data Interchange Format
 
 
 *Udif* is a file format for exchanging data held in strings, lists, and␣
-dictionaries.  In this way it is similar to JSON, YaML, or StrictYaML, but with␣
+dictionaries.  In this way it is similar to *JSON*, *YAML*, or *StrictYAML*, but 
+with␣
 a restricted set of supported data types, the file format is simpler. It is␣
 designed to be easy to enter with a text editor and easy to read.  The small␣
 number of data types supported means few rules need be kept in mind when␣
@@ -70,6 +71,38 @@ lists (ordered collections of values) and strings organized hierarchically to
 any depth.  Indentation is used to indicate the hierarchy of the data, and 
 simple syntax is used to distinguish the types of data in such a manner that it 
 is not easily confused.
+
+
+Alternatives
+------------
+
+There are no shortage of well established alternative to *Udif* for storing data 
+in a human-readable text file. Probably the most obvious are `json 
+<https://docs.python.org/3/library/json.html>`_ and `YAML 
+<https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both have serious short 
+comings.
+
+*JSON* is a subset of JavaScript suitable for holding data. Like *Udif* it 
+consists of a hierarchical collection of dictionaries, lists, and strings, but 
+also allows integers, floats, booleans and nulls.  The problem with *JSON* for 
+this application is that it is awkward. All strings have to be quoted; it only 
+supports multi-line strings by using long single-line strings with embedded 
+newline characters; and dictionary and list items must be separated with commas.  
+All of which results in *JSON* being a frustrating format for humans to enter or 
+read.
+
+*YAML* was to be the human friendly alternative to *JSON*, but things went very 
+wrong. The authors were too ambitious and tried to support too many data types 
+and too many formats. To distinguish between all the various types and formats, 
+a complicated and non-intuitive set of rules developed.  *YAML* at first appears 
+very appealing when used with simple examples, but things quickly become very 
+complicated.  A reaction to this is the use of *YAML* subsets, such as 
+`StrictYAML <https://hitchdev.com/strictyaml>`_.  However, *StrictYAML* tries to 
+maintain compatibility with *YAML* and so inherits much of its complexity.
+
+*Udif* was inspired by *YAML*, but eschews its complexity. It supports only 
+a limited number of types and has a very simple set of rules that make up the 
+format.
 
 
 Quick Start
