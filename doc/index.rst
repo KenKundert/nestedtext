@@ -1,13 +1,6 @@
 Udif: A Human Readable and Writable Data Interchange Format
 ===========================================================
 
-.. image:: https://img.shields.io/travis/KenKundert/udif/master.svg
-    :target: https://travis-ci.org/KenKundert/udif
-
-.. image:: https://img.shields.io/coveralls/KenKundert/udif.svg
-    :target: https://coveralls.io/r/KenKundert/udif
-
-
 | Version: 0.0.7
 | Released: 2020-08-29
 | Please post all bugs and suggestions at
@@ -25,8 +18,7 @@ creating a file.  The result is a data file that is easily created, modified, or
 viewed with a text editor and be understood and used by both programmers and␣
 non-programmers.
 
-*Udif* is convenient for configuration files, address books, account information 
-and the like.  Here is an example of a file that contains a few addresses::
+Here is an example of a file that contains a few addresses::
 
     # Contact information for our officers
 
@@ -77,7 +69,7 @@ Quick Start
 
 Install with::
 
-   pip3 install udif     -- not yet available
+   pip3 install udif     -- not available yet
 
 
 Issues
@@ -94,3 +86,18 @@ The package contains a Python implmentation on *udif*. For *udif* to catch on
 widely, implementation in many language will required. If you like the format 
 and have interest in doing so, please consider contributing additional 
 implementations, particularly for other languages.
+
+
+Documentation
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   format
+   reader
+   writer
+   api
+   releases
+
+*  :ref:`genindex`

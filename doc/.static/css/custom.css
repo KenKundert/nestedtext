@@ -1,0 +1,7 @@
+/*
+ * the following is used to make the highlighting that introduces classes, 
+ * methods, functions, etc extend across the width of the page.
+ */
+dt:first-child {
+    width: 100%;
+}

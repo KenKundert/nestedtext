@@ -1,0 +1,8 @@
+#!/bin/csh -f
+
+foreach f (*.rst ../*.rst)
+    echo "=== ${f} ==="
+    rstspell $f
+end
+
+# Use 'rstspell -u filename.rst' to update the exceptions file.
