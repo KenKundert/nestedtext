@@ -8,8 +8,8 @@ Udif: A Human Readable and Writable Data Interchange Format
     :target: https://coveralls.io/r/KenKundert/udif
 
 
-| Version: 0.0.7
-| Released: 2020-08-29
+| Version: 0.0.8
+| Released: 2020-08-30
 | Please post all bugs and suggestions at
   `Udif Github <https://github.com/KenKundert/udif/issues>`_
   (or contact me directly at
