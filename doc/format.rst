@@ -127,31 +127,65 @@ indentation.  Specifically, tabs are not allowed in the indentation and they
 cannot follow a colon, dash, or greater to form a dictionary, list, or 
 multi-line string tag, but can be used elsewhere.
 
-Here is typical example::
 
-    # backup settings for root
-    src_dir: /
-    excludes:
-        - /dev
-        - /home/*/.cache
-        - /root/*/.cache
-        - /proc
-        - /sys
-        - /tmp
-        - /var/cache
-        - /var/lock
-        - /var/run
-        - /var/tmp
-    keep:
-        hourly: 24
-        daily: 7
-        weekly: 4
-        monthly: 12
-        yearly: 5
-    passphrase:
-        > trouper segregate militia airway pricey sweetmeat tartan bookstall
-        > obsession charlady twosome silky puffball grubby ranger notation
-        > rosebud replicate freshen javelin abbot autocue beater byway
+Rules
+~~~~~
 
-Notice that even though some values are given as integers, their values are 
-retained as strings.
+The *Udif* format follows a small number of simple rules. Here they are.
+
+Each line in a *Udif* document is assigned one of the following types: comment, 
+blank, list-item, dict-item, and string-item.  Any line that does not fit one of 
+these types is an error.
+
+Comments are lines that have `#` as the first character on the line. Comments 
+are ignored.
+
+Blank lines are lines that are empty or consist only of white space characters 
+(spaces or tabs).  Blank lines are ignored.
+
+The remaining lines are identifying by which of one of these pairs of characters 
+are found in an unquoted portion of the line: '- ', ': ', '> ', or ':↵'.  Once 
+the first of one of these pairs has been found in the unquoted portion of the 
+line, any subsequent occurrences are treated as simple text.  For example::
+
+    - And the winner is: {winner}
+
+In this case the leading '- ' determines the type of the line and the ': ' is 
+simply treated as part of the remaining text on the line.
+
+If the line begins with '- ' and it is not within quotes, the line is 
+a list-item.  Adjacent list-items with the same indentation level are combined 
+into a list with their order being retained.  Each list-item has an associated 
+value.
+
+If the line begins with '> ' and it is not within quotes, or if the line 
+consists of a single indented '>', the line is a string-item.  Adjacent 
+string-items with the same indentation level are combined into a multi-line 
+string with their order being retained.  Any leading white space the follows the 
+'> ' or any trailing space is retained.
+
+If the line contains an ': ' or ends with a ':', the line is considered 
+a dict-item.  Adjacent dict-items with the same indentation level are combined 
+into a dictionary with their order being retained.  Each dict-item consists of 
+a key, the colon, and a value.
+
+The values associated with list and dict items may take one of three forms. If 
+the line contains further text (non-white space characters after the '- ' or ': 
+'), then that text minus any leading or trailing white space is the value.  The 
+value may be quoted, in which case the value is the text within the matching 
+quotes. For example::
+
+    - this is the value
+
+    - 'this is the value'
+
+    key: this is the value
+
+    key: "this is the value"
+
+In each of these cases, the value resolves to the string: `this is the value`.
+
+If there is no further text on the line and the next line has greater 
+indentation, then the next line holds the value, which may be a list, 
+a dictionary, or a multi-line string.  Otherwise the value is empty; it is taken 
+to be an empty string. 

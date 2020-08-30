@@ -99,7 +99,7 @@ class Lines:
         self.next_line = True
         while self.next_line:
             self.next_line = next(self.generator, None)
-            if self.next_line and self.next_line.kind not in ["empty", "comment"]:
+            if self.next_line and self.next_line.kind not in ["blank", "comment"]:
                 return
 
     # read_lines() {{{2
@@ -109,7 +109,7 @@ class Lines:
             key = None
             value = None
             if line.strip() == "":
-                kind = "empty"
+                kind = "blank"
                 value = "\n"
             elif line[:1] == "#":
                 kind = "comment"
@@ -179,7 +179,7 @@ class Lines:
         # access the next upcoming line.
         while self.next_line:
             self.next_line = next(self.generator, None)
-            if not self.next_line or self.next_line.kind not in ["empty", "comment"]:
+            if not self.next_line or self.next_line.kind not in ["blank", "comment"]:
                 break
 
         if this_line and this_line.kind == "unrecognized":
