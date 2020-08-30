@@ -20,11 +20,24 @@
 # this program.  If not, see http://www.gnu.org/licenses/.
 
 # Imports {{{1
-from inform import indent, Error, is_str, is_collection, is_mapping
+from inform import Error, is_str, is_collection, is_mapping
+
+
+# Utilities {{{1
+# add_leader
+def add_leader(s, leader):
+    # split into separate lines
+    # add leader to each non-blank line
+    # add right-stripped leader to each blank line
+    # rejoin and return
+    return '\n'.join(
+        leader + line if line else leader.rstrip()
+        for line in s.split('\n')
+    )
 
 
 # dumps {{{1
-def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
+def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):
     """Recursively convert object to string with reasonable formatting.
 
     Args:
@@ -33,6 +46,9 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is true.
             If a function is passed in, it is used as the key function.
+        indent (int):
+            The number of spaces to use to represent a single level of
+            indentation.  Must be positive.
         renderers (dict):
             A dictionary where the keys are types and the values are render
             functions (functions that take an object and convert it to a string).
@@ -47,10 +63,10 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             then a broader collection of value types are supported, including
             *None*, *bool*, *int*, *float*, and *list*- and *dict*-like objects.
         level (int):
-            The indent level.  When dumps is invoked recursively this is used to
-            increment the level and so the indent.  Generally not specified by
-            the user, but can be useful in unusual situations to specify an
-            initial indent.
+            The number of indentation levels.  When dumps is invoked recursively
+            this is used to increment the level and so the indent.  Generally
+            not specified by the user, but can be useful in unusual situations
+            to specify an initial indent.
 
     **Example**::
 
@@ -154,6 +170,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         return dumps(
             v,
             sort_keys = sort_keys,
+            indent = indent,
             renderers = renderers,
             default = default,
             level = level + 1
@@ -192,6 +209,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         return prefix + " " + suffix
 
     # render content
+    assert indent > 0
     error = None
     content = ''
     render = renderers.get(type(obj)) if renderers else None
@@ -211,7 +229,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
         )
     elif is_a_str(obj):
         if "\n" in obj:
-            content = indent(obj, '> ')
+            content = add_leader(obj, '> ')
         else:
             content = obj
     elif is_a_scalar(obj):
@@ -226,7 +244,7 @@ def dumps(obj, *, sort_keys=False, renderers=None, default=None, level=0):
             error = 'expected dictionary or list.'
     else:
         if is_collection(obj) or '\n' in content:
-            content = "\n" + indent(content)
+            content = "\n" + add_leader(content, indent*' ')
         else:
             content = render_str(content)
 

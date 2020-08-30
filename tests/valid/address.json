@@ -14,13 +14,22 @@
     },
     "vice president": {
         "name": "Margaret Hodge",
-        "address": "2586 Marigold Land\nTopika, Kansas 20697",
+        "address": "2586 Marigold Lane\nTopika, Kansas 20682",
         "phone": "1-470-974-0398",
         "email": "margarett.hodge@uk.edu",
         "kids": [
             "Arnie",
             "Zach",
             "Maggie"
+        ]
+    },
+    "treasurer": {
+        "name": "Fumiko\tPurvis",
+        "address": "\t3636 Buffalo Ave\t\n\tTopika, Kansas 20692\t",
+        "phone": "1-268-877-0280",
+        "email": "fumiko.purvis@hotmail.com",
+        "kids": [
+            "Lue"
         ]
     }
 }

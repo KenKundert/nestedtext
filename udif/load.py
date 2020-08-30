@@ -50,10 +50,6 @@ is_quoted = re.compile(r"\A *" + quoted + r" *\Z")
 
 
 # Utilities {{{1
-def increment(depth):
-    return depth + indent_spaces
-
-
 highlight = InformantFactory(message_color='blue')
 
 
@@ -89,12 +85,7 @@ def report(message, line, *args, loc=None, **kwargs):
 
 def indentation_error(line, depth):
     assert line.depth != depth
-    if line.depth % indent_spaces:
-        message = f"indentation must be a multiple of {indent_spaces} spaces."
-    else:
-        kind = "indent" if line.depth > depth else "dedent"
-        message = f"unexpected {kind}."
-    report(message, line, loc=depth)
+    report('invalid indentation.', line, loc=depth)
 
 
 # Lines class {{{1
@@ -124,7 +115,7 @@ class Lines:
                 kind = "comment"
                 value = line[1:].strip()
             else:
-                stripped = line.lstrip(" ")
+                stripped = line.lstrip()
                 depth = len(line) - len(stripped)
                 components = splitter.split(line + " ")
                 if list_tag == "".join(components[:2]).lstrip(" "):
@@ -137,13 +128,26 @@ class Lines:
                     value = join_and_dequote(components[split_loc + 1 :])
                 elif str_tag == "".join(components[:2]).lstrip(" "):
                     kind = "string"
-                    value = "".join(components[2:]).strip()
+                    value = "".join(components[2:])[:-1]
                 else:
                     kind = "unrecognized"
                     value = line
-            yield self.Line(
+
+            the_line = self.Line(
                 text=line, num=lineno+1, kind=kind, depth=depth, key=key, value=value
             )
+
+            # check the indent for non-spaces
+            if depth:
+                first_non_space = len(line) - len(line.lstrip(" "))
+                if first_non_space < depth:
+                    report(
+                        f'invalid character in indentation: {line[first_non_space]!r}.',
+                        the_line,
+                        loc = first_non_space
+                    )
+
+            yield the_line
 
     # type_of_next() {{{2
     def type_of_next(self):
@@ -160,10 +164,11 @@ class Lines:
         if self.next_line:
             return self.next_line.kind == "string" and self.next_line.depth == depth
 
-    # next_indented() {{{2
-    def next_indented(self, depth):
+    # depth_of_next() {{{2
+    def depth_of_next(self):
         if self.next_line:
-            return self.next_line.depth > depth
+            return self.next_line.depth
+        return 0
 
     # get_next() {{{2
     def get_next(self):
@@ -207,8 +212,9 @@ def read_list(lines, depth):
             # dbg(line, 'l↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
-            if lines.next_indented(depth):
-                value = read_value(lines, increment(depth))
+            depth_of_next = lines.depth_of_next()
+            if depth_of_next > depth:
+                value = read_value(lines, depth_of_next)
             else:
                 value = ''
             data.append(value)
@@ -233,8 +239,9 @@ def read_dict(lines, depth):
             # dbg(line, 'd↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
-            if lines.next_indented(depth):
-                value = read_value(lines, increment(depth))
+            depth_of_next = lines.depth_of_next()
+            if depth_of_next > depth:
+                value = read_value(lines, depth_of_next)
             else:
                 value = ''
             data.update({line.key: value})

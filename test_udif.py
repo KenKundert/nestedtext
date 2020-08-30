@@ -325,39 +325,58 @@ def test_loads():
     data = udif.loads(content)
     assert data == {}
 
+    content = dedent("""
+        ingredients:
+          > green chilies
+    """)
+    data = udif.loads(content)
+    assert data == dict(ingredients = 'green chilies')
+
+    content = dedent("""
+        what makes it green\t: \tgreen\tchilies\t
+    """)
+    data = udif.loads(content)
+    assert data == {'what makes it green': 'green\tchilies'}
+
 
 # test_loads_errors() {{{1
 def test_loads_errors():
     content = dedent("""
         ingredients:
-          > green chilies
+            > green chilies
+          > red chilies
     """)
     with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
-    assert str(exception.value) == '3: indentation must be a multiple of 4 spaces.'
+        udif.loads(content, 'recipe')
+    assert str(exception.value) == 'recipe, 4: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
-        culprit = (3,),
-        codicil = ('«  > green chilies»\n ↑',),
-        line = '  > green chilies',
+        culprit = ('recipe', 4),
+        codicil = ('«  > red chilies»\n ↑',),
+        line = '  > red chilies',
         loc = 0,
-        template = 'indentation must be a multiple of 4 spaces.',
+        template = 'invalid indentation.',
     )
-    assert exception.value.line == '  > green chilies'
+    assert exception.value.line == '  > red chilies'
     assert exception.value.loc == 0
 
+    content = dedent("""
+        ingredients:
+          > green chilies
+            > red chilies
+    """)
     with pytest.raises(udif.Error) as exception:
         udif.loads(content, 'recipe')
-    assert str(exception.value) == 'recipe, 3: indentation must be a multiple of 4 spaces.'
+    assert str(exception.value) == 'recipe, 4: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
-        culprit = ('recipe', 3),
-        codicil = ('«  > green chilies»\n ↑',),
-        line = '  > green chilies',
+        culprit = ('recipe', 4),
+        codicil = ('«    > red chilies»\n ↑',),
+        line = '    > red chilies',
         loc = 0,
-        template = 'indentation must be a multiple of 4 spaces.',
+        template = 'invalid indentation.',
     )
-    assert exception.value.line == '  > green chilies'
+    assert exception.value.line == '    > red chilies'
     assert exception.value.loc == 0
 
     content = dedent("""
@@ -395,22 +414,40 @@ def test_loads_errors():
     assert exception.value.loc == None
 
     content = dedent("""
-        ingredients:
-                - green chilies
+            - green chilies
+        - red chilies
     """)
     with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
-    assert str(exception.value) == '3: unexpected indent.'
+        udif.loads(content, 'recipe')
+    assert str(exception.value) == 'recipe, 2: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
-        culprit = (3,),
-        codicil = ('«        - green chilies»\n     ↑',),
-        line = '        - green chilies',
-        loc = 4,
-        template = 'unexpected indent.',
+        culprit = ('recipe', 2),
+        codicil = ('«    - green chilies»\n ↑',),
+        line = '    - green chilies',
+        loc = 0,
+        template = 'invalid indentation.',
     )
-    assert exception.value.line == '        - green chilies'
-    assert exception.value.loc == 4
+    assert exception.value.line == '    - green chilies'
+    assert exception.value.loc == 0
+
+    content = dedent("""
+        - green chilies
+            - red chilies
+    """)
+    with pytest.raises(udif.Error) as exception:
+        udif.loads(content, 'recipe')
+    assert str(exception.value) == 'recipe, 3: invalid indentation.'
+    assert exception.value.args == ()
+    assert exception.value.kwargs == dict(
+        culprit = ('recipe', 3),
+        codicil = ('«    - red chilies»\n ↑',),
+        line = '    - red chilies',
+        loc = 0,
+        template = 'invalid indentation.',
+    )
+    assert exception.value.line == '    - red chilies'
+    assert exception.value.loc == 0
 
     content = dedent("""
         > ingredients
@@ -463,6 +500,25 @@ def test_loads_errors():
     assert exception.value.line == 'key: value 2'
     assert exception.value.loc == None
 
+    content = dedent("""
+        key:
+            \t    > first line
+            \t    > second line
+    """).lstrip()
+    with pytest.raises(udif.Error) as exception:
+        udif.loads(content)
+    assert str(exception.value) == r"2: invalid character in indentation: '\t'."
+    assert exception.value.args == ()
+    assert exception.value.kwargs == dict(
+        culprit = (2,),
+        codicil = ('«    \t    > first line»\n     ↑',),
+        line = '    \t    > first line',
+        template = r"invalid character in indentation: '\t'.",
+        loc = 4,
+    )
+    assert exception.value.line == '    \t    > first line'
+    assert exception.value.loc == 4
+
 # test_dump() {{{1
 def test_dump():
     data = {'peach': 3, 'apricot': 8, 'blueberry': '1 lb', 'orange': 4}
@@ -498,6 +554,50 @@ def test_dump():
             )
     ''').strip()
     assert content == expected
+
+    content0 = dedent("""
+        ingredients:
+          - green chilies
+          - red chilies
+    """)
+    data = udif.loads(content0)
+    assert data == dict(ingredients = ['green chilies', 'red chilies'])
+    content1 = udif.dumps(data, indent=2)
+    assert content1 == content0.strip()
+
+    content = dedent("""
+        # the following uses tabs in a legal way
+        treasurer:
+            name\t : \t       Fumiko\tPurvis    \t
+            address: \t
+                > \t 3636 Buffalo Ave \t
+                > \t Topika, Kansas 20692\t 
+    """)
+    data = udif.loads(content)
+    expected_data = dict(
+        treasurer = dict(
+            name = 'Fumiko\tPurvis',
+            address = '\t 3636 Buffalo Ave \t\n\t Topika, Kansas 20692\t '
+        )
+    )
+    assert data == expected_data
+    achieved_content = udif.dumps(data, indent=2)
+    expected_content = dedent("""
+        treasurer:
+          name: Fumiko\tPurvis
+          address:
+            > \t 3636 Buffalo Ave \t
+            > \t Topika, Kansas 20692\t 
+    """).strip('\n')
+    assert achieved_content == expected_content
+
+    data = {}
+    content = udif.dumps(data)
+    assert content == ""
+
+    data = []
+    content = udif.dumps(data)
+    assert content == ""
 
 
 # test_dumps_errors() {{{1
@@ -543,7 +643,6 @@ def test_dumps_errors():
         culprit = ('42',),
         template = 'expected dictionary or list.',
     )
-
 
 
 # main {{{1

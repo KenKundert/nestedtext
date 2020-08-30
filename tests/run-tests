@@ -113,7 +113,7 @@ with Inform(verbose=cmdline['--verbose']):
     for case in sorted(testcases):
         try:
             if encoder and case.with_suffix('.json').exists():
-                comment(case.with_suffix(''), 'encoder')
+                comment(case.with_suffix('.json'), 'encoder')
                 tests += 1
                 if is_str(encoder):
                     fails = run_external_encoder_test(encoder, case)
@@ -126,9 +126,8 @@ with Inform(verbose=cmdline['--verbose']):
                     assert case in invalid_testcases
                     if fails != 'error':
                         error('encoder fails to fail.', culprit=case)
-                        failures += 1
             if decoder and case.with_suffix('.udif').exists():
-                comment(case.with_suffix(''), 'decoder')
+                comment(case.with_suffix('.udif'), 'decoder')
                 tests += 1
                 if is_str(decoder):
                     fails = run_external_decoder_test(decoder, case)
@@ -136,12 +135,11 @@ with Inform(verbose=cmdline['--verbose']):
                     fails = run_internal_decoder_test(case)
                 if case in valid_testcases:
                     if fails:
-                        error(f'encoder fails due to {fails}.', culprit=case)
+                        error(f'decoder fails due to {fails}.', culprit=case)
                 else:
                     assert case in invalid_testcases
                     if fails != 'error':
                         error('decoder fails to fail.', culprit=case)
-                        failures += 1
         except OSError as e:
             error(os_error(e))
         except udif.Error as e:

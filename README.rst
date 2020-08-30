@@ -68,6 +68,19 @@ newlines::
         > The future ain’t what it used to be.
         >
 
+In strings, the initial '> ' is removed. Any spaces that follow would be 
+included in the string.  For example.::
+
+    greeting: Dearest Katherine:
+    body:
+        >     It has been such a long time. I am very much looking forward to
+        > seeing both you and Margaret again.
+    closing: See you soon.
+    signature: -Rupert
+
+In this example, the value of *body* is a multi-line string for which the first 
+line is indented by 4 spaces.  The second line in *body* has no leading space.
+
 A value can also be a list or another dictionary::
 
     president:
@@ -97,22 +110,6 @@ A value can also be a list or another dictionary::
 
 Dictionaries and lists can be nested to an arbitrary depth.
 
-Indentation is always a multiple of 4 spaces and you can only increase one level 
-at a time. Thus the start of a dictionary key, a list item dash or the start of 
-a string always starts after exactly a multiple of 4 spaces. In strings, the 
-initial '> ' is removed. Any spaces that follow would be included in the string.  
-For example.::
-
-    greeting: Dearest Katherine:
-    body:
-        >     It has been such a long time. I am very much looking forward to
-        > seeing both you and Margaret again.
-    closing: See you soon.
-    signature: -Rupert
-
-In this example, the value of *body* is a multi-line string for which the first 
-line is indented by 4 spaces.  The second line in *body* has no leading space.
-
 Blank lines and lines whose first character is a hash ``#`` are ignored.
 
 Also notice in the last example the value for *greeting* ends in a colon.  This 
@@ -125,11 +122,23 @@ all keys in the same dictionary must be unique. If a key contains leading or
 trailing spaces, a leading '- ' or '> ', or a ': ' anywhere in the key, you 
 should quote the key.  Either single or double matching quotes may be used.  
 Single line string values should also be quoted in leading or trailing spaces 
-are significant. The quotes clarify the extent of the value.
+are significant, otherwise those spaces are removed. The quotes clarify the 
+extent of the value.
 For example::
 
     sep: ' — '
     '- key: ': "- value: "
+
+Unlike with single-line strings, any leading or trailing white space on the 
+lines in a multi-line string is retained.
+
+It is highly recommended that each level of indentation be represented by 
+a consistent number of spaces with the suggested number being 4. However, it is 
+not required. Any increase in the number of spaced in the indentation represents 
+an indent and any decrease represents a dedent. Only spaces are allowed in the 
+indentation.  Specifically, tabs are not allowed in the indentation and they 
+cannot follow a colon, dash, or greater to form a dictionary, list, or 
+multi-line string tag, but can be used elsewhere.
 
 Here is typical example::
 
