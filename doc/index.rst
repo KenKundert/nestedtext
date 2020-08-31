@@ -69,7 +69,7 @@ Quick Start
 
 Install with::
 
-   pip3 install nestedtext     -- not available yet
+   pip3 install nestedtext
 
 
 Issues
