@@ -110,7 +110,7 @@ Quick Start
 
 Install with::
 
-   pip3 install nestedtext     -- not yet available
+   pip3 install nestedtext
 
 
 Issues
