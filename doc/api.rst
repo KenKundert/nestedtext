@@ -5,23 +5,24 @@ Programmer's Interface
 Reader
 ------
 
-.. autofunction:: udif.loads
+.. autofunction:: nestedtext.loads
 
 
 Writer
 ------
 
-.. autofunction:: udif.dumps
+.. autofunction:: nestedtext.dumps
 
 
 Exception
 ---------
 
-*udif* imports its *Error* exception from `inform 
-<https://inform.readthedocs.io/en>`_.  You can find more documentation on what 
-you can do with this exception there.
+*NestedText* imports the *Error* exception from `inform 
+<https://inform.readthedocs.io/en/stable/api.html#exceptions>`_ and renames it 
+*NestedTextError*.  You can find more documentation on what you can do with this 
+exception there.
 
-.. autoexception:: udif.Error
+.. autoexception:: nestedtext.NestedTextError
     :members:
 
 .. ignore the following (there is only one method, so no need for TOC)

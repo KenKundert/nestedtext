@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Read and render a udif file.
+Test NestedText encoder and decoder.
 
 usage:
     run-tests [options] [<filename>...]
@@ -15,9 +15,9 @@ If no file names are given, all tests are run.  My specify either 'valid' or
 
 If an encoder or decoder is given, it should be the path to a program that the 
 expected data on stdin, outputs on stdout, and exits with a status of 0 if it 
-succeeded and 1 if it failed.  An external encoder is expected to take json on 
-its input and produce a udif equivalent on its output.  An external decoder 
-takes udif on its input and output json on its output.
+succeeded and 1 if it failed.  An external encoder is expected to take JSON  on 
+its input and produce a NestedText equivalent on its output.  An external 
+decoder takes NestedText on its input and output JSON  on its output.
 """
 
 from docopt import docopt
@@ -26,7 +26,7 @@ from inform import (
 )
 from shlib import to_path, lsf, Run, set_prefs as shlib_set_prefs
 import json
-import udif
+import nestedtext
 
 cmdline = docopt(__doc__)
 args = cmdline['<filename>']
@@ -39,11 +39,13 @@ shlib_set_prefs(use_inform=True)
 # gather tests
 valid_testcases = [
     case.with_suffix('')
-    for case in list(lsf('valid', select='*.udif')) + list(lsf('valid', select='*.json'))
+    for case in list(lsf('valid', select='*.nxt')) + list(lsf('valid', 
+select='*.json'))
 ]
 invalid_testcases = [
     case.with_suffix('')
-    for case in list(lsf('invalid', select='*.udif')) + list(lsf('invalid', select='*.json'))
+    for case in list(lsf('invalid', select='*.nxt')) + list(lsf('invalid', 
+select='*.json'))
 ]
 testcases = set()
 for arg in args:
@@ -62,26 +64,26 @@ def load_json_file(case):
     data = json.loads(json_content)
     return data
 
-def load_udif_file(case):
-    udif_path = case.with_suffix('.udif')
-    udif_content = udif_path.read_text()
-    data = udif.loads(udif_content, udif_path)
+def load_nxt_file(case):
+    nxt_path = case.with_suffix('.nxt')
+    nxt_content = nxt_path.read_text()
+    data = nestedtext.loads(nxt_content, nxt_path)
     return data
 
 def run_internal_encoder_test(case):
     given_data = load_json_file(case)
     try:
-        udif_content = udif.dumps(given_data)
-    except udif.Error:
+        nxt_content = nestedtext.dumps(given_data)
+    except nestedtext.NestedTextError:
         return 'error'
-    extracted_data = udif.loads(udif_content)
+    extracted_data = nestedtext.loads(nxt_content)
     success = extracted_data == given_data
     return None if success else 'mismatch'
 
 def run_internal_decoder_test(case):
     try:
-        extracted_data = load_udif_file(case)
-    except udif.Error:
+        extracted_data = load_nxt_file(case)
+    except nestedtext.NestedTextError:
         return 'error'
     expected_data = load_json_file(case)
     success = extracted_data == expected_data
@@ -92,14 +94,14 @@ def run_external_encoder_test(encoder, path):
     process = Run(encoder, stdin=given_json_content, modes='sOEW1')
     if process.status != 0:
         return 'error'
-    udif_content = process.stdout
-    extracted_data = udif.loads(udif_content)
+    nxt_content = process.stdout
+    extracted_data = nestedtext.loads(nxt_content)
     success = extracted_data == given_data
     return None if success else 'mismatch'
 
 def run_external_decoder_test(decoder, path):
-    given_udif_content = path.read_text()
-    process = Run(encoder, stdin=given_udif_content, modes='sOEW1')
+    given_nxt_content = path.read_text()
+    process = Run(encoder, stdin=given_nxt_content, modes='sOEW1')
     if process.status != 0:
         return error
     json_content = process.stdout
@@ -112,8 +114,9 @@ tests = 0
 with Inform(verbose=cmdline['--verbose']):
     for case in sorted(testcases):
         try:
-            if encoder and case.with_suffix('.json').exists():
-                comment(case.with_suffix('.json'), 'encoder')
+            src_file = case.with_suffix('.json')
+            if encoder and src_file.exists():
+                comment(src_file, 'encoder')
                 tests += 1
                 if is_str(encoder):
                     fails = run_external_encoder_test(encoder, case)
@@ -121,13 +124,15 @@ with Inform(verbose=cmdline['--verbose']):
                     fails = run_internal_encoder_test(case)
                 if case in valid_testcases:
                     if fails:
-                        error(f'encoder fails due to {fails}.', culprit=case)
+                        error(f'encoder fails due to {fails}.', culprit=src_file)
                 else:
                     assert case in invalid_testcases
                     if fails != 'error':
-                        error('encoder fails to fail.', culprit=case)
-            if decoder and case.with_suffix('.udif').exists():
-                comment(case.with_suffix('.udif'), 'decoder')
+                        error('encoder fails to fail.', culprit=src_file)
+
+            src_file = case.with_suffix('.nxt')
+            if decoder and src_file.exists():
+                comment(src_file, 'decoder')
                 tests += 1
                 if is_str(decoder):
                     fails = run_external_decoder_test(decoder, case)
@@ -135,14 +140,14 @@ with Inform(verbose=cmdline['--verbose']):
                     fails = run_internal_decoder_test(case)
                 if case in valid_testcases:
                     if fails:
-                        error(f'decoder fails due to {fails}.', culprit=case)
+                        error(f'decoder fails due to {fails}.', culprit=src_file)
                 else:
                     assert case in invalid_testcases
                     if fails != 'error':
-                        error('decoder fails to fail.', culprit=case)
+                        error('decoder fails to fail.', culprit=src_file)
         except OSError as e:
             error(os_error(e))
-        except udif.Error as e:
+        except nestedtext.NestedTextError as e:
             e.report()
         except json.JSONDecodeError as e:
             error(e)

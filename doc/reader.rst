@@ -1,11 +1,12 @@
 Reader
 ------
 
-You can read a data file using :func:`udif.loads()`:
+You can read *NestedTest* data using :func:`nestedtext.loads()`, which takes 
+a string as an argument:
 
 .. code-block:: python
 
-    >>> import udif
+    >>> import nestedtext
     >>> from inform import render
 
     >>> contents = """
@@ -35,8 +36,8 @@ You can read a data file using :func:`udif.loads()`:
     ... """
 
     >>> try:
-    ...     data = udif.loads(contents)
-    ... except udif.Error as e:
+    ...     data = nestedtext.loads(contents)
+    ... except nestedtext.NestedTextError as e:
     ...     e.report()
 
     >>> print(render(data))
@@ -74,11 +75,11 @@ prepended to any error messages. It is often used to designate the source of
 the file name.
 
 
-*Udif* as a Structure Parser
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*NestedText* as a Structure Parser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Parsing data can be a difficult challenge. One way to reduce the challenge is to 
-reduce the scope of what is being parsed. With *udif* you can delegate the 
+reduce the scope of what is being parsed. With *NestedText* you can delegate the 
 parsing the of the structure, and instead focus on parsing individual values 
 given as strings.  A transforming validator line `Voluptuous 
 <https://github.com/alecthomas/voluptuous>`_ can greatly simply the process.
@@ -116,7 +117,7 @@ using either 'yes' or 'no'. This can be done as follows:
 
 .. code-block:: python
 
-    >>> import udif
+    >>> import nestedtext
     >>> from inform import render
 
     >>> def to_bool(v):
@@ -133,7 +134,7 @@ using either 'yes' or 'no'. This can be done as follows:
     ... editable: yes
     ... '''
 
-    >>> config_data = udif.loads(config)
+    >>> config_data = nestedtext.loads(config)
     >>> print(render(config_data))
     {
         'name': 'volume',
@@ -155,5 +156,5 @@ using either 'yes' or 'no'. This can be done as follows:
 
 Notice that a dictionary that contains the expected types and conversion 
 functions is passed to *Schema*. Then the raw configuration is parsed for 
-structure by *udif*, and the resulting data structure is processed by the schema 
-to and converted to its final form.
+structure by *NestedText*, and the resulting data structure is processed by the 
+schema to and converted to its final form.

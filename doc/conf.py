@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Udif documentation build configuration file, created by
+# NestedText documentation build configuration file, created by
 # sphinx-quickstart on Mon Jun 12 12:01:56 2017.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -49,7 +49,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'udif'
+project = u'NestedText'
 copyright = u'2020, Ken Kundert'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -176,7 +176,7 @@ html_static_path = ['.static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'udifdoc'
+htmlhelp_basename = 'nestedtextdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -195,7 +195,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'udif.tex', u'Udif Documentation',
+  ('index', 'nestedtext.tex', u'NestedText Documentation',
    u'Ken Kundert', 'manual'),
 ]
 
@@ -225,7 +225,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'udif', u'Udif Documentation',
+    ('index', 'nestedtext', u'NestedText Documentation',
      [u'Ken Kundert'], 3)
 ]
 
@@ -238,11 +238,10 @@ man_pages = [
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'Udif', u'Udif Documentation',
-   u'Ken Kundert', 'Udif', 'Physical Quantities.',
-   'Miscellaneous'),
-]
+texinfo_documents = [(
+    'index', 'NestedText', u'NestedText Documentation',
+    u'Ken Kundert', 'NestedText',
+)]
 
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []

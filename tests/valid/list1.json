@@ -7,5 +7,7 @@
     "#value 6",
     "key 7' : : value 7",
     "\" value 8 \"",
-    "' value 9 '"
+    "' value 9 '",
+    "value '\" 10",
+    "And Fred said 'yabba dabba doo!' to Barney."
 ]

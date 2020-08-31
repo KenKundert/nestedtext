@@ -1,33 +1,33 @@
-Udif: A Human Readable and Writable Data Interchange Format
-===========================================================
+NestedText: A Human Readable and Writable Data Format
+=====================================================
 
-.. image:: https://img.shields.io/travis/KenKundert/udif/master.svg
-    :target: https://travis-ci.org/KenKundert/udif
+.. image:: https://img.shields.io/travis/KenKundert/nestedtext/master.svg
+    :target: https://travis-ci.org/KenKundert/nestedtext
 
-.. image:: https://img.shields.io/coveralls/KenKundert/udif.svg
-    :target: https://coveralls.io/r/KenKundert/udif
+.. image:: https://img.shields.io/coveralls/KenKundert/nestedtext.svg
+    :target: https://coveralls.io/r/KenKundert/nestedtext
 
 
 | Version: 0.0.8
 | Released: 2020-08-30
 | Please post all bugs and suggestions at
-  `Udif Github <https://github.com/KenKundert/udif/issues>`_
+  `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_
   (or contact me directly at
-  `udif@nurdletech.com <mailto://udif@nurdletech.com>`_).
+  `nestedtext@nurdletech.com <mailto://nestedtext@nurdletech.com>`_).
 
 
-*Udif* is a file format for exchanging data held in strings, lists, and␣
+*NestedText* is a file format for exchanging data held in strings, lists, and␣
 dictionaries.  In this way it is similar to *JSON*, *YAML*, or *StrictYAML*, but 
-with␣
-a restricted set of supported data types, the file format is simpler. It is␣
+with a restricted set of supported data types, the file format is simpler. It is␣
 designed to be easy to enter with a text editor and easy to read.  The small␣
 number of data types supported means few rules need be kept in mind when␣
 creating a file.  The result is a data file that is easily created, modified, or␣
 viewed with a text editor and be understood and used by both programmers and␣
 non-programmers.
 
-*Udif* is convenient for configuration files, address books, account information 
-and the like.  Here is an example of a file that contains a few addresses::
+*NestedText* is convenient for configuration files, address books, account 
+information and the like.  Here is an example of a file that contains a few 
+addresses::
 
     # Contact information for our officers
 
@@ -76,13 +76,13 @@ is not easily confused.
 Alternatives
 ------------
 
-There are no shortage of well established alternative to *Udif* for storing data 
-in a human-readable text file. Probably the most obvious are `json 
+There are no shortage of well established alternative to *NestedText* for 
+storing data in a human-readable text file. Probably the most obvious are `json 
 <https://docs.python.org/3/library/json.html>`_ and `YAML 
 <https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both have serious short 
 comings.
 
-*JSON* is a subset of JavaScript suitable for holding data. Like *Udif* it 
+*JSON* is a subset of JavaScript suitable for holding data. Like *NestedText* it 
 consists of a hierarchical collection of dictionaries, lists, and strings, but 
 also allows integers, floats, booleans and nulls.  The problem with *JSON* for 
 this application is that it is awkward. All strings have to be quoted; it only 
@@ -100,9 +100,9 @@ complicated.  A reaction to this is the use of *YAML* subsets, such as
 `StrictYAML <https://hitchdev.com/strictyaml>`_.  However, *StrictYAML* tries to 
 maintain compatibility with *YAML* and so inherits much of its complexity.
 
-*Udif* was inspired by *YAML*, but eschews its complexity. It supports only 
-a limited number of types and has a very simple set of rules that make up the 
-format.
+*NestedText* was inspired by *YAML*, but eschews its complexity. It supports 
+only a limited number of types and has a very simple set of rules that make up 
+the format.
 
 
 Quick Start
@@ -110,20 +110,20 @@ Quick Start
 
 Install with::
 
-   pip3 install udif     -- not yet available
+   pip3 install nestedtext     -- not yet available
 
 
 Issues
 ------
 
 Please ask questions or report problems on `Github 
-<https://github.com/KenKundert/quantiphy/issues>`_.
+<https://github.com/KenKundert/nestedtext/issues>`_.
 
 
 Contributing
 ------------
 
-The package contains a Python implmentation on *udif*. For *udif* to catch on 
-widely, implementation in many language will required. If you like the format 
-and have interest in doing so, please consider contributing additional 
-implementations, particularly for other languages.
+This package contains a Python implmentation of *NestedText*. For *NestedText* 
+to catch on widely, implementations in many language will required. If you like 
+the format and have interest in doing so, please consider contributing 
+additional implementations, particularly for other languages.

@@ -1,8 +1,8 @@
-*Udif* File Format
-------------------
+The *NestedText* Format
+-----------------------
 
-The file starts with a dictionary or a list. A dictionary is a sequence of 
-key/value pairs and a list is an sequence of values.
+A *NestedText* file starts with a dictionary or a list. A dictionary is 
+a sequence of key/value pairs and a list is an sequence of values.
 
 A dictionary contains one or more dictionary items, each on its own line and in 
 each the key and value separated by a colon.  The value is optional and the 
@@ -131,11 +131,11 @@ multi-line string tag, but can be used elsewhere.
 Rules
 ~~~~~
 
-The *Udif* format follows a small number of simple rules. Here they are.
+The *NestedText* format follows a small number of simple rules. Here they are.
 
-Each line in a *Udif* document is assigned one of the following types: comment, 
-blank, list-item, dict-item, and string-item.  Any line that does not fit one of 
-these types is an error.
+Each line in a *NestedText* document is assigned one of the following types: 
+comment, blank, list-item, dict-item, and string-item.  Any line that does not 
+fit one of these types is an error.
 
 Comments are lines that have `#` as the first character on the line. Comments 
 are ignored.

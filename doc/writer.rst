@@ -1,13 +1,13 @@
 Writer
 ------
 
-You can use :func:`udif.dumps()` to convert a data structure consisting of 
-dictionaries, lists, and strings:
+You can use :func:`nestedtext.dumps()` to convert a data structure consisting of 
+dictionaries, lists, and strings to *NestedText*:
 
 .. code-block:: python
 
     >>> from textwrap import dedent
-    >>> import udif
+    >>> import nestedtext
 
     >>> data = {
     ... 'src_dir': '/',
@@ -35,11 +35,11 @@ dictionaries, lists, and strings:
     ...     obsession charlady twosome silky puffball grubby ranger notation
     ...     rosebud replicate freshen javelin abbot autocue beater byway\
     ... """),
-    }
+    ... }
 
     >>> try:
-    ...     print(udif.dumps(data))
-    ... except udif.Error as e:
+    ...     print(nestedtext.dumps(data))
+    ... except nestedtext.NestedTextError as e:
     ...     e.report()
     src_dir: /
     excludes:
@@ -64,6 +64,10 @@ dictionaries, lists, and strings:
         > obsession charlady twosome silky puffball grubby ranger notation
         > rosebud replicate freshen javelin abbot autocue beater byway
 
+This example writes to a string, but it is common to write to a file.  The file 
+name and extension are arbitrary. However, the convention is to use a '.nxt' 
+extension with *NestedText* files.
+
 There are several mechanisms available for handling objects that are otherwise 
 unsupported by the format.
 
@@ -80,16 +84,16 @@ exceptions:
     >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
     >>> try:
-    ...     print(udif.dumps(data))
-    ... except udif.Error as e:
+    ...     print(nestedtext.dumps(data))
+    ... except nestedtext.NestedTextError as e:
     ...     e.report()
     key: 42
     value: 3.1415926
     valid: True
 
     >>> try:
-    ...     print(udif.dumps(data, default='strict'))
-    ... except udif.Error as e:
+    ...     print(nestedtext.dumps(data, default='strict'))
+    ... except nestedtext.NestedTextError as e:
     ...     print(str(e))
     42: unsupported type.
 
@@ -108,13 +112,13 @@ values are *str* and *repr*:
     ...         return self.color
 
     >>> data['house'] = Color('red')
-    >>> print(udif.dumps(data, default=repr))
+    >>> print(nestedtext.dumps(data, default=repr))
     key: 42
     value: 3.1415926
     valid: True
     house: "Color('red')"
 
-    >>> print(udif.dumps(data, default=str))
+    >>> print(nestedtext.dumps(data, default=str))
     key: 42
     value: 3.1415926
     valid: True
@@ -133,8 +137,8 @@ type to a render function:
     ... }
 
     >>> try:
-    ...    print(udif.dumps(data, renderers=renderers))
-    ... except udif.Error as e:
+    ...    print(nestedtext.dumps(data, renderers=renderers))
+    ... except nestedtext.NestedTextError as e:
     ...     e.report()
     key: 0x2a
     value: 3.14

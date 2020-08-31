@@ -1,7 +1,7 @@
 # encoding: utf8
 import pytest
 from textwrap import dedent
-import udif
+import nestedtext
 from inform import Info, render
 
 # Utilities {{{1
@@ -298,44 +298,44 @@ testcases = dict(
 def test_testcase1():
     name = 'testcase1'
     case = testcases[name]
-    result = udif.loads(case.given, name)
+    result = nestedtext.loads(case.given, name)
     assert result == case.expected, render(result)
-    assert udif.dumps(result) == case.invarient
+    assert nestedtext.dumps(result) == case.invarient
 
 # test_testcase2() {{{1
 def test_testcase2():
     name = 'testcase2'
     case = testcases[name]
-    result = udif.loads(case.given, name)
+    result = nestedtext.loads(case.given, name)
     assert result == case.expected, render(result)
-    assert udif.dumps(result) == case.invarient
+    assert nestedtext.dumps(result) == case.invarient
 
 # test_testcase3() {{{1
 def test_testcase3():
     name = 'testcase3'
     case = testcases[name]
-    result = udif.loads(case.given, name)
+    result = nestedtext.loads(case.given, name)
     assert result == case.expected, render(result)
-    assert udif.dumps(result) == case.invarient
+    assert nestedtext.dumps(result) == case.invarient
 
 
 # test_loads() {{{1
 def test_loads():
     content = ''
-    data = udif.loads(content)
+    data = nestedtext.loads(content)
     assert data == {}
 
     content = dedent("""
         ingredients:
           > green chilies
     """)
-    data = udif.loads(content)
+    data = nestedtext.loads(content)
     assert data == dict(ingredients = 'green chilies')
 
     content = dedent("""
         what makes it green\t: \tgreen\tchilies\t
     """)
-    data = udif.loads(content)
+    data = nestedtext.loads(content)
     assert data == {'what makes it green': 'green\tchilies'}
 
 
@@ -346,8 +346,8 @@ def test_loads_errors():
             > green chilies
           > red chilies
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content, 'recipe')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content, 'recipe')
     assert str(exception.value) == 'recipe, 4: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -365,8 +365,8 @@ def test_loads_errors():
           > green chilies
             > red chilies
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content, 'recipe')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content, 'recipe')
     assert str(exception.value) == 'recipe, 4: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -383,8 +383,8 @@ def test_loads_errors():
         ingredients:
         - green chilies
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == '3: expected dictionary item.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -400,8 +400,8 @@ def test_loads_errors():
         - green chilies
         ingredients:
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == '3: expected list item.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -417,8 +417,8 @@ def test_loads_errors():
             - green chilies
         - red chilies
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content, 'recipe')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content, 'recipe')
     assert str(exception.value) == 'recipe, 2: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -435,8 +435,8 @@ def test_loads_errors():
         - green chilies
             - red chilies
     """)
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content, 'recipe')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content, 'recipe')
     assert str(exception.value) == 'recipe, 3: invalid indentation.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -453,8 +453,8 @@ def test_loads_errors():
         > ingredients
         > green chilies
     """).lstrip()
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == '1: expected list or dictionary item.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -470,8 +470,8 @@ def test_loads_errors():
         ingredients:
             green chilies
     """).lstrip()
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == '2: unrecognized line.'
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -487,8 +487,8 @@ def test_loads_errors():
         key: value 1
         key: value 2
     """).lstrip()
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == '2: duplicate key: key.'
     assert exception.value.args == ('key',)
     assert exception.value.kwargs == dict(
@@ -505,8 +505,8 @@ def test_loads_errors():
             \t    > first line
             \t    > second line
     """).lstrip()
-    with pytest.raises(udif.Error) as exception:
-        udif.loads(content)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
     assert str(exception.value) == r"2: invalid character in indentation: '\t'."
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
@@ -522,7 +522,7 @@ def test_loads_errors():
 # test_dump() {{{1
 def test_dump():
     data = {'peach': 3, 'apricot': 8, 'blueberry': '1 lb', 'orange': 4}
-    content = udif.dumps(data, sort_keys=True, default=str)
+    content = nestedtext.dumps(data, sort_keys=True, default=str)
     expected = dedent('''
         apricot: 8
         blueberry: 1 lb
@@ -532,7 +532,7 @@ def test_dump():
     assert content == expected
 
     data = ('peach', 'apricot', 'blueberry', ['date', 'apple'], 'orange')
-    content = udif.dumps(data)
+    content = nestedtext.dumps(data)
     expected = dedent('''
         - peach
         - apricot
@@ -546,7 +546,7 @@ def test_dump():
 
     val = Info(val=42)
     renderers = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
-    content = udif.dumps(dict(name = val), renderers=renderers)
+    content = nestedtext.dumps(dict(name = val), renderers=renderers)
     expected = dedent('''
         name:
             Info(
@@ -560,10 +560,39 @@ def test_dump():
           - green chilies
           - red chilies
     """)
-    data = udif.loads(content0)
+    data = nestedtext.loads(content0)
     assert data == dict(ingredients = ['green chilies', 'red chilies'])
-    content1 = udif.dumps(data, indent=2)
+    content1 = nestedtext.dumps(data, indent=2)
     assert content1 == content0.strip()
+
+    data = dict(key = 'value " value')
+    content = nestedtext.dumps(data, indent=2)
+    expected = dedent("""
+        key: 'value " value'
+    """).strip()
+    assert content == expected
+
+    data = dict(key = "value ' value")
+    content = nestedtext.dumps(data, indent=2)
+    expected = dedent("""
+        key: "value ' value"
+    """).strip()
+    assert content == expected
+
+    data = dict(key = """value '" value""")
+    content = nestedtext.dumps(data, indent=2)
+    expected = dedent("""
+        key:
+          > value '" value
+    """).strip()
+    assert content == expected
+
+    data = dict(key = 'And Fred said "yabba dabba doo!" to Barney.')
+    content = nestedtext.dumps(data, indent=2)
+    expected = dedent("""
+        key: 'And Fred said "yabba dabba doo!" to Barney.'
+    """).strip()
+    assert content == expected
 
     content = dedent("""
         # the following uses tabs in a legal way
@@ -573,7 +602,7 @@ def test_dump():
                 > \t 3636 Buffalo Ave \t
                 > \t Topika, Kansas 20692\t 
     """)
-    data = udif.loads(content)
+    data = nestedtext.loads(content)
     expected_data = dict(
         treasurer = dict(
             name = 'Fumiko\tPurvis',
@@ -581,7 +610,7 @@ def test_dump():
         )
     )
     assert data == expected_data
-    achieved_content = udif.dumps(data, indent=2)
+    achieved_content = nestedtext.dumps(data, indent=2)
     expected_content = dedent("""
         treasurer:
           name: Fumiko\tPurvis
@@ -592,11 +621,11 @@ def test_dump():
     assert achieved_content == expected_content
 
     data = {}
-    content = udif.dumps(data)
+    content = nestedtext.dumps(data)
     assert content == ""
 
     data = []
-    content = udif.dumps(data)
+    content = nestedtext.dumps(data)
     assert content == ""
 
 
@@ -604,8 +633,8 @@ def test_dump():
 def test_dumps_errors():
 
     data = ""
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data)
     assert str(exception.value) == "'': expected dictionary or list."
     assert exception.value.args == ('',)
     assert exception.value.kwargs == dict(
@@ -614,8 +643,8 @@ def test_dumps_errors():
     )
 
     data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data)
     assert str(exception.value) == "'apricot\\n': keys must not contain newlines."
     assert exception.value.args == ('apricot\n',)
     assert exception.value.kwargs == dict(
@@ -624,8 +653,8 @@ def test_dumps_errors():
     )
 
     data = dict(name=42)
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data, default='strict')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data, default='strict')
     assert str(exception.value) == "42: unsupported type."
     assert exception.value.args == (42,)
     assert exception.value.kwargs == dict(
@@ -634,8 +663,8 @@ def test_dumps_errors():
     )
 
     data = dict(name=42.0)
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data, default='strict')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data, default='strict')
     assert str(exception.value) == "42.0: unsupported type."
     assert exception.value.args == (42.0,)
     assert exception.value.kwargs == dict(
@@ -644,8 +673,8 @@ def test_dumps_errors():
     )
 
     data = dict(name=True)
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data, default='strict')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data, default='strict')
     assert str(exception.value) == "True: unsupported type."
     assert exception.value.args == (True,)
     assert exception.value.kwargs == dict(
@@ -654,8 +683,8 @@ def test_dumps_errors():
     )
 
     data = dict(name=None)
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data, default='strict')
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data, default='strict')
     assert str(exception.value) == "None: unsupported type."
     assert exception.value.args == (None,)
     assert exception.value.kwargs == dict(
@@ -665,8 +694,8 @@ def test_dumps_errors():
 
     data = dict(name=42)
     renderers = {int: False}
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data, renderers=renderers)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data, renderers=renderers)
     assert str(exception.value) == "42: unsupported type."
     assert exception.value.args == (42,)
     assert exception.value.kwargs == dict(
@@ -675,8 +704,8 @@ def test_dumps_errors():
     )
 
     data = 42
-    with pytest.raises(udif.Error) as exception:
-        content = udif.dumps(data)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data)
     assert str(exception.value) == "42: expected dictionary or list."
     assert exception.value.args == (42,)
     assert exception.value.kwargs == dict(
@@ -684,6 +713,15 @@ def test_dumps_errors():
         template = 'expected dictionary or list.',
     )
 
+    data = {"""key '" key""": 'value'}
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data)
+    assert str(exception.value) == r"""'key \'" key': keys must not contain both " and '."""
+    assert exception.value.args == ('key \'" key',)
+    assert exception.value.kwargs == dict(
+        culprit = (r"""'key \'" key'""",),
+        template = """keys must not contain both " and '.""",
+    )
 
 # main {{{1
 if __name__ == '__main__':
