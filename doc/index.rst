@@ -1,7 +1,7 @@
 NestedText: A Human Friendly Data Format
 ========================================
 
-| Version: 0.0.9
+| Version: 0.1.0
 | Released: 2020-08-30
 | Please post all bugs and suggestions at
   `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_
