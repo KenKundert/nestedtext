@@ -167,7 +167,9 @@ string with their order being retained.  Any leading white space the follows the
 If the line contains an ': ' or ends with a ':', the line is considered 
 a dict-item.  Adjacent dict-items with the same indentation level are combined 
 into a dictionary with their order being retained.  Each dict-item consists of 
-a key, the colon, and a value.
+a key, the colon, and a value.  A key must be a string; it must not contain 
+a newline, and it must be quoted if it contains a line-type tag or has leading 
+or trailing spaces.
 
 The values associated with list and dict items may take one of three forms. If 
 the line contains further text (non-white space characters after the '- ' or ': 
@@ -176,11 +178,8 @@ value may be quoted, in which case the value is the text within the matching
 quotes. For example::
 
     - this is the value
-
     - 'this is the value'
-
     key: this is the value
-
     key: "this is the value"
 
 In each of these cases, the value resolves to the string: `this is the value`.
