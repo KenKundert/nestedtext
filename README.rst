@@ -1,5 +1,5 @@
-NestedText: A Human Readable and Writable Data Format
-=====================================================
+NestedText: A Human Friendly Data Format
+========================================
 
 .. image:: https://img.shields.io/travis/KenKundert/nestedtext/master.svg
     :target: https://travis-ci.org/KenKundert/nestedtext
