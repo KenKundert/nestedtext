@@ -96,7 +96,7 @@ Documentation
    format
    reader
    writer
-   api
+   exceptions
    releases
 
 *  :ref:`genindex`

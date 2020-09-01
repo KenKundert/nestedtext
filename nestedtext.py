@@ -294,22 +294,6 @@ def loads(contents, culprit=None):
     Returns:
         A dictionary or list containing the data.  If contents is empty, an
         empty dictionary is returned.
-
-    **Example**::
-
-        >>> import nestedtext
-        >>> contents = '''
-        ... name: Deryl McKinnon
-        ... phone: 212-590-3107
-        ... '''
-
-        try:
-            data = nestedtext.loads(contents)
-            print(data)
-        except nestedtext.NestedTextError as e:
-            e.report()
-        {'name': 'Deryl McKinnon', 'phone': 'phone: 212-590-3107'}
-
     """
     with set_culprit(culprit):
         lines = Lines(contents)
@@ -370,82 +354,6 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             this is used to increment the level and so the indent.  Generally
             not specified by the user, but can be useful in unusual situations
             to specify an initial indent.
-
-    **Example**::
-
-        >>> import nestedtext
-
-        >>> try:
-        ...     print(nestedtext.dumps({'a': [0, 1], 'b': [2, 3, 4]}))
-        ... except nestedtext.NestedTextError as e:
-        ...     e.report()
-        a:
-            - 0
-            - 1
-        b:
-            - 2
-            - 3
-            - 4
-
-    *dumps* has built in support for the base Python types of *None*, *bool*,
-    *str*, *float*, *list*, *tuple*, *set*, and *dict*.  If *default* = 'strict'
-    is specified, that list shrinks to *str*, *list*, and *dict*.
-
-    You must make special arrangements to handle objects of other types.  There
-    are two approaches that can be used separately or together. You can specify
-    a default renderer that converts any unknown object type to a string.
-
-    **Example**::
-
-        >>> class Color:
-        ...     def __init__(self, color):
-        ...         self.color = color
-        ...     def __repr__(self):
-        ...         return f'Color({self.color!r})'
-        ...     def __str__(self):
-        ...         return self.color
-
-        >>> data = {'key': 42, 'value': 3.1415926, 'valid': True, 'color': Color('red')}
-        >>> try:
-        ...     print(nestedtext.dumps(data))
-        ... except nestedtext.NestedTextError as e:
-        ...     print(str(e))
-        Color('red'): unsupported type.
-
-        >>> print(nestedtext.dumps(data, default=repr))
-        key: 42
-        value: 3.1415926
-        valid: True
-        color: "Color('red')"
-
-        >>> print(nestedtext.dumps(data, default=str))
-        key: 42
-        value: 3.1415926
-        valid: True
-        color: red
-
-    You may also specify a dictionary of renderers.
-
-    **Example**::
-
-        >>> renderers = {
-        ...     bool: lambda b: 'yes' if b else 'no',
-        ...     int: hex,
-        ...     float: lambda f: f'{f:0.3}',
-        ...     Color: lambda c: c.color,
-        ... }
-
-        >>> try:
-        ...     print(nestedtext.dumps(data, renderers=renderers))
-        ... except nestedtext.NestedTextError as e:
-        ...     e.report()
-        key: 0x2a
-        value: 3.14
-        valid: yes
-        color: red
-
-    Mapping a type to *False* in *renderers* results in an exception being
-    raised if that type is found.
     """
 
     # define sort function

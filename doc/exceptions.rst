@@ -1,21 +1,5 @@
-Programmer's Interface
-======================
-
-
-Reader
-------
-
-.. autofunction:: nestedtext.loads
-
-
-Writer
-------
-
-.. autofunction:: nestedtext.dumps
-
-
-Exception
----------
+Exceptions
+----------
 
 *NestedText* imports the *Error* exception from `inform 
 <https://inform.readthedocs.io/en/stable/api.html#exceptions>`_ and renames it 
@@ -30,7 +14,9 @@ exception there.
 
 
 As with most exceptions, you can simply cast it to a string to get a reasonable 
-error message:
+error message.
+
+**Example:**
 
 .. code-block:: python
 
@@ -52,6 +38,8 @@ You can also use the *report* method to print the message directly. This is
 appropriate if you are using *inform* for your messaging as it follows 
 *inform*'s conventions.
 
+**Example:**
+
 .. code-block:: python
 
     >> try:
@@ -60,6 +48,8 @@ appropriate if you are using *inform* for your messaging as it follows
     ..     e.report()
 
 The *terminate* method prints the message directly and exits.
+
+**Example:**
 
 .. code-block:: python
 
@@ -73,7 +63,9 @@ contains the basic text of the message. You can change this message by
 overriding the attribute when using *report*, *terminate*, or *render*.  
 *render* is like casting the exception to a string except that allows for the
 passing of arguments.  For example, to convert a particular message to Spanish, 
-you could use:
+you could use something like the following.
+
+**Example:**
 
 .. code-block:: python
 
@@ -85,4 +77,3 @@ you could use:
     ...         template = 'llave duplicada: {}.'
     ...     print(e.render(template=template))
     3: llave duplicada: name.
-

@@ -1,0 +1,5 @@
+# this is an invalid NestedText file because it contains a dictionary with 
+# duplicate keys
+
+name:
+name:

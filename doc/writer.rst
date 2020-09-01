@@ -1,8 +1,11 @@
 Writer
 ------
 
-You can use :func:`nestedtext.dumps()` to convert a data structure consisting of 
-dictionaries, lists, and strings to *NestedText*:
+*dumps* converts Python data objects to *NextedText*.
+
+.. autofunction:: nestedtext.dumps
+
+**Example:**
 
 .. code-block:: python
 
@@ -37,7 +40,9 @@ list-like types such as *tuple* and *set* by converting them to the types
 supported by the format.  This implies that a round trip through *dumps* and 
 *loads* could result in the types of values being transformed. You can prevent 
 this by passing `default='strict'` to *dumps*.  Doing so means that values that 
-are not dictionaries, lists, or strings generate exceptions:
+are not dictionaries, lists, or strings generate exceptions.
+
+**Example:**
 
 .. code-block:: python
 
@@ -59,7 +64,9 @@ are not dictionaries, lists, or strings generate exceptions:
 
 Alternatively, you can specify a function to *default*, which is used to convert 
 values to strings.  It is used if no other converter is available.  Typical 
-values are *str* and *repr*:
+values are *str* and *repr*.
+
+**Example:**
 
 .. code-block:: python
 
@@ -85,7 +92,9 @@ values are *str* and *repr*:
     house: red
 
 You can also specify a dictionary of renderers. The dictionary maps the object 
-type to a render function:
+type to a render function.
+
+**Example:**
 
 .. code-block:: python
 
@@ -106,7 +115,9 @@ type to a render function:
     house: red
 
 If the dictionary maps a type to *None*, then the default behavior is used for 
-that type. If it maps to *False*, then an exception is raised:
+that type. If it maps to *False*, then an exception is raised.
+
+**Example:**
 
 .. code-block:: python
 

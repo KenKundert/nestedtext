@@ -1,8 +1,11 @@
 Reader
 ------
 
-You can read *NestedTest* data using :func:`nestedtext.loads()`, which takes 
-a string as an argument:
+*loads* converts *NestedText* to Python data objects.
+
+.. autofunction:: nestedtext.loads
+
+**Example:**
 
 .. code-block:: python
 
@@ -27,10 +30,24 @@ a string as an argument:
         'age': '74',
     }
 
+*NestedText* is specified to *loads* in the form of a string:
+
 *loads()* takes an optional second argument, *culprit*. If specified, it will be 
 prepended to any error messages. It is often used to designate the source of 
 *contents*. For example,if *contents* were read from a file, *culprit* would be 
-the file name.
+the file name.  Here is a typical example of reading *NestedText* from a file:
+
+**Example:**
+
+.. code-block:: python
+
+    >>> filename = 'examples/duplicate-keys.nt'
+    >>> try:
+    ...     with open(filename) as f:
+    ...         addresses = nestedtext.loads(f.read(), filename)
+    ... except nestedtext.NestedTextError as e:
+    ...     print(str(e))
+    examples/duplicate-keys.nt, 5: duplicate key: name.
 
 
 *NestedText* as a Structure Parser
