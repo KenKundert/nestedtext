@@ -417,8 +417,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
                 return repr(s)
         if (
             len(stripped) < len(s)
-            or '"' in s
-            or "'" in s
+            or s[:1] + s[-1:] in ['""', "''"]
         ):
             return repr(s)
         return s

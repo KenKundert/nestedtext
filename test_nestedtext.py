@@ -363,6 +363,35 @@ def test_loads():
         "nominal": "V=1.25V+1Ω*I",
     }
 
+    content = dedent("""
+        key: value " value
+    """).strip()
+    data = nestedtext.loads(content)
+    expected = dict(key = 'value " value')
+    assert data == expected
+
+    content = dedent("""
+        key: value ' value
+    """).strip()
+    data = nestedtext.loads(content)
+    expected = dict(key = "value ' value")
+    assert data == expected
+
+    content = dedent("""
+        key:
+          > value '" value
+    """).strip()
+    data = nestedtext.loads(content)
+    expected = dict(key = """value '" value""")
+    assert data == expected
+
+    content = dedent("""
+        key: 'And Fred said "yabba dabba doo!" to Barney.'
+    """).strip()
+    data = nestedtext.loads(content)
+    expected = dict(key = 'And Fred said "yabba dabba doo!" to Barney.')
+    assert data == expected
+
 
 # test_loads_errors() {{{1
 def test_loads_errors():
@@ -616,14 +645,14 @@ def test_dump():
     data = dict(key = 'value " value')
     content = nestedtext.dumps(data, indent=2)
     expected = dedent("""
-        key: 'value " value'
+        key: value " value
     """).strip()
     assert content == expected
 
     data = dict(key = "value ' value")
     content = nestedtext.dumps(data, indent=2)
     expected = dedent("""
-        key: "value ' value"
+        key: value ' value
     """).strip()
     assert content == expected
 
@@ -638,7 +667,7 @@ def test_dump():
     data = dict(key = 'And Fred said "yabba dabba doo!" to Barney.')
     content = nestedtext.dumps(data, indent=2)
     expected = dedent("""
-        key: 'And Fred said "yabba dabba doo!" to Barney.'
+        key: And Fred said "yabba dabba doo!" to Barney.
     """).strip()
     assert content == expected
 
