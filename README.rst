@@ -7,6 +7,13 @@ NestedText: A Human Friendly Data Format
 .. image:: https://img.shields.io/coveralls/KenKundert/nestedtext.svg
     :target: https://coveralls.io/r/KenKundert/nestedtext
 
+.. image:: https://img.shields.io/pypi/v/nestedtext.svg
+    :target: https://pypi.python.org/pypi/nestedtext
+
+.. image:: https://img.shields.io/pypi/pyversions/nestedtext.svg
+    :target: https://pypi.python.org/pypi/nestedtext
+
+
 
 | Version: 0.1.1
 | Released: 2020-08-31
