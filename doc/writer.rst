@@ -65,8 +65,8 @@ dictionaries, lists, and strings to *NestedText*:
         > rosebud replicate freshen javelin abbot autocue beater byway
 
 This example writes to a string, but it is common to write to a file.  The file 
-name and extension are arbitrary. However, the convention is to use a '.nxt' 
-extension with *NestedText* files.
+name and extension are arbitrary. However, by convention a '.nt' suffix is 
+generally used for *NestedText* files.
 
 There are several mechanisms available for handling objects that are otherwise 
 unsupported by the format.

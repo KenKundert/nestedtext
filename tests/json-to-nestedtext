@@ -3,7 +3,7 @@
 Read a JSON file and convert it to NestedText.
 
 usage:
-    json-to-nxt [options] [<filename>]
+    json-to-nestedtext [options] [<filename>]
 
 options:
     -f, --force   force overwrite of output file
@@ -31,7 +31,7 @@ try:
     data = json.loads(json_content)
     nestedtext_content = nestedtext.dumps(data)
     if input_filename:
-        output_path = input_path.with_suffix('.nxt')
+        output_path = input_path.with_suffix('.nt')
         if output_path.exists():
             if not cmdline['--force']:
                 fatal('file exists, use -f to force over-write.', culprit=output_path)

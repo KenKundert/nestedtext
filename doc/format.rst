@@ -58,7 +58,7 @@ newlines::
 In strings, the initial '> ' is removed. Any spaces that follow would be 
 included in the string.  For example.::
 
-    greeting: Dearest Katherine:
+    greeting: Dearest Kathy:
     body:
         >     It has been such a long time. I am very much looking forward to
         > seeing both you and Margaret again.
@@ -89,7 +89,7 @@ A value can also be a list or another dictionary::
             > 2586 Marigold Land
             > Topika, Kansas 20697
         phone: 1-470-974-0398
-        email: margarett.hodge@uk.edu
+        email: margaret.hodge@uk.edu
         kids:
             - Arnie
             - Zach
@@ -104,13 +104,13 @@ does not represent an issue. Only a hash as the first character on a line,
 a leading dash-space or greater-space on a line, or the first non-quoted 
 colon-space are treated as special.
 
-Multiline keys are not supported; a key must not contain a newline. In addition, 
-all keys in the same dictionary must be unique. If a key contains leading or 
-trailing spaces, a leading '- ' or '> ', or a ': ' anywhere in the key, you 
-should quote the key.  Either single or double matching quotes may be used.  
-Single line string values should also be quoted in leading or trailing spaces 
-are significant, otherwise those spaces are removed. The quotes clarify the 
-extent of the value.
+Multi-line keys are not supported; a key must not contain a newline. In 
+addition, all keys in the same dictionary must be unique. If a key contains 
+leading or trailing spaces, a leading '- ' or '> ', or a ': ' anywhere in the 
+key, you should quote the key.  Either single or double matching quotes may be 
+used.  Single line string values should also be quoted in leading or trailing 
+spaces are significant, otherwise those spaces are removed. The quotes clarify 
+the extent of the value.
 For example::
 
     sep: ' — '

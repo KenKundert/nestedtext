@@ -39,12 +39,12 @@ shlib_set_prefs(use_inform=True)
 # gather tests
 valid_testcases = [
     case.with_suffix('')
-    for case in list(lsf('valid', select='*.nxt')) + list(lsf('valid', 
+    for case in list(lsf('valid', select='*.nt')) + list(lsf('valid', 
 select='*.json'))
 ]
 invalid_testcases = [
     case.with_suffix('')
-    for case in list(lsf('invalid', select='*.nxt')) + list(lsf('invalid', 
+    for case in list(lsf('invalid', select='*.nt')) + list(lsf('invalid', 
 select='*.json'))
 ]
 testcases = set()
@@ -64,25 +64,25 @@ def load_json_file(case):
     data = json.loads(json_content)
     return data
 
-def load_nxt_file(case):
-    nxt_path = case.with_suffix('.nxt')
-    nxt_content = nxt_path.read_text()
-    data = nestedtext.loads(nxt_content, nxt_path)
+def load_nestedtext_file(case):
+    nestedtext_path = case.with_suffix('.nt')
+    nestedtext_content = nestedtext_path.read_text()
+    data = nestedtext.loads(nestedtext_content, nestedtext_path)
     return data
 
 def run_internal_encoder_test(case):
     given_data = load_json_file(case)
     try:
-        nxt_content = nestedtext.dumps(given_data)
+        nestedtext_content = nestedtext.dumps(given_data)
     except nestedtext.NestedTextError:
         return 'error'
-    extracted_data = nestedtext.loads(nxt_content)
+    extracted_data = nestedtext.loads(nestedtext_content)
     success = extracted_data == given_data
     return None if success else 'mismatch'
 
 def run_internal_decoder_test(case):
     try:
-        extracted_data = load_nxt_file(case)
+        extracted_data = load_nestedtext_file(case)
     except nestedtext.NestedTextError:
         return 'error'
     expected_data = load_json_file(case)
@@ -94,14 +94,14 @@ def run_external_encoder_test(encoder, path):
     process = Run(encoder, stdin=given_json_content, modes='sOEW1')
     if process.status != 0:
         return 'error'
-    nxt_content = process.stdout
-    extracted_data = nestedtext.loads(nxt_content)
+    nestedtext_content = process.stdout
+    extracted_data = nestedtext.loads(nestedtext_content)
     success = extracted_data == given_data
     return None if success else 'mismatch'
 
 def run_external_decoder_test(decoder, path):
-    given_nxt_content = path.read_text()
-    process = Run(encoder, stdin=given_nxt_content, modes='sOEW1')
+    given_nestedtext_content = path.read_text()
+    process = Run(encoder, stdin=given_nestedtext_content, modes='sOEW1')
     if process.status != 0:
         return error
     json_content = process.stdout
@@ -130,7 +130,7 @@ with Inform(verbose=cmdline['--verbose']):
                     if fails != 'error':
                         error('encoder fails to fail.', culprit=src_file)
 
-            src_file = case.with_suffix('.nxt')
+            src_file = case.with_suffix('.nt')
             if decoder and src_file.exists():
                 comment(src_file, 'decoder')
                 tests += 1

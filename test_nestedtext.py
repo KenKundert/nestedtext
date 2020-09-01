@@ -519,6 +519,23 @@ def test_loads_errors():
     assert exception.value.line == '    \t    > first line'
     assert exception.value.loc == 4
 
+    content = dedent("""
+        name :
+        name :
+    """)
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '3: duplicate key: name.'
+    assert exception.value.args == ('name',)
+    assert exception.value.kwargs == dict(
+        culprit = (3,),
+        codicil = ('«name :»',),
+        line = 'name :',
+        template = 'duplicate key: {}.',
+    )
+    assert exception.value.line == 'name :'
+    assert exception.value.render(template='llave duplicada: {}.') == '3: llave duplicada: name.'
+
 # test_dump() {{{1
 def test_dump():
     data = {'peach': 3, 'apricot': 8, 'blueberry': '1 lb', 'orange': 4}

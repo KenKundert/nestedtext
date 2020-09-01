@@ -41,7 +41,7 @@ Here is an example of a file that contains a few addresses::
             > 2586 Marigold Lane
             > Topika, Kansas 20682
         phone: 1-470-974-0398
-        email: margarett.hodge@uk.edu
+        email: margaret.hodge@uk.edu
         kids:
             - Arnie
             - Zach
@@ -76,7 +76,7 @@ Issues
 ------
 
 Please ask questions or report problems on `Github 
-<https://github.com/KenKundert/quantiphy/issues>`_.
+<https://github.com/KenKundert/nestedtext/issues>`_.
 
 
 Contributing

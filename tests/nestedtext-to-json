@@ -3,7 +3,7 @@
 Read a NestedText file and convert it to JSON.
 
 usage:
-    nxt-to-json [options] [<filename>]
+    nestedtext-to-json [options] [<filename>]
 
 options:
     -f, --force   force overwrite of output file
@@ -25,10 +25,10 @@ input_filename = cmdline['<filename>']
 try:
     if input_filename:
         input_path = Path(input_filename)
-        nxt_content = input_path.read_text()
+        nestedtext_content = input_path.read_text()
     else:
-        nxt_content = sys.stdin.read()
-    data = nestedtext.loads(nxt_content, input_filename)
+        nestedtext_content = sys.stdin.read()
+    data = nestedtext.loads(nestedtext_content, input_filename)
     json_content = json.dumps(data, indent=4)
     if input_filename:
         output_path = input_path.with_suffix('.json')

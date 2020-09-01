@@ -16,11 +16,11 @@ status of 1.
 
 An external encoder must accept *JSON* as input and write *NestedText* as 
 output.  An 'external' encoder that actually uses the reference encoder is 
-provided in *json-to-nxt*
+provided in *json-to-nestedtext*
 
-An external decoder must accept *nxt* as input and write *JSON* as output.
-An 'external' decoder that actually uses the reference decoder is provided in 
-*nxt-to-json*
+An external decoder must accept *NestedText* as input and write *JSON* as 
+output.  An 'external' decoder that actually uses the reference decoder is 
+provided in *nestedtext-to-json*
 
 For example, to run all tests on internal reference encoder and decoder::
 
@@ -28,15 +28,15 @@ For example, to run all tests on internal reference encoder and decoder::
 
 To run tests on an external encoder use::
 
-    $ ./run-tests --encoder=json-to-nxt
+    $ ./run-tests --encoder=json-to-nestedtext
 
 To run tests on an external decoder use::
 
-    $ ./run-tests --decoder=nxt-to-json
+    $ ./run-tests --decoder=nestedtext-to-json
 
 To run tests on both an external encoder and decoder use::
 
-    $ ./run-tests --encoder=json-to-nxt --decoder=nxt-to-json
+    $ ./run-tests --encoder=json-to-nestedtext --decoder=nestedtext-to-json
 
 Tests
 -----

@@ -248,12 +248,12 @@ def read_dict(lines, depth):
             indentation_error(line, depth)
         if line.kind != "dict item":
             report("expected dictionary item", line)
+        if line.key in data:
+            report('duplicate key: {}.', line, line.key)
+        if '"' in line.key and "'" in line.key:
+            report("""key must not contain both " and '.""", line, line.key)
         if line.value:
             # dbg(line, 'dv')
-            if line.key in data:
-                report('duplicate key: {}.', line, line.key)
-            if '"' in line.key and "'" in line.key:
-                report("""key must not contain both " and '.""", line, line.key)
             data.update({line.key: line.value})
         else:
             # dbg(line, 'd↵')
