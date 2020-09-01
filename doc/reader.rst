@@ -10,63 +10,21 @@ a string as an argument:
     >>> from inform import render
 
     >>> contents = """
-    ... # backup settings for root
-    ... src_dir: /
-    ... excludes:
-    ...     - /dev
-    ...     - /home/*/.cache
-    ...     - /root/*/.cache
-    ...     - /proc
-    ...     - /sys
-    ...     - /tmp
-    ...     - /var/cache
-    ...     - /var/lock
-    ...     - /var/run
-    ...     - /var/tmp
-    ... keep:
-    ...     hourly: 24
-    ...     daily: 7
-    ...     weekly: 4
-    ...     monthly: 12
-    ...     yearly: 5
-    ... passphrase:
-    ...     > trouper segregate militia airway pricey sweetmeat tartan bookstall
-    ...     > obsession charlady twosome silky puffball grubby ranger notation
-    ...     > rosebud replicate freshen javelin abbot autocue beater byway
+    ... name: Kristel Templeton
+    ... sex: female
+    ... age: 74
     ... """
 
     >>> try:
     ...     data = nestedtext.loads(contents)
     ... except nestedtext.NestedTextError as e:
-    ...     e.report()
+    ...     print(str(e))
 
     >>> print(render(data))
     {
-        'src_dir': '/',
-        'excludes': [
-            '/dev',
-            '/home/*/.cache',
-            '/root/*/.cache',
-            '/proc',
-            '/sys',
-            '/tmp',
-            '/var/cache',
-            '/var/lock',
-            '/var/run',
-            '/var/tmp',
-        ],
-        'keep': {
-            'hourly': '24',
-            'daily': '7',
-            'weekly': '4',
-            'monthly': '12',
-            'yearly': '5',
-        },
-        'passphrase': """\
-            trouper segregate militia airway pricey sweetmeat tartan bookstall
-            obsession charlady twosome silky puffball grubby ranger notation
-            rosebud replicate freshen javelin abbot autocue beater byway\
-        """,
+        'name': 'Kristel Templeton',
+        'sex': 'female',
+        'age': '74',
     }
 
 *loads()* takes an optional second argument, *culprit*. If specified, it will be 
@@ -80,16 +38,16 @@ the file name.
 
 Parsing data can be a difficult challenge. One way to reduce the challenge is to 
 reduce the scope of what is being parsed. With *NestedText* you can delegate the 
-parsing the of the structure, and instead focus on parsing individual values 
-given as strings.  A transforming validator line `Voluptuous 
+parsing the of the structure and instead focus on parsing individual values 
+given as strings.  A transforming validator like `Voluptuous 
 <https://github.com/alecthomas/voluptuous>`_ can greatly simply the process.
 
 To use *Voluptuous* you would create a schema and then apply the schema to the 
-data. Normally the schema used to validate the data, but with a little extra 
-plumbing the data can be transformed to the needed form.  This will be 
-demonstrated with a very simple example.
+data. Normally the schema is used to validate the data, but with a little extra 
+plumbing the data can be transformed to the needed form.  The following is 
+a very simple example.
 
-In order for *voluptuous* to convert the data to the desired type, a converter 
+In order for *Voluptuous* to convert the data to the desired type, a converter 
 function is helpful:
 
 .. code-block:: python

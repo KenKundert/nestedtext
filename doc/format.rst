@@ -2,7 +2,7 @@ The *NestedText* Format
 -----------------------
 
 A *NestedText* file starts with a dictionary or a list. A dictionary is 
-a sequence of key/value pairs and a list is an sequence of values.
+a sequence of key/value pairs and a list is a sequence of values.
 
 A dictionary contains one or more dictionary items, each on its own line and in 
 each the key and value separated by a colon.  The value is optional and the 
@@ -10,7 +10,7 @@ colon must be followed by a space or a newline to act as the key/value
 separator. So for example::
 
     name: Katheryn McDaniel
-    phone: 1-210-835-5297
+    phone: 1-210-555-5297
     email: KateMcD@aol.com
 
 In this example both the keys and values are strings.  Keys are always strings, 
@@ -24,11 +24,12 @@ introduced with a dash and end at the end of line. So for example::
     - Arizona
     - Arkansas
 
-The values in dictionary and list items may be rest of line strings or 
-multi-line strings.  Rest of line strings are simply the remaining characters on 
-the line exclusive of any leading or trailing spaces.  If you prefer to keep the 
-leading or trailing spaces, you can add quotes suing either single or double 
-quotes.  An empty value represents an empty string.
+The values in dictionary and list items may be rest-of-line strings or 
+multi-line strings.  Rest-of-line strings, also known as single-line strings,  
+are simply the remaining characters on the line exclusive of any leading or 
+trailing spaces.  If you prefer to keep the leading or trailing spaces, you can 
+add quotes using either single or double quotes.  An empty value represents an 
+empty string.
 
 ::
 
@@ -43,12 +44,12 @@ where each line is introduced with '> '::
     address:
         > 138 Almond Street
         > Topika, Kansas 20697
-    phone: 1-210-835-5297
+    phone: 1-210-555-5297
     email: KateMcD@aol.com
 
-Normally multi-line strings have neither leading or trailing newlines.  However, 
-you can place empty strings at the start or end of the string to add such 
-newlines::
+Normally multi-line strings have neither leading nor trailing newlines.  
+However, you can place empty strings at the start or end of the string to add 
+such newlines::
 
     Yogi Berra:
         >
@@ -76,8 +77,8 @@ A value can also be a list or another dictionary::
             > 138 Almond Street
             > Topika, Kansas 20697
         phone:
-            cell: 1-210-835-5297
-            home: 1-210-478-8470
+            cell: 1-210-555-5297
+            home: 1-210-555-8470
         email: KateMcD@aol.com
         kids:
             - Joanie
@@ -88,7 +89,7 @@ A value can also be a list or another dictionary::
         address:
             > 2586 Marigold Land
             > Topika, Kansas 20697
-        phone: 1-470-974-0398
+        phone: 1-470-555-0398
         email: margaret.hodge@uk.edu
         kids:
             - Arnie
@@ -128,48 +129,49 @@ cannot follow a colon, dash, or greater to form a dictionary, list, or
 multi-line string tag, but can be used elsewhere.
 
 
-Rules
-~~~~~
+Summary of Rules
+~~~~~~~~~~~~~~~~
 
 The *NestedText* format follows a small number of simple rules. Here they are.
 
 Each line in a *NestedText* document is assigned one of the following types: 
-comment, blank, list-item, dict-item, and string-item.  Any line that does not 
-fit one of these types is an error.
+*comment*, *blank*, *list-item*, *dict-item*, and *string-item*.  Any line that 
+does not fit one of these types is an error.
 
 Comments are lines that have `#` as the first character on the line. Comments 
 are ignored.
 
 Blank lines are lines that are empty or consist only of white space characters 
-(spaces or tabs).  Blank lines are ignored.
+(spaces or tabs).  Blank lines are also ignored.
 
 The remaining lines are identifying by which of one of these pairs of characters 
 are found in an unquoted portion of the line: '- ', ': ', '> ', or ':↵'.  Once 
 the first of one of these pairs has been found in the unquoted portion of the 
-line, any subsequent occurrences are treated as simple text.  For example::
+line, any subsequent occurrences of any of the line-type tags are treated as 
+simple text.  For example::
 
     - And the winner is: {winner}
 
 In this case the leading '- ' determines the type of the line and the ': ' is 
 simply treated as part of the remaining text on the line.
 
-If the line begins with '- ' and it is not within quotes, the line is 
-a list-item.  Adjacent list-items with the same indentation level are combined 
+If the line begins with '- ' that is not within quotes, the line is 
+a *list-item*.  Adjacent list-items with the same indentation level are combined 
 into a list with their order being retained.  Each list-item has an associated 
 value.
 
-If the line begins with '> ' and it is not within quotes, or if the line 
-consists of a single indented '>', the line is a string-item.  Adjacent 
-string-items with the same indentation level are combined into a multi-line 
-string with their order being retained.  Any leading white space the follows the 
-'> ' or any trailing space is retained.
+If the line begins with '> ' that is not within quotes, or if the line consists 
+of a single indented '>', the line is a *string-item*.  Adjacent string-items 
+with the same indentation level are combined into a multi-line string with their 
+order being retained.  Any leading white space the follows the '> ' or any 
+trailing space is retained.
 
-If the line contains an ': ' or ends with a ':', the line is considered 
-a dict-item.  Adjacent dict-items with the same indentation level are combined 
-into a dictionary with their order being retained.  Each dict-item consists of 
-a key, the colon, and a value.  A key must be a string; it must not contain 
-a newline, and it must be quoted if it contains a line-type tag or has leading 
-or trailing spaces.
+If the line contains an ': ' that does not fall within quotes or ends with 
+a ':', the line is considered a *dict-item*.  Adjacent dict-items with the same 
+indentation level are combined into a dictionary with their order being 
+retained.  Each dict-item consists of a key, the colon, and a value.  A key must 
+be a string; it must not contain a newline, and it must be quoted if it contains 
+a line-type tag or has leading or trailing spaces.
 
 The values associated with list and dict items may take one of three forms. If 
 the line contains further text (non-white space characters after the '- ' or ': 

@@ -444,6 +444,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         valid: yes
         color: red
 
+    Mapping a type to *False* in *renderers* results in an exception being
+    raised if that type is found.
     """
 
     # define sort function

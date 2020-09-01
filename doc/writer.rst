@@ -6,78 +6,38 @@ dictionaries, lists, and strings to *NestedText*:
 
 .. code-block:: python
 
-    >>> from textwrap import dedent
     >>> import nestedtext
 
     >>> data = {
-    ... 'src_dir': '/',
-    ... 'excludes': [
-    ...     '/dev',
-    ...     '/home/*/.cache',
-    ...     '/root/*/.cache',
-    ...     '/proc',
-    ...     '/sys',
-    ...     '/tmp',
-    ...     '/var/cache',
-    ...     '/var/lock',
-    ...     '/var/run',
-    ...     '/var/tmp',
-    ... ],
-    ... 'keep': {
-    ...     'hourly': '24',
-    ...     'daily': '7',
-    ...     'weekly': '4',
-    ...     'monthly': '12',
-    ...     'yearly': '5',
-    ... },
-    ... 'passphrase': dedent("""\
-    ...     trouper segregate militia airway pricey sweetmeat tartan bookstall
-    ...     obsession charlady twosome silky puffball grubby ranger notation
-    ...     rosebud replicate freshen javelin abbot autocue beater byway\
-    ... """),
+    ...     'name': 'Kristel Templeton',
+    ...     'sex': 'female',
+    ...     'age': '74',
     ... }
 
     >>> try:
     ...     print(nestedtext.dumps(data))
     ... except nestedtext.NestedTextError as e:
-    ...     e.report()
-    src_dir: /
-    excludes:
-        - /dev
-        - /home/*/.cache
-        - /root/*/.cache
-        - /proc
-        - /sys
-        - /tmp
-        - /var/cache
-        - /var/lock
-        - /var/run
-        - /var/tmp
-    keep:
-        hourly: 24
-        daily: 7
-        weekly: 4
-        monthly: 12
-        yearly: 5
-    passphrase:
-        > trouper segregate militia airway pricey sweetmeat tartan bookstall
-        > obsession charlady twosome silky puffball grubby ranger notation
-        > rosebud replicate freshen javelin abbot autocue beater byway
+    ...     print(str(e))
+    name: Kristel Templeton
+    sex: female
+    age: 74
 
 This example writes to a string, but it is common to write to a file.  The file 
 name and extension are arbitrary. However, by convention a '.nt' suffix is 
 generally used for *NestedText* files.
 
-There are several mechanisms available for handling objects that are otherwise 
-unsupported by the format.
 
+Deviant Types
+~~~~~~~~~~~~~
+
+The *NextedText* format only supports dictionaries, lists, and strings.
 By default, *dumps* is configured to be rather forgiving, so it will render many 
 of the base Python data types, such as *None*, *bool*, *int*, *float* and 
-list-like options such as *tuple* and *set*. This implies that a round trip 
-through *dumps* and *loads* could result in the types of values being 
-transformed. You can prevent this by passing `default='strict'` to *dump*. Doing 
-so means that values that are not dictionaries, lists, or strings generate 
-exceptions:
+list-like types such as *tuple* and *set* by converting them to the types 
+supported by the format.  This implies that a round trip through *dumps* and 
+*loads* could result in the types of values being transformed. You can prevent 
+this by passing `default='strict'` to *dumps*.  Doing so means that values that 
+are not dictionaries, lists, or strings generate exceptions:
 
 .. code-block:: python
 
@@ -86,7 +46,7 @@ exceptions:
     >>> try:
     ...     print(nestedtext.dumps(data))
     ... except nestedtext.NestedTextError as e:
-    ...     e.report()
+    ...     print(str(e))
     key: 42
     value: 3.1415926
     valid: True
@@ -139,12 +99,30 @@ type to a render function:
     >>> try:
     ...    print(nestedtext.dumps(data, renderers=renderers))
     ... except nestedtext.NestedTextError as e:
-    ...     e.report()
+    ...     print(str(e))
     key: 0x2a
     value: 3.14
     valid: yes
     house: red
 
+If the dictionary maps a type to *None*, then the default behavior is used for 
+that type. If it maps to *False*, then an exception is raised:
+
+.. code-block:: python
+
+    >>> renderers = {
+    ...     bool: lambda b: 'yes' if b else 'no',
+    ...     int: hex,
+    ...     float: False,
+    ...     Color: lambda c: c.color,
+    ... }
+
+    >>> try:
+    ...    print(nestedtext.dumps(data, renderers=renderers))
+    ... except nestedtext.NestedTextError as e:
+    ...     print(str(e))
+    3.1415926: unsupported type.
+
 Both *default* and *renderers* may be used together. *renderers* has priority 
-over the built-in types and *default*. When a function is specified as 
+over the built-in types and *default*.  When a function is specified as 
 *default*, it is always applied as a last resort.

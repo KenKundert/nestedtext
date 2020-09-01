@@ -37,8 +37,8 @@ addresses::
             > 138 Almond Street
             > Topika, Kansas 20697
         phone:
-            cell: 1-210-835-5297
-            home: 1-210-478-8470
+            cell: 1-210-555-5297
+            home: 1-210-555-8470
         email: KateMcD@aol.com
         kids:
             - Joanie
@@ -49,7 +49,7 @@ addresses::
         address:
             > 2586 Marigold Lane
             > Topika, Kansas 20682
-        phone: 1-470-974-0398
+        phone: 1-470-555-0398
         email: margarett.hodge@uk.edu
         kids:
             - Arnie
@@ -61,7 +61,7 @@ addresses::
         address:
             > 3636 Buffalo Ave
             > Topika, Kansas 20692
-        phone: 1-268-877-0280
+        phone: 1-268-555-0280
         email: fumiko.purvis@hotmail.com
         kids:
             - Lue
@@ -69,8 +69,8 @@ addresses::
 The format can hold dictionaries (ordered collections of name/value pairs), 
 lists (ordered collections of values) and strings organized hierarchically to 
 any depth.  Indentation is used to indicate the hierarchy of the data, and 
-simple syntax is used to distinguish the types of data in such a manner that it 
-is not easily confused.
+a simple natural syntax is used to distinguish the types of data in such 
+a manner that it is not easily confused.
 
 
 Alternatives
@@ -110,7 +110,7 @@ Quick Start
 
 Install with::
 
-   pip3 install nestedtext
+   pip3 install --user nestedtext
 
 
 Issues
