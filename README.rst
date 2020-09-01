@@ -98,13 +98,14 @@ All of which results in *JSON* being a frustrating format for humans to enter or
 read.
 
 *YAML* was to be the human friendly alternative to *JSON*, but things went very 
-wrong. The authors were too ambitious and tried to support too many data types 
-and too many formats. To distinguish between all the various types and formats, 
-a complicated and non-intuitive set of rules developed.  *YAML* at first appears 
-very appealing when used with simple examples, but things quickly become very 
-complicated.  A reaction to this is the use of *YAML* subsets, such as 
-`StrictYAML <https://hitchdev.com/strictyaml>`_.  However, *StrictYAML* tries to 
-maintain compatibility with *YAML* and so inherits much of its complexity.
+wrong at some point. The authors were too ambitious and tried to support too 
+many data types and too many formats. To distinguish between all the various 
+types and formats, a complicated and non-intuitive set of rules developed.  
+*YAML* at first appears very appealing when used with simple examples, but 
+things quickly become very complicated.  A reaction to this is the use of *YAML* 
+subsets, such as `StrictYAML <https://hitchdev.com/strictyaml>`_.  However, the 
+subsets try to maintain compatibility with *YAML* and so inherits much of its 
+complexity.
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It supports 
 only a limited number of types and has a very simple set of rules that make up 
