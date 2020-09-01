@@ -19,6 +19,7 @@ NestedText: A Human Friendly Data Format
 | Released: 2020-08-31
 | Please post all questions, suggestions, and bug reports to
   `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_.
+|
 
 
 *NestedText* is a file format for exchanging data held in strings, lists, and␣
