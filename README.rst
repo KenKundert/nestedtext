@@ -10,10 +10,8 @@ NestedText: A Human Friendly Data Format
 
 | Version: 0.1.1
 | Released: 2020-08-31
-| Please post all bugs and suggestions at
-  `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_
-  (or contact me directly at
-  `nestedtext@nurdletech.com <mailto://nestedtext@nurdletech.com>`_).
+| Please post all questions, suggestions, and bug reports to
+  `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_.
 
 
 *NestedText* is a file format for exchanging data held in strings, lists, and␣
