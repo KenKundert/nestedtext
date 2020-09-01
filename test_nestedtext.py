@@ -414,12 +414,13 @@ def test_loads_errors():
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
-        codicil = ('«- green chilies»',),
+        codicil = ('«- green chilies»\n ↑',),
         line = '- green chilies',
+        loc = 0,
         template = 'expected dictionary item.',
     )
     assert exception.value.line == '- green chilies'
-    assert exception.value.loc == None
+    assert exception.value.loc == 0
 
     content = dedent("""
         - green chilies
@@ -431,12 +432,13 @@ def test_loads_errors():
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (3,),
-        codicil = ('«ingredients:»',),
+        codicil = ('«ingredients:»\n ↑',),
         line = 'ingredients:',
+        loc = 0,
         template = 'expected list item.',
     )
     assert exception.value.line == 'ingredients:'
-    assert exception.value.loc == None
+    assert exception.value.loc == 0
 
     content = dedent("""
             - green chilies
@@ -484,12 +486,13 @@ def test_loads_errors():
     assert exception.value.args == ()
     assert exception.value.kwargs == dict(
         culprit = (1,),
-        codicil = ('«> ingredients»',),
+        codicil = ('«> ingredients»\n ↑',),
         line = '> ingredients',
+        loc = 0,
         template = 'expected list or dictionary item.',
     )
     assert exception.value.line == '> ingredients'
-    assert exception.value.loc == None
+    assert exception.value.loc == 0
 
     content = dedent("""
         ingredients:
@@ -518,12 +521,13 @@ def test_loads_errors():
     assert exception.value.args == ('key',)
     assert exception.value.kwargs == dict(
         culprit = (2,),
-        codicil = ('«key: value 2»',),
+        codicil = ('«key: value 2»\n ↑',),
         line = 'key: value 2',
+        loc = 0,
         template = 'duplicate key: {}.',
     )
     assert exception.value.line == 'key: value 2'
-    assert exception.value.loc == None
+    assert exception.value.loc == 0
 
     content = dedent("""
         key:
@@ -554,12 +558,14 @@ def test_loads_errors():
     assert exception.value.args == ('name',)
     assert exception.value.kwargs == dict(
         culprit = (3,),
-        codicil = ('«name :»',),
+        codicil = ('«name :»\n ↑',),
         line = 'name :',
+        loc = 0,
         template = 'duplicate key: {}.',
     )
     assert exception.value.line == 'name :'
     assert exception.value.render(template='llave duplicada: {}.') == '3: llave duplicada: name.'
+    assert exception.value.loc == 0
 
 # test_dump() {{{1
 def test_dump():

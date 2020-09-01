@@ -222,7 +222,7 @@ def read_list(lines, depth):
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "list item":
-            report("expected list item", line)
+            report("expected list item", line, loc=depth)
         if line.value:
             # dbg(line, 'lv')
             data.append(line.value)
@@ -247,11 +247,11 @@ def read_dict(lines, depth):
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "dict item":
-            report("expected dictionary item", line)
+            report("expected dictionary item", line, loc=depth)
         if line.key in data:
-            report('duplicate key: {}.', line, line.key)
+            report('duplicate key: {}.', line, line.key, loc=depth)
         if '"' in line.key and "'" in line.key:
-            report("""key must not contain both " and '.""", line, line.key)
+            report("""key must not contain both " and '.""", line, line.key, loc=depth)
         if line.value:
             # dbg(line, 'dv')
             data.update({line.key: line.value})
@@ -301,7 +301,7 @@ def loads(contents, culprit=None):
         type_of_first = lines.type_of_next()
         if type_of_first not in ["list item", "dict item"]:
             if type_of_first:
-                report("expected list or dictionary item.", lines.get_next())
+                report("expected list or dictionary item.", lines.get_next(), loc=0)
             else:
                 return {}
         else:
