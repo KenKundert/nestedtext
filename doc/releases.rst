@@ -2,8 +2,8 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.1.1
-    | Released: 2020-08-31
+    | Version: 0.1.2
+    | Released: 2020-09-01
 
     - General refinements.
 
