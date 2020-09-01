@@ -1,7 +1,7 @@
 Writer
 ------
 
-*dumps* converts Python data objects to *NextedText*.
+*dumps* converts Python data objects to *NestedText*.
 
 .. autofunction:: nestedtext.dumps
 
@@ -33,7 +33,7 @@ generally used for *NestedText* files.
 Deviant Types
 ~~~~~~~~~~~~~
 
-The *NextedText* format only supports dictionaries, lists, and strings.
+The *NestedText* format only supports dictionaries, lists, and strings.
 By default, *dumps* is configured to be rather forgiving, so it will render many 
 of the base Python data types, such as *None*, *bool*, *int*, *float* and 
 list-like types such as *tuple* and *set* by converting them to the types 
