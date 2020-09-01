@@ -139,14 +139,14 @@ class Lines:
                 if list_tag == "".join(components[:2]).lstrip(" "):
                     kind = "list item"
                     value = join_and_dequote(components[2:])
+                elif str_tag == "".join(components[:2]).lstrip(" "):
+                    kind = "string"
+                    value = "".join(components[2:])[:-1]
                 elif dict_tag in components:
                     kind = "dict item"
                     split_loc = components.index(dict_tag)
                     key = join_and_dequote(components[:split_loc])
                     value = join_and_dequote(components[split_loc + 1 :])
-                elif str_tag == "".join(components[:2]).lstrip(" "):
-                    kind = "string"
-                    value = "".join(components[2:])[:-1]
                 else:
                     kind = "unrecognized"
                     value = line

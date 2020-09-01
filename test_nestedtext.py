@@ -338,6 +338,31 @@ def test_loads():
     data = nestedtext.loads(content)
     assert data == {'what makes it green': 'green\tchilies'}
 
+    content = dedent("""
+        output current: out
+        description: Output current
+        range: V(gnda) + 0.5V < V < V(vdda) - 0.5V; -500μA <= I <= 500μA
+        behavior:
+            > current:
+            >     I = On*Iout;
+            >     Vout=V;
+            >     IoutMeas=I with prail=vdda; nrail=gnda
+        nominal: V=1.25V+1Ω*I
+    """)
+    data = nestedtext.loads(content)
+    assert data == {
+        "output current": "out",
+        "description": "Output current",
+        "range": "V(gnda) + 0.5V < V < V(vdda) - 0.5V; -500μA <= I <= 500μA",
+        "behavior": dedent("""
+            current:
+                I = On*Iout;
+                Vout=V;
+                IoutMeas=I with prail=vdda; nrail=gnda
+        """).strip(),
+        "nominal": "V=1.25V+1Ω*I",
+    }
+
 
 # test_loads_errors() {{{1
 def test_loads_errors():
