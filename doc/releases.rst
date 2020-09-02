@@ -7,5 +7,8 @@ Releases
 
     - General refinements.
 
+**0.2 (2020-09-02)**:
+    - Minor enhancements and bug fixes.
+
 **0.1 (2020-08-30)**:
     - Initial release.
