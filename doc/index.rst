@@ -95,6 +95,7 @@ Documentation
    reader
    writer
    exceptions
+   examples
    releases
 
 *  :ref:`genindex`

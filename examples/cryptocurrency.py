@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+from appdirs import user_config_dir, user_cache_dir
+from  nestedtext import loads, dumps, NestedTextError
+from voluptuous import Schema, Required, All, Length, Invalid
+from inform import display, fatal, is_collection, os_error, render_bar
+import arrow
+import requests
+from quantiphy import Quantity
+from pathlib import Path
+
+# configure preferences
+Quantity.set_prefs(prec=2, ignore_sf = True)
+currencies = dict(USD='$', EUR='€', JPY='¥', GBP='£')
+
+# utility functions
+def coerce(type):
+    def f(value):
+        try:
+            if is_collection(value):
+                return [type(each) for each in value]
+            return type(value)
+        except ValueError:
+            raise Invalid(f'expected {type.__name__}, found {v.__class__.__name__}')
+    return f
+
+try:
+    # read settings
+    settings_file = Path(user_config_dir('cc'), 'settings')
+    settings_schema = Schema({
+        Required('holdings'): All(coerce(Quantity), Length(min=1)),
+        'currency': str,
+        'date format': str,
+        'screen width': coerce(int)
+    })
+    settings = settings_schema(loads(settings_file.read_text(), settings_file))
+    currency = settings.get('currency', 'USD')
+    currency_symbol = currencies.get(currency, currency)
+    screen_width = settings.get('screen width', 80)
+
+    # download latest asset prices from cryptocompare.com
+    params = dict(
+        fsyms = ','.join(coin.units for coin in settings['holdings']),
+        tsyms = currency,
+    )
+    url = 'https://min-api.cryptocompare.com/data/pricemulti'
+    try:
+        r = requests.get(url, params=params)
+        if r.status_code != requests.codes.ok:
+            r.raise_for_status()
+    except Exception as e:
+        raise Error('cannot access cryptocurrency prices:', codicil=str(e))
+    prices = {k: Quantity(v['USD'], currency_symbol) for k, v in r.json().items()}
+
+    # compute total
+    total = Quantity(0, currency_symbol)
+    for coin in settings['holdings']:
+        price = prices[coin.units]
+        value = price.scale(coin)
+        total = total.add(value)
+
+    # display holdings
+    now = arrow.now().format(settings.get('date format', 'h:mm A, dddd MMMM D, YYYY'))
+    print(f'Holdings as of {now}.')
+    bar_width = screen_width - 37
+    for coin in settings['holdings']:
+        price = prices[coin.units]
+        value = price.scale(coin)
+        portion = value/total
+        summary = f'{coin} = {value} @ {price}/{coin.units}'
+        print(f'{summary:<30} {portion:<5.1%} {render_bar(portion, bar_width)}')
+    print(f'Total value = {total}.')
+
+except NestedTextError as e:
+    e.terminate()
+except Invalid as e:
+    fatal(e)
+except OSError as e:
+    fatal(os_error(e))
+except KeyboardInterrupt:
+    pass
