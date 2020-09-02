@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from appdirs import user_config_dir, user_cache_dir
+from appdirs import user_config_dir
 from  nestedtext import loads, dumps, NestedTextError
 from voluptuous import Schema, Required, All, Length, Invalid
 from inform import display, fatal, is_collection, os_error, render_bar
@@ -11,7 +11,7 @@ from pathlib import Path
 
 # configure preferences
 Quantity.set_prefs(prec=2, ignore_sf = True)
-currencies = dict(USD='$', EUR='€', JPY='¥', GBP='£')
+currency_symbols = dict(USD='$', EUR='€', JPY='¥', GBP='£')
 
 # utility functions
 def coerce(type):
@@ -35,7 +35,7 @@ try:
     })
     settings = settings_schema(loads(settings_file.read_text(), settings_file))
     currency = settings.get('currency', 'USD')
-    currency_symbol = currencies.get(currency, currency)
+    currency_symbol = currency_symbols.get(currency, currency)
     screen_width = settings.get('screen width', 80)
 
     # download latest asset prices from cryptocompare.com
