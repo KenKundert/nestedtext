@@ -5,7 +5,7 @@ Releases
     | Version: 0.2.0
     | Released: 2020-09-02
 
-    - General refinements.
+    - Allow comments to be indented.
 
 **0.2 (2020-09-02)**:
     - Minor enhancements and bug fixes.
