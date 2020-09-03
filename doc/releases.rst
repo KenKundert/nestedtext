@@ -2,7 +2,7 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.2.1
+    | Version: 0.3.0
     | Released: 2020-09-03
 
     - Allow comments to be indented.
