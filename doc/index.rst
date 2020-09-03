@@ -96,7 +96,29 @@ complexity.
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It supports 
 only a limited number of types and has a very simple set of rules that make up 
-the format.
+the format.  *NestedText* is an improvement over *JSON* in that it only accepts 
+strings as it leaf values, where as *JSON* needs to distinguish between many 
+possible types. For example, in *JSON* 32 is an integer, 32.0 is the real 
+version of 32, and "32" is the string version. As a result, all strings in 
+*JSON* must be quoted, which, since most leaf values are strings, adds 
+substantial clutter.  The problem is different in *YAML*, which tries to 
+determine the value's type based on context. So 32 alone in a field is an 
+integer, but if combined with other characters, such as 32.0.2 or *I have 32 
+kites*, it is part of a string.  *NestedText* avoids these issues by treating 
+all leaf values as strings. It is up to application that employs *NestedText* as 
+an input format to sort things out later.  Consider the following *YAML* 
+fragment::
+
+    Enrolled: NO
+    Country Code: NO
+
+Presumably *Enrolled* is meant to be a Boolean value whereas *Country Code* is 
+meant to be a string (*NO* is the country code for Norway). Reading this 
+fragment with *YAML* results in {'Enrolled': *False*, 'Country Code': *False*}.  
+When read by *NestedText* both values become 'NO', but the assumption is that 
+*Enrolled* knows how to convert 'NO' to *False*. The same is not possible with 
+*YAML* because many possible strings map to *False* (`n`, `no`, `false`, `off`; 
+etc.) and it is hard to know which one was given.
 
 
 Quick Start
