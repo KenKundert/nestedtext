@@ -39,9 +39,11 @@ __version__ = "0.3.0"
 __released__ = "2020-09-03"
 __all__ = ['loads', 'dumps', 'NestedTextError']
 
+
 # Exception {{{1
 class NestedTextError(Error, ValueError):
     pass
+
 
 # NestedText Reader {{{1
 # Converts NestedText into Python data hierarchies.
