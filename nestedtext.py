@@ -39,13 +39,11 @@ __version__ = "0.2.0"
 __released__ = "2020-09-02"
 __all__ = ['loads', 'dumps', 'NestedTextError']
 
-# loads {{{1
+# NestedText Reader {{{1
 # Converts NestedText into Python data hierarchies.
 
 # constants {{{2
 dict_tag = ": "
-list_tag = "- "
-str_tag = "> "
 quoted = "|".join([
     r'"[^"\n]*"',  # "string"
     r"'[^'\n]*'",  # 'string'
@@ -53,8 +51,6 @@ quoted = "|".join([
 splitters = (
     quoted,           # "string" or 'string' (must be first)
     dict_tag,         # key/value separator in dictionary item
-    list_tag,         # introduces list item
-    str_tag,          # introduces a line in a multi-line string
 )
 splitter = re.compile("(" + "|".join(f"(?:{s})" for s in splitters) + ")")
 
@@ -98,9 +94,9 @@ def is_quoted(s):
     return s[:1] in ['"', "'"] and s[:1] == s[-1:]
 
 
-# join_and_dequote {{{2
-def join_and_dequote(l):
-    s = "".join(l).strip()
+# dequote {{{2
+def dequote(s):
+    s = s.strip()
     if is_quoted(s):
         return s[1:-1]
     return s
@@ -126,27 +122,27 @@ class Lines:
             depth = None
             key = None
             value = None
-            if line.strip() == "":
+            stripped = line.lstrip()
+            depth = len(line) - len(stripped)
+            if stripped == "":
                 kind = "blank"
                 value = "\n"
-            elif line[:1] == "#":
+            elif stripped[:1] == "#":
                 kind = "comment"
                 value = line[1:].strip()
+            elif stripped == '-' or stripped.startswith('- '):
+                kind = "list item"
+                value = dequote(stripped[2:])
+            elif stripped == '>' or stripped.startswith('> '):
+                kind = "string"
+                value = line[depth+2:]
             else:
-                stripped = line.lstrip()
-                depth = len(line) - len(stripped)
                 components = splitter.split(line + " ")
-                if list_tag == "".join(components[:2]).lstrip(" "):
-                    kind = "list item"
-                    value = join_and_dequote(components[2:])
-                elif str_tag == "".join(components[:2]).lstrip(" "):
-                    kind = "string"
-                    value = "".join(components[2:])[:-1]
-                elif dict_tag in components:
+                if dict_tag in components:
                     kind = "dict item"
                     split_loc = components.index(dict_tag)
-                    key = join_and_dequote(components[:split_loc])
-                    value = join_and_dequote(components[split_loc + 1 :])
+                    key = dequote("".join(components[:split_loc]))
+                    value = dequote("".join(components[split_loc + 1 :]))
                 else:
                     kind = "unrecognized"
                     value = line
@@ -308,7 +304,7 @@ def loads(contents, culprit=None):
             return read_value(lines, 0)
 
 
-# dumps {{{1
+# NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
 
 # add_leader {{{2

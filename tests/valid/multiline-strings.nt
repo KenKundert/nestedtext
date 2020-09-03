@@ -50,11 +50,12 @@ leading comment:
     > line 2
 internal comment:
     > line 1
-# ignore me
+        # ignore me
     > line 2
 trailing comment:
     > line 1
     > line 2
 # ignore me
 
+            # ignore me
 

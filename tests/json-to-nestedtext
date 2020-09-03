@@ -43,4 +43,4 @@ except OSError as e:
 except nestedtext.NestedTextError as e:
     e.terminate()
 except json.JSONDecodeError as e:
-    fatal(e)
+    fatal(e, culprit=input_filename)

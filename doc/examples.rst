@@ -1,6 +1,8 @@
 Examples
 ========
 
+.. _json-to-nestedtext:
+
 JSON to NestedText
 ------------------
 
@@ -58,6 +60,8 @@ This example implements a command-line utility that converts a *JSON* file to
         fatal(e)
 
 
+.. _nestedtext-to-json:
+
 NestedText to JSON
 ------------------
 
@@ -112,6 +116,8 @@ to *JSON*.  It demonstrates the use of :func:`nestedtext.loads()` and
     except nestedtext.NestedTextError as e:
         e.terminate()
 
+
+.. _cryptocurrency example:
 
 Cryptocurrency Holdings
 ------------------------

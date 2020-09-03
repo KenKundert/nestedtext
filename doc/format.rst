@@ -71,6 +71,8 @@ line is indented by 4 spaces.  The second line in *body* has no leading space.
 
 A value can also be a list or another dictionary::
 
+    # Contact information for our officers
+
     president:
         name: Katheryn McDaniel
         address:
@@ -79,6 +81,7 @@ A value can also be a list or another dictionary::
         phone:
             cell: 1-210-555-5297
             home: 1-210-555-8470
+                # Katheryn prefers that we always call her on her cell phone.
         email: KateMcD@aol.com
         kids:
             - Joanie
@@ -98,7 +101,9 @@ A value can also be a list or another dictionary::
 
 Dictionaries and lists can be nested to an arbitrary depth.
 
-Blank lines and lines whose first character is a hash ``#`` are ignored.
+Blank lines and comment lines are ignored. Blank lines are empty lines or lines 
+that consist only of white space. Comment lines are lines where the first 
+non-space character on the line is a `#`.
 
 Also notice in the last example the value for *greeting* ends in a colon.  This 
 does not represent an issue. Only a hash as the first character on a line, 
@@ -138,33 +143,33 @@ Each line in a *NestedText* document is assigned one of the following types:
 *comment*, *blank*, *list-item*, *dict-item*, and *string-item*.  Any line that 
 does not fit one of these types is an error.
 
-Comments are lines that have `#` as the first character on the line. Comments 
-are ignored.
+Comments are lines that have `#` as the first non-space character on the line.  
+Comments are ignored.
 
 Blank lines are lines that are empty or consist only of white space characters 
 (spaces or tabs).  Blank lines are also ignored.
 
-The remaining lines are identifying by which of one of these pairs of characters 
-are found in an unquoted portion of the line: '- ', ': ', '> ', or ':↵'.  Once 
-the first of one of these pairs has been found in the unquoted portion of the 
-line, any subsequent occurrences of any of the line-type tags are treated as 
-simple text.  For example::
+The remaining lines are identifying by which of one of these characters are 
+found in an unquoted portion of the line: '-', ':', '>' when followed 
+immediately be a space or newline.  Once the first of one of these pairs has 
+been found in the unquoted portion of the line, any subsequent occurrences of 
+any of the line-type tags are treated as simple text.  For example::
 
     - And the winner is: {winner}
 
 In this case the leading '- ' determines the type of the line and the ': ' is 
 simply treated as part of the remaining text on the line.
 
-If the line begins with '- ' that is not within quotes, the line is 
-a *list-item*.  Adjacent list-items with the same indentation level are combined 
-into a list with their order being retained.  Each list-item has an associated 
-value.
+If the line begins with '- ' that is not within quotes or if the line contains 
+only '-', the line is a *list-item*.  Adjacent list-items with the same 
+indentation level are combined into a list with their order being retained.  
+Each list-item has an associated value.
 
 If the line begins with '> ' that is not within quotes, or if the line consists 
 of a single indented '>', the line is a *string-item*.  Adjacent string-items 
 with the same indentation level are combined into a multi-line string with their 
-order being retained.  Any leading white space the follows the '> ' or any 
-trailing space is retained.
+order being retained.  Any leading white space that follows the '> ' is 
+retained, as is any trailing space.
 
 If the line contains an ': ' that does not fall within quotes or ends with 
 a ':', the line is considered a *dict-item*.  Adjacent dict-items with the same 

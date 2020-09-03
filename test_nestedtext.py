@@ -339,15 +339,22 @@ def test_loads():
     assert data == {'what makes it green': 'green\tchilies'}
 
     content = dedent("""
+        # this is a comment
         output current: out
         description: Output current
         range: V(gnda) + 0.5V < V < V(vdda) - 0.5V; -500μA <= I <= 500μA
+            # this is another comment
         behavior:
             > current:
             >     I = On*Iout;
+            # this is mid-string comment
             >     Vout=V;
+
             >     IoutMeas=I with prail=vdda; nrail=gnda
+
         nominal: V=1.25V+1Ω*I
+
+            # this is the final comment
     """)
     data = nestedtext.loads(content)
     assert data == {
@@ -390,6 +397,40 @@ def test_loads():
     """).strip()
     data = nestedtext.loads(content)
     expected = dict(key = 'And Fred said "yabba dabba doo!" to Barney.')
+    assert data == expected
+
+    content = dedent("""
+        # various valid dictionary items with unusual unquoted keys
+        -#:'>: -#:">:
+        -#:">: -#:'>:
+        -#'\'>:: -#"\">::
+        -#"\">:: -#'\'>::
+            # indented comment
+        :-#:'>: :-#:">:
+        :-#:">: :-#:'>:
+        :-#'\'>:: :-#"\">::
+        :-#"\">:: :-#'\'>::
+                # indented comment
+        >:-#:'>: >:-#:">:
+        >:-#:">: >:-#:'>:
+        >:-#'\'>:: >:-#"\">::
+        >:-#"\">:: >:-#'\'>::
+    """).strip()
+    data = nestedtext.loads(content)
+    expected = {
+        "-#:'>": '-#:">:',
+        '-#:">': "-#:'>:",
+        "-#'\'>:": '-#"\">::',
+        '-#"\">:': "-#'\'>::",
+        ":-#:'>": ':-#:">:',
+        ':-#:">': ":-#:'>:",
+        ":-#'\'>:": ':-#"\">::',
+        ':-#"\">:': ":-#'\'>::",
+        ">:-#:'>": '>:-#:">:',
+        '>:-#:">': ">:-#:'>:",
+        ">:-#'\'>:": '>:-#"\">::',
+        '>:-#"\">:': ">:-#'\'>::",
+    }
     assert data == expected
 
 

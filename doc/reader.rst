@@ -60,9 +60,11 @@ given as strings.  A transforming validator like `Voluptuous
 <https://github.com/alecthomas/voluptuous>`_ can greatly simply the process.
 
 To use *Voluptuous* you would create a schema and then apply the schema to the 
-data. Normally the schema is used to validate the data, but with a little extra 
-plumbing the data can be transformed to the needed form.  The following is 
-a very simple example.
+data. The schema details what fields are expected, and what what kind of values 
+they should contain. Normally the schema is used to validate the data, but with 
+a little extra plumbing the data can be transformed to the needed form.  The 
+following is a very simple example (see :ref:`cryptocurrency holdings 
+<cryptocurrency example>` for a more complete example).
 
 In order for *Voluptuous* to convert the data to the desired type, a converter 
 function is helpful:
