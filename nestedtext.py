@@ -35,8 +35,8 @@ from inform import (
 
 
 # Globals {{{1
-__version__ = "0.2.0"
-__released__ = "2020-09-02"
+__version__ = "0.2.1"
+__released__ = "2020-09-03"
 __all__ = ['loads', 'dumps', 'NestedTextError']
 
 # NestedText Reader {{{1
