@@ -5,6 +5,8 @@ Releases
     | Version: 0.3.0
     | Released: 2020-09-03
 
+
+**0.3 (2020-09-03)**:
     - Allow comments to be indented.
 
 **0.2 (2020-09-02)**:

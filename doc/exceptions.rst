@@ -1,13 +1,15 @@
 Exceptions
 ----------
 
-*NestedText* imports the *Error* exception from `inform 
-<https://inform.readthedocs.io/en/stable/api.html#exceptions>`_ and renames it 
-*NestedTextError*.  You can find more documentation on what you can do with this 
-exception there.
+:func:`nestedtext.loads()` and :func:`nestedtext.dumps()` both raise 
+*NestedTextError* when they discover an error. *NestedTextError* subclasses both 
+the Python *ValueError* and the *Error* exception from *Inform*.
+You can find more documentation on what you can do with this exception in the 
+`Inform documentation 
+<https://inform.readthedocs.io/en/stable/api.html#exceptions>`_.
 
 .. autoexception:: nestedtext.NestedTextError
-    :members:
+    :members: render, report, terminate
 
 .. ignore the following (there is only one method, so no need for TOC)
    .. autoclasstoc::

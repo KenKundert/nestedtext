@@ -28,7 +28,7 @@ from inform import (
     is_str,
     is_collection,
     is_mapping,
-    Error as NestedTextError,
+    Error,
     Info,
     InformantFactory,
 )
@@ -38,6 +38,10 @@ from inform import (
 __version__ = "0.3.0"
 __released__ = "2020-09-03"
 __all__ = ['loads', 'dumps', 'NestedTextError']
+
+# Exception {{{1
+class NestedTextError(Error, ValueError):
+    pass
 
 # NestedText Reader {{{1
 # Converts NestedText into Python data hierarchies.

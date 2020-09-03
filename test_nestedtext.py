@@ -2,7 +2,7 @@
 import pytest
 from textwrap import dedent
 import nestedtext
-from inform import Info, render
+from inform import Error, Info, render
 
 # Utilities {{{1
 def clean(s):
@@ -454,6 +454,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '  > red chilies'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         ingredients:
@@ -473,6 +475,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '    > red chilies'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         ingredients:
@@ -491,6 +495,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '- green chilies'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         - green chilies
@@ -509,6 +515,8 @@ def test_loads_errors():
     )
     assert exception.value.line == 'ingredients:'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
             - green chilies
@@ -527,6 +535,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '    - green chilies'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         - green chilies
@@ -545,6 +555,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '    - red chilies'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         > ingredients
@@ -563,6 +575,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '> ingredients'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         ingredients:
@@ -580,6 +594,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '    green chilies'
     assert exception.value.loc == None
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         key: value 1
@@ -598,6 +614,8 @@ def test_loads_errors():
     )
     assert exception.value.line == 'key: value 2'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         key:
@@ -617,6 +635,8 @@ def test_loads_errors():
     )
     assert exception.value.line == '    \t    > first line'
     assert exception.value.loc == 4
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     content = dedent("""
         name :
@@ -636,6 +656,8 @@ def test_loads_errors():
     assert exception.value.line == 'name :'
     assert exception.value.render(template='llave duplicada: {}.') == '3: llave duplicada: name.'
     assert exception.value.loc == 0
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
 # test_dump() {{{1
 def test_dump():
@@ -759,6 +781,8 @@ def test_dumps_errors():
         culprit = ("''",),
         template = 'expected dictionary or list.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -769,6 +793,8 @@ def test_dumps_errors():
         culprit = ("'apricot\\n'",),
         template = 'keys must not contain newlines.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = dict(name=42)
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -779,6 +805,8 @@ def test_dumps_errors():
         culprit = ('42',),
         template = 'unsupported type.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = dict(name=42.0)
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -789,6 +817,8 @@ def test_dumps_errors():
         culprit = ('42.0',),
         template = 'unsupported type.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = dict(name=True)
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -799,6 +829,8 @@ def test_dumps_errors():
         culprit = ('True',),
         template = 'unsupported type.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = dict(name=None)
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -809,6 +841,8 @@ def test_dumps_errors():
         culprit = ('None',),
         template = 'unsupported type.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = dict(name=42)
     renderers = {int: False}
@@ -820,6 +854,8 @@ def test_dumps_errors():
         culprit = ('42',),
         template = 'unsupported type.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = 42
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -830,6 +866,8 @@ def test_dumps_errors():
         culprit = ('42',),
         template = 'expected dictionary or list.',
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
     data = {"""key '" key""": 'value'}
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -840,6 +878,8 @@ def test_dumps_errors():
         culprit = (r"""'key \'" key'""",),
         template = """keys must not contain both " and '.""",
     )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
 
 # main {{{1
 if __name__ == '__main__':
