@@ -120,6 +120,12 @@ When read by *NestedText* both values become 'NO', but the assumption is that
 *YAML* because many possible strings map to *False* (`n`, `no`, `false`, `off`; 
 etc.) and it is hard to know which one was given.
 
+Fundamentally the issue with *YAML* is a crisis of its own making. It reads 
+a language that is inherently ambiguous and so is forced to make decisions it 
+has no ability to make sensibly.  With *NestedText* the language is unambiguous 
+and any decisions about how to interpret the leaf values are passed to the end 
+application, which is the only place where they can be made knowledgeably.
+
 
 Quick Start
 -----------
