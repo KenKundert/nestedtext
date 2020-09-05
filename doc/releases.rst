@@ -2,8 +2,8 @@ Releases
 --------
 
 **Latest development release**:
-    | Version: 0.3.0
-    | Released: 2020-09-03
+    | Version: 0.3.1
+    | Released: 2020-09-05
 
     - Change :exc:`nestedtext.NestedTextError` attribute names to make them more 
       consistent with those used by JSON package.

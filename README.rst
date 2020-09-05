@@ -14,8 +14,8 @@ NestedText: A Human Friendly Data Format
     :target: https://pypi.python.org/pypi/nestedtext
 
 
-| Version: 0.3.0
-| Released: 2020-09-03
+| Version: 0.3.1
+| Released: 2020-09-05
 | Please post all questions, suggestions, and bug reports to
   `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_.
 |
