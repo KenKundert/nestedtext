@@ -2,7 +2,7 @@
 import pytest
 from textwrap import dedent
 import nestedtext
-from inform import Error, Info, render
+from inform import Error, Info, render, indent
 
 # Utilities {{{1
 def clean(s):
@@ -448,12 +448,18 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 4),
         codicil = ('«  > red chilies»\n ↑',),
+        source = 'recipe',
+        doc = content,
         line = '  > red chilies',
-        loc = 0,
+        lineno = 4,
+        colno = 0,
         template = 'invalid indentation.',
     )
     assert exception.value.line == '  > red chilies'
-    assert exception.value.loc == 0
+    assert exception.value.source == 'recipe'
+    assert exception.value.lineno == 4
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -469,12 +475,18 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 4),
         codicil = ('«    > red chilies»\n ↑',),
+        source = 'recipe',
+        doc = content,
         line = '    > red chilies',
-        loc = 0,
+        lineno = 4,
+        colno = 0,
         template = 'invalid indentation.',
     )
     assert exception.value.line == '    > red chilies'
-    assert exception.value.loc == 0
+    assert exception.value.source == 'recipe'
+    assert exception.value.lineno == 4
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -489,12 +501,17 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«- green chilies»\n ↑',),
+        doc = content,
         line = '- green chilies',
-        loc = 0,
+        lineno = 3,
+        colno = 0,
         template = 'expected dictionary item.',
     )
     assert exception.value.line == '- green chilies'
-    assert exception.value.loc == 0
+    assert exception.value.source == None
+    assert exception.value.lineno == 3
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -509,12 +526,17 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«ingredients:»\n ↑',),
+        doc = content,
         line = 'ingredients:',
-        loc = 0,
+        lineno = 3,
+        colno = 0,
         template = 'expected list item.',
     )
     assert exception.value.line == 'ingredients:'
-    assert exception.value.loc == 0
+    assert exception.value.source == None
+    assert exception.value.lineno == 3
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -529,12 +551,18 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 2),
         codicil = ('«    - green chilies»\n ↑',),
+        source = 'recipe',
+        doc = content,
         line = '    - green chilies',
-        loc = 0,
+        lineno = 2,
+        colno = 0,
         template = 'invalid indentation.',
     )
     assert exception.value.line == '    - green chilies'
-    assert exception.value.loc == 0
+    assert exception.value.source == 'recipe'
+    assert exception.value.lineno == 2
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -549,12 +577,18 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = ('recipe', 3),
         codicil = ('«    - red chilies»\n ↑',),
+        source = 'recipe',
         line = '    - red chilies',
-        loc = 0,
+        lineno = 3,
+        colno = 0,
+        doc = content,
         template = 'invalid indentation.',
     )
     assert exception.value.line == '    - red chilies'
-    assert exception.value.loc == 0
+    assert exception.value.source == 'recipe'
+    assert exception.value.lineno == 3
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -570,11 +604,16 @@ def test_loads_errors():
         culprit = (1,),
         codicil = ('«> ingredients»\n ↑',),
         line = '> ingredients',
-        loc = 0,
+        lineno = 1,
+        colno = 0,
+        doc = content,
         template = 'expected list or dictionary item.',
     )
     assert exception.value.line == '> ingredients'
-    assert exception.value.loc == 0
+    assert exception.value.source == None
+    assert exception.value.lineno == 1
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -590,10 +629,15 @@ def test_loads_errors():
         culprit = (2,),
         codicil = ('«    green chilies»',),
         line = '    green chilies',
+        lineno = 2,
+        doc = content,
         template = 'unrecognized line.',
     )
     assert exception.value.line == '    green chilies'
-    assert exception.value.loc == None
+    assert exception.value.source == None
+    assert exception.value.lineno == 2
+    assert exception.value.colno == None
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -608,12 +652,17 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = (2,),
         codicil = ('«key: value 2»\n ↑',),
+        doc = content,
         line = 'key: value 2',
-        loc = 0,
+        lineno = 2,
+        colno = 0,
         template = 'duplicate key: {}.',
     )
     assert exception.value.line == 'key: value 2'
-    assert exception.value.loc == 0
+    assert exception.value.source == None
+    assert exception.value.lineno == 2
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -629,12 +678,17 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = (2,),
         codicil = ('«    \t    > first line»\n     ↑',),
+        doc = content,
         line = '    \t    > first line',
+        lineno = 2,
+        colno = 4,
         template = r"invalid character in indentation: '\t'.",
-        loc = 4,
     )
     assert exception.value.line == '    \t    > first line'
-    assert exception.value.loc == 4
+    assert exception.value.source == None
+    assert exception.value.lineno == 2
+    assert exception.value.colno == 4
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
@@ -649,15 +703,128 @@ def test_loads_errors():
     assert exception.value.kwargs == dict(
         culprit = (3,),
         codicil = ('«name :»\n ↑',),
+        doc = content,
         line = 'name :',
-        loc = 0,
+        lineno = 3,
+        colno = 0,
         template = 'duplicate key: {}.',
     )
     assert exception.value.line == 'name :'
     assert exception.value.render(template='llave duplicada: {}.') == '3: llave duplicada: name.'
-    assert exception.value.loc == 0
+    assert exception.value.source == None
+    assert exception.value.lineno == 3
+    assert exception.value.colno == 0
+    assert exception.value.doc == content
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
+
+    content = dedent("""
+        key:
+          key1 : value1
+          key1 : value2
+          key3 : value3
+          key4 : value4
+    """).strip()
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '3: duplicate key: key1.'
+    extended_codicil = exception.value.get_extended_codicil()
+    expected = dedent("""
+        |   2>   key1 : value1
+        |   3>   key1 : value2
+        |        ↑
+        |   4>   key3 : value3
+    """).strip()
+    extended_codicil = indent(extended_codicil, leader='|')
+    assert extended_codicil == expected
+    assert exception.value.get_codicil()[0] == "«  key1 : value2»\n   ↑"
+    assert exception.value.lineno == 3
+    assert exception.value.colno == 2
+
+    content = dedent("""
+        key1 : value1
+        key1 : value2
+        key3 : value3
+        key4 : value4
+    """).strip()
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '2: duplicate key: key1.'
+    extended_codicil = exception.value.get_extended_codicil()
+    expected = dedent("""
+        |   1> key1 : value1
+        |   2> key1 : value2
+        |      ↑
+        |   3> key3 : value3
+    """).strip()
+    extended_codicil = indent(extended_codicil, leader='|')
+    assert extended_codicil == expected
+    assert exception.value.lineno == 2
+    assert exception.value.get_codicil()[0] == "«key1 : value2»\n ↑"
+    assert exception.value.colno == 0
+
+    content = dedent("""
+        key1 : value1
+        key2 : value2
+        key2 : value3
+        key4 : value4
+    """).strip()
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '3: duplicate key: key2.'
+    extended_codicil = exception.value.get_extended_codicil()
+    expected = dedent("""
+        |   2> key2 : value2
+        |   3> key2 : value3
+        |      ↑
+        |   4> key4 : value4
+    """).strip()
+    extended_codicil = indent(extended_codicil, leader='|')
+    assert extended_codicil == expected
+    assert exception.value.lineno == 3
+    assert exception.value.get_codicil()[0] == "«key2 : value3»\n ↑"
+    assert exception.value.colno == 0
+
+    content = dedent("""
+        key1 : value1
+        key2 : value2
+        key3 : value3
+        key3 : value4
+    """).strip()
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '4: duplicate key: key3.'
+    extended_codicil = exception.value.get_extended_codicil()
+    expected = dedent("""
+        |   3> key3 : value3
+        |   4> key3 : value4
+        |      ↑
+    """).strip()
+    extended_codicil = indent(extended_codicil, leader='|')
+    assert extended_codicil == expected
+    assert exception.value.lineno == 4
+    assert exception.value.get_codicil()[0] == "«key3 : value4»\n ↑"
+    assert exception.value.colno == 0
+
+    content = dedent("""
+        > line 1
+        > line 2
+        > line 3
+    """).strip()
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        nestedtext.loads(content)
+    assert str(exception.value) == '1: expected list or dictionary item.'
+    extended_codicil = exception.value.get_extended_codicil()
+    expected = dedent("""
+        |   1> > line 1
+        |      ↑
+        |   2> > line 2
+    """).strip()
+    extended_codicil = indent(extended_codicil, leader='|')
+    assert extended_codicil == expected
+    assert exception.value.lineno == 1
+    assert exception.value.get_codicil()[0] == "«> line 1»\n ↑"
+    assert exception.value.colno == 0
 
 # test_dump() {{{1
 def test_dump():

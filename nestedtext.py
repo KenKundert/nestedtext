@@ -22,6 +22,7 @@ NestedText: A Human Readable and Writable Data Format
 # Imports {{{1
 import re
 from inform import (
+    cull,
     full_stop,
     set_culprit,
     get_culprit,
@@ -42,7 +43,30 @@ __all__ = ['loads', 'dumps', 'NestedTextError']
 
 # Exception {{{1
 class NestedTextError(Error, ValueError):
-    pass
+    def get_extended_codicil(self, codicil=None):
+        codicil = self.get_codicil()
+        try:
+            lineno = self.lineno
+            doc = self.doc
+            colno = self.colno
+            lines_before = doc.split('\n')[max(lineno-2,0):lineno]
+            lines = []
+            for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
+                lines.append(f'{i+1:>4}> {l}')
+            lines_before = '\n'.join(lines)
+            lines_after = doc.split('\n')[lineno:lineno+1]
+            lines = []
+            for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
+                lines.append(f'{i+1:>4}> {l}')
+            lines_after = '\n'.join(lines)
+            codicil = '\n'.join(cull([
+                lines_before,
+                '      ' + (colno*' ') + '↑',
+                lines_after
+            ]))
+        except:
+            pass
+        return codicil
 
 
 # NestedText Reader {{{1
@@ -70,29 +94,34 @@ def dbg(line, kind):  # pragma: no cover
         indents = ' '
     else:
         indents = line.depth
-    highlight(f'{indents}{kind}{line.num:>4}:{line.text}')
+    highlight(f'{indents}{kind}{line.lineno:>4}:{line.text}')
 
 
 # report {{{2
-def report(message, line, *args, loc=None, **kwargs):
+def report(message, line, *args, colno=None, **kwargs):
     message = full_stop(message)
+    culprits = get_culprit()
+    if culprits:
+        kwargs['source'] = culprits[0]
     if line:
-        kwargs['culprit'] = get_culprit(line.num)
-        if loc is not None:
-            kwargs['codicil'] = f"«{line.text}»\n {loc*' '}↑"
-            kwargs['loc'] = loc
+        kwargs['culprit'] = get_culprit(line.lineno)
+        if colno is not None:
+            kwargs['codicil'] = f"«{line.text}»\n {colno*' '}↑"
+            kwargs['colno'] = colno
         else:
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
+        kwargs['lineno'] = line.lineno
+        kwargs['doc'] = line.content
     else:
-        kwargs['culprit'] = get_culprit()  # pragma: no cover
+        kwargs['culprit'] = culprits
     raise NestedTextError(template=message, *args, **kwargs)
 
 
 # indentation_error {{{2
 def indentation_error(line, depth):
     assert line.depth != depth
-    report('invalid indentation.', line, loc=depth)
+    report('invalid indentation.', line, colno=depth)
 
 
 # is_quoted {{{2
@@ -114,8 +143,9 @@ class Lines:
         pass
 
     # constructor {{{3
-    def __init__(self, contents):
-        self.generator = self.read_lines(contents)
+    def __init__(self, content):
+        self.content = content
+        self.generator = self.read_lines()
         self.next_line = True
         while self.next_line:
             self.next_line = next(self.generator, None)
@@ -123,8 +153,8 @@ class Lines:
                 return
 
     # read_lines() {{{3
-    def read_lines(self, contents):
-        for lineno, line in enumerate(contents.splitlines()):
+    def read_lines(self):
+        for lineno, line in enumerate(self.content.splitlines()):
             depth = None
             key = None
             value = None
@@ -154,7 +184,13 @@ class Lines:
                     value = line
 
             the_line = self.Line(
-                text=line, num=lineno+1, kind=kind, depth=depth, key=key, value=value
+                text = line,
+                lineno = lineno+1,
+                kind = kind,
+                depth = depth,
+                key = key,
+                value = value,
+                content = self.content
             )
 
             # check the indent for non-spaces
@@ -164,7 +200,7 @@ class Lines:
                     report(
                         f'invalid character in indentation: {line[first_non_space]!r}.',
                         the_line,
-                        loc = first_non_space
+                        colno = first_non_space
                     )
 
             yield the_line
@@ -224,7 +260,7 @@ def read_list(lines, depth):
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "list item":
-            report("expected list item", line, loc=depth)
+            report("expected list item", line, colno=depth)
         if line.value:
             # dbg(line, 'lv')
             data.append(line.value)
@@ -249,11 +285,11 @@ def read_dict(lines, depth):
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "dict item":
-            report("expected dictionary item", line, loc=depth)
+            report("expected dictionary item", line, colno=depth)
         if line.key in data:
-            report('duplicate key: {}.', line, line.key, loc=depth)
+            report('duplicate key: {}.', line, line.key, colno=depth)
         if '"' in line.key and "'" in line.key:
-            report("""key must not contain both " and '.""", line, line.key, loc=depth)
+            report("""key must not contain both " and '.""", line, line.key, colno=depth)
         if line.value:
             # dbg(line, 'dv')
             data.update({line.key: line.value})
@@ -281,29 +317,29 @@ def read_string(lines, depth):
 
 
 # loads() {{{2
-def loads(contents, culprit=None):
+def loads(content, culprit=None):
     """
     Loads NestedText from string.
 
     Args:
-        contents (str):
+        content (str):
             String that contains encoded data.
         culprit (str):
             Optional culprit. It is prepended to any error messages but is
             otherwise unused. Is often the name of the file that originally
-            contained contents.
+            contained the NestedText content.
 
     Returns:
-        A dictionary or list containing the data.  If contents is empty, an
+        A dictionary or list containing the data.  If content is empty, an
         empty dictionary is returned.
     """
     with set_culprit(culprit):
-        lines = Lines(contents)
+        lines = Lines(content)
 
         type_of_first = lines.type_of_next()
         if type_of_first not in ["list item", "dict item"]:
             if type_of_first:
-                report("expected list or dictionary item.", lines.get_next(), loc=0)
+                report("expected list or dictionary item.", lines.get_next(), colno=0)
             else:
                 return {}
         else:
