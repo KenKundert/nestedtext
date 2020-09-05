@@ -68,7 +68,7 @@ appropriate if you are using *inform* for your messaging as it follows
 
 **Example:**
 
-.. code-block:: python
+::
 
     >> try:
     ..     print(nestedtext.loads(content))
@@ -82,7 +82,7 @@ The *terminate* method prints the message directly and exits.
 
 **Example:**
 
-.. code-block:: python
+::
 
     >> try:
     ..     print(nestedtext.loads(content))
@@ -122,7 +122,7 @@ source of the problem, but with extra context.
 
 **Example:**
 
-.. code-block:: python
+::
 
     >> try:
     ..     print(nestedtext.loads(content))

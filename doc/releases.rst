@@ -5,6 +5,9 @@ Releases
     | Version: 0.3.0
     | Released: 2020-09-03
 
+    - Change :exc:`nestedtext.NestedTextError` attribute names to make them more 
+      consistent with those used by JSON package.
+    - Added :meth:`nestedtext.NestedTextError.get_extended_codicil`.
 
 **0.3 (2020-09-03)**:
     - Allow comments to be indented.
