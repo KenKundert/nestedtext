@@ -49,7 +49,7 @@ class NestedTextError(Error, ValueError):
             lineno = self.lineno
             doc = self.doc
             colno = self.colno
-            lines_before = doc.split('\n')[max(lineno-2,0):lineno]
+            lines_before = doc.split('\n')[max(lineno-2, 0):lineno]
             lines = []
             for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
                 lines.append(f'{i+1:>4}> {l}')
@@ -64,7 +64,7 @@ class NestedTextError(Error, ValueError):
                 '      ' + (colno*' ') + '↑',
                 lines_after
             ]))
-        except:
+        except Exception:
             pass
         return codicil
 
