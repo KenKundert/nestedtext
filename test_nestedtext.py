@@ -942,14 +942,16 @@ def test_dumps_errors():
     data = ""
     with pytest.raises(nestedtext.NestedTextError) as exception:
         content = nestedtext.dumps(data)
-    assert str(exception.value) == "'': expected dictionary or list."
+    assert str(exception.value) == "'': expected top-level dictionary or list."
     assert exception.value.args == ('',)
     assert exception.value.kwargs == dict(
         culprit = ("''",),
-        template = 'expected dictionary or list.',
+        template = 'expected top-level dictionary or list.',
     )
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
+    assert exception.value.get_codicil() == ()
+    assert exception.value.get_extended_codicil() == ()
 
     data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -1027,11 +1029,11 @@ def test_dumps_errors():
     data = 42
     with pytest.raises(nestedtext.NestedTextError) as exception:
         content = nestedtext.dumps(data)
-    assert str(exception.value) == "42: expected dictionary or list."
+    assert str(exception.value) == "42: expected top-level dictionary or list."
     assert exception.value.args == (42,)
     assert exception.value.kwargs == dict(
         culprit = ('42',),
-        template = 'expected dictionary or list.',
+        template = 'expected top-level dictionary or list.',
     )
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)

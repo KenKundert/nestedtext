@@ -43,7 +43,10 @@ __all__ = ['loads', 'dumps', 'NestedTextError']
 
 # Exception {{{1
 class NestedTextError(Error, ValueError):
-    def get_extended_codicil(self, codicil=None):
+
+    def get_extended_codicil(self):
+        # Like the normal codicil, but provides a few lines of surrounding
+        # context.
         codicil = self.get_codicil()
         try:
             lineno = self.lineno
@@ -114,7 +117,7 @@ def report(message, line, *args, colno=None, **kwargs):
         kwargs['lineno'] = line.lineno
         kwargs['doc'] = line.content
     else:
-        kwargs['culprit'] = culprits
+        kwargs['culprit'] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
 
 
@@ -505,7 +508,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
     if level == 0:
         if not is_collection(obj):
-            error = 'expected dictionary or list.'
+            error = 'expected top-level dictionary or list.'
     else:
         if need_indented_block:
             content = "\n" + add_leader(content, indent*' ')
