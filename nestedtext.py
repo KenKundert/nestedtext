@@ -188,7 +188,7 @@ class NestedTextError(Error, ValueError):
         """
         exception_codicil = self.kwargs.get('codicil', ())
         if not is_collection(exception_codicil):
-            exception_codicil = (exception_codicil,)
+            exception_codicil = (exception_codicil,)  # pragma: no cover
 
         # Like the normal codicil, but provides a few lines of surrounding
         # context.
@@ -267,7 +267,7 @@ def report(message, line, *args, colno=None, **kwargs):
         kwargs['lineno'] = line.lineno
         kwargs['doc'] = line.content
     else:
-        kwargs['culprit'] = culprits
+        kwargs['culprit'] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
 
 
