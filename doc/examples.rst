@@ -33,7 +33,7 @@ to *JSON*.  It demonstrates the use of :func:`loads()` and
 
 .. _cryptocurrency example:
 
-Cryptocurrency Holdings
+Cryptocurrency holdings
 ========================
 
 This example implements a command-line utility that displays the current value 
