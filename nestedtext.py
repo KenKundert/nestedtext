@@ -43,11 +43,155 @@ __all__ = ['loads', 'dumps', 'NestedTextError']
 
 # Exception {{{1
 class NestedTextError(Error, ValueError):
+    '''
+    :func:`loads()` and :func:`dumps()` both raise
+    *NestedTextError* when they discover an error. *NestedTextError* subclasses both
+    the Python *ValueError* and the *Error* exception from *Inform*.
+    You can find more documentation on what you can do with this exception in the
+    `Inform documentation
+    <https://inform.readthedocs.io/en/stable/api.html#exceptions>`_.
 
-    def get_extended_codicil(self):
+    The exception provides the following attributes:
+
+    source:
+
+        The source of the *NestedText* content, if given. This is often a
+        filename.
+
+    doc:
+
+        The *NestedText* content passed to :func:`loads`.
+
+    line:
+
+        The line of *NestedText* content where the problem was found.
+
+    lineno:
+
+        The number of the line where the problem was found.
+
+    colno:
+
+        The number of the character where the problem was found on *line*.
+
+    template:
+
+        The possibly parameterized text used for the error message.
+
+    As with most exceptions, you can simply cast it to a string to get a
+    reasonable error message.
+
+    .. code-block:: pycon
+
+        >>> from textwrap import dedent
+        >>> import nestedtext
+
+        >>> content = dedent("""
+        ...     name1: value1
+        ...     name1: value2
+        ...     name3: value3
+        ... """).strip()
+
+        >>> try:
+        ...     print(nestedtext.loads(content))
+        ... except nestedtext.NestedTextError as e:
+        ...     print(str(e))
+        2: duplicate key: name1.
+
+    You can also use the *report* method to print the message directly. This is
+    appropriate if you are using *inform* for your messaging as it follows
+    *inform*'s conventions:
+
+    .. code-block:: pycon
+
+        >> try:
+        ..     print(nestedtext.loads(content))
+        .. except nestedtext.NestedTextError as e:
+        ..     e.report()
+        error: 2: duplicate key: name1.
+            «name1: value2»
+             ↑
+
+    The *terminate* method prints the message directly and exits:
+
+    .. code-block:: pycon
+
+        >> try:
+        ..     print(nestedtext.loads(content))
+        .. except nestedtext.NestedTextError as e:
+        ..     e.terminate()
+        error: 2: duplicate key: name1.
+            «name1: value2»
+             ↑
+
+    Exceptions produced by *NestedText* contain a *template* attribute that
+    contains the basic text of the message. You can change this message by
+    overriding the attribute when using *report*, *terminate*, or *render*.
+    *render* is like casting the exception to a string except that allows for
+    the passing of arguments.  For example, to convert a particular message to
+    Spanish, you could use something like the following.
+
+    .. code-block:: pycon
+
+        >>> try:
+        ...     print(nestedtext.loads(content))
+        ... except nestedtext.NestedTextError as e:
+        ...     template = None
+        ...     if e.template == 'duplicate key: {}.':
+        ...         template = 'llave duplicada: {}.'
+        ...     print(e.render(template=template))
+        2: llave duplicada: name1.
+
+    When you have the exception report itself, you see up to two extra lines in
+    the message that are used to display the line and the location where the
+    problem was found.  Those extra lines are referred to as the codicil. You
+    do not get them if you simply cast the exception to a string, but you can
+    access them using :meth:`NestedTextError.get_codicil`.  There is
+    an additional method,
+    :meth:`NestedTextError.get_extended_codicil` that also shows the
+    source of the problem, but with extra context.
+
+    .. code-block:: pycon
+
+        >> try:
+        ..     print(nestedtext.loads(content))
+        .. except nestedtext.NestedTextError as e:
+        ..     e.report(codicil=e.get_extended_codicil())
+        error: 2: duplicate key: name1.
+            1> name1: value1
+            2> name1: value2
+               ↑
+            2> name3: value3
+    '''
+
+    def get_extended_codicil(self, codicil=None):
+        """Get the extended codicil.
+
+        The extended codicil is like the normal codicil in that it shows the
+        line where the problem was found and points to the suspect character.
+        However, it also shows a few lines of surrounding context.
+
+        This method counts on the fact that no user specified codicils have been
+        added to the exception; that the only codicil available is the one added
+        by *NestedText* itself.  Any additional codicils can be add by passing
+        them into this method.
+
+        Args:
+            codicil (string or tuple of strings):
+                An extra codicil or collection of codicils.  Appended to the
+                return value without modifying the cached codicil.
+
+        Returns:
+            The codicil argument is appended to the exception's codicil and the
+            combination is returned. The return value is always in the form of a
+            tuple even if there is only one component.
+        """
+        exception_codicil = self.kwargs.get('codicil', ())
+        if not is_collection(exception_codicil):
+            exception_codicil = (exception_codicil,)
+
         # Like the normal codicil, but provides a few lines of surrounding
         # context.
-        codicil = self.get_codicil()
         try:
             lineno = self.lineno
             doc = self.doc
@@ -56,20 +200,26 @@ class NestedTextError(Error, ValueError):
             lines = []
             for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
                 lines.append(f'{i+1:>4}> {l}')
-            lines_before = '\n'.join(lines)
+            lines_before = '\n'.join(l.rstrip() for l in lines)
             lines_after = doc.split('\n')[lineno:lineno+1]
             lines = []
             for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
                 lines.append(f'{i+1:>4}> {l}')
-            lines_after = '\n'.join(lines)
-            codicil = '\n'.join(cull([
+            lines_after = '\n'.join(l.rstrip() for l in lines)
+            exception_codicil = '\n'.join(cull([
                 lines_before,
                 '      ' + (colno*' ') + '↑',
                 lines_after
             ]))
+            exception_codicil = (exception_codicil, )
         except Exception:
-            pass
-        return codicil
+            exception_codicil = self.get_codicil()
+
+        if codicil:
+            if not is_collection(codicil):
+                codicil = (codicil,)
+            return exception_codicil + codicil
+        return exception_codicil
 
 
 # NestedText Reader {{{1
@@ -325,7 +475,7 @@ def read_string(lines, depth):
 
 # loads() {{{2
 def loads(content, source=None):
-    """
+    '''
     Loads NestedText from string.
 
     Args:
@@ -337,9 +487,52 @@ def loads(content, source=None):
             originally contained the NestedText content.
 
     Returns:
-        A dictionary or list containing the data.  If content is empty, an
-        empty dictionary is returned.
-    """
+        The extracted data.  If content is empty, None is returned.
+
+    Examples:
+
+        *NestedText* is specified to *loads* in the form of a string:
+
+        .. code-block:: pycon
+
+            >>> import nestedtext
+
+            >>> contents = """
+            ... name: Kristel Templeton
+            ... sex: female
+            ... age: 74
+            ... """
+
+            >>> try:
+            ...     data = nestedtext.loads(contents)
+            ... except nestedtext.NestedTextError as e:
+            ...     e.terminate()
+
+            >>> print(data)
+            {'name': 'Kristel Templeton', 'sex': 'female', 'age': '74'}
+
+        *loads()* takes an optional second argument, *culprit*. If specified,
+        it will be prepended to any error messages. It is often used to
+        designate the source of *contents*. For example, if *contents* were
+        read from a file, *culprit* would be the file name.  Here is a typical
+        example of reading *NestedText* from a file:
+
+        .. code-block:: pycon
+
+            >>> filename = 'examples/duplicate-keys.nt'
+            >>> try:
+            ...     with open(filename) as f:
+            ...         addresses = nestedtext.loads(f.read(), filename)
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            ...     print(e.get_extended_codicil()[0])
+            examples/duplicate-keys.nt, 5: duplicate key: name.
+               4> name:
+               5> name:
+                  ↑
+               6>
+
+    '''
     with set_culprit(source):
         lines = Lines(content)
 
@@ -393,6 +586,127 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             this is used to increment the level and so the indent.  Generally
             not specified by the user, but can be useful in unusual situations
             to specify an initial indent.
+
+    Examples:
+        This example writes to a string, but it is common to write to a file.
+        The file name and extension are arbitrary. However, by convention a
+        '.nt' suffix is generally used for *NestedText* files.
+
+        .. code-block:: pycon
+
+            >>> import nestedtext
+
+            >>> data = {
+            ...     'name': 'Kristel Templeton',
+            ...     'sex': 'female',
+            ...     'age': '74',
+            ... }
+
+            >>> try:
+            ...     print(nestedtext.dumps(data))
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            name: Kristel Templeton
+            sex: female
+            age: 74
+
+        The *NestedText* format only supports dictionaries, lists, and strings.
+        By default, *dumps* is configured to be rather forgiving, so it will
+        render many of the base Python data types, such as *None*, *bool*,
+        *int*, *float* and list-like types such as *tuple* and *set* by
+        converting them to the types supported by the format.  This implies
+        that a round trip through *dumps* and *loads* could result in the types
+        of values being transformed. You can prevent this by passing
+        `default='strict'` to *dumps*.  Doing so means that values that are not
+        dictionaries, lists, or strings generate exceptions.
+
+        .. code-block:: pycon
+
+            >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
+
+            >>> try:
+            ...     print(nestedtext.dumps(data))
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            key: 42
+            value: 3.1415926
+            valid: True
+
+            >>> try:
+            ...     print(nestedtext.dumps(data, default='strict'))
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            42: unsupported type.
+
+        Alternatively, you can specify a function to *default*, which is used
+        to convert values to strings.  It is used if no other converter is
+        available.  Typical values are *str* and *repr*.
+
+        .. code-block:: pycon
+
+            >>> class Color:
+            ...     def __init__(self, color):
+            ...         self.color = color
+            ...     def __repr__(self):
+            ...         return f'Color({self.color!r})'
+            ...     def __str__(self):
+            ...         return self.color
+
+            >>> data['house'] = Color('red')
+            >>> print(nestedtext.dumps(data, default=repr))
+            key: 42
+            value: 3.1415926
+            valid: True
+            house: Color('red')
+
+            >>> print(nestedtext.dumps(data, default=str))
+            key: 42
+            value: 3.1415926
+            valid: True
+            house: red
+
+        You can also specify a dictionary of renderers. The dictionary maps the
+        object type to a render function.
+
+        .. code-block:: pycon
+
+            >>> renderers = {
+            ...     bool: lambda b: 'yes' if b else 'no',
+            ...     int: hex,
+            ...     float: lambda f: f'{f:0.3}',
+            ...     Color: lambda c: c.color,
+            ... }
+
+            >>> try:
+            ...    print(nestedtext.dumps(data, renderers=renderers))
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            key: 0x2a
+            value: 3.14
+            valid: yes
+            house: red
+
+        If the dictionary maps a type to *None*, then the default behavior is
+        used for that type. If it maps to *False*, then an exception is raised.
+
+        .. code-block:: pycon
+
+            >>> renderers = {
+            ...     bool: lambda b: 'yes' if b else 'no',
+            ...     int: hex,
+            ...     float: False,
+            ...     Color: lambda c: c.color,
+            ... }
+
+            >>> try:
+            ...    print(nestedtext.dumps(data, renderers=renderers))
+            ... except nestedtext.NestedTextError as e:
+            ...     print(str(e))
+            3.1415926: unsupported type.
+
+        Both *default* and *renderers* may be used together. *renderers* has
+        priority over the built-in types and *default*.  When a function is
+        specified as *default*, it is always applied as a last resort.
     """
 
     # define sort function

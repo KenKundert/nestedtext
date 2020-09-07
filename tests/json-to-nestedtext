@@ -23,13 +23,18 @@ cmdline = docopt(__doc__)
 input_filename = cmdline['<filename>']
 
 try:
+    # read JSON content; from file or from stdin
     if input_filename:
         input_path = Path(input_filename)
         json_content = input_path.read_text()
     else:
         json_content = sys.stdin.read()
     data = json.loads(json_content)
-    nestedtext_content = nestedtext.dumps(data)
+
+    # convert to NestedText
+    nestedtext_content = nestedtext.dumps(data) + "\n"
+
+    # output NestedText content; to file or to stdout
     if input_filename:
         output_path = input_path.with_suffix('.nt')
         if output_path.exists():
@@ -41,6 +46,6 @@ try:
 except OSError as e:
     fatal(os_error(e))
 except nestedtext.NestedTextError as e:
-    e.terminate()
+    e.terminate(culprit=input_filename)
 except json.JSONDecodeError as e:
     fatal(e, culprit=input_filename)

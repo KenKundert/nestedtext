@@ -752,13 +752,14 @@ def test_loads_errors():
         nestedtext.loads(content)
     assert str(exception.value) == '3: duplicate key: key1.'
     extended_codicil = exception.value.get_extended_codicil()
+    assert len(extended_codicil) == 1
     expected = dedent("""
         |   2>   key1 : value1
         |   3>   key1 : value2
         |        ↑
         |   4>   key3 : value3
     """).strip()
-    extended_codicil = indent(extended_codicil, leader='|')
+    extended_codicil = indent(extended_codicil[0], leader='|')
     assert extended_codicil == expected
     assert exception.value.get_codicil()[0] == "«  key1 : value2»\n   ↑"
     assert exception.value.lineno == 3
@@ -774,13 +775,14 @@ def test_loads_errors():
         nestedtext.loads(content)
     assert str(exception.value) == '2: duplicate key: key1.'
     extended_codicil = exception.value.get_extended_codicil()
+    assert len(extended_codicil) == 1
     expected = dedent("""
         |   1> key1 : value1
         |   2> key1 : value2
         |      ↑
         |   3> key3 : value3
     """).strip()
-    extended_codicil = indent(extended_codicil, leader='|')
+    extended_codicil = indent(extended_codicil[0], leader='|')
     assert extended_codicil == expected
     assert exception.value.lineno == 2
     assert exception.value.get_codicil()[0] == "«key1 : value2»\n ↑"
@@ -795,14 +797,16 @@ def test_loads_errors():
     with pytest.raises(nestedtext.NestedTextError) as exception:
         nestedtext.loads(content)
     assert str(exception.value) == '3: duplicate key: key2.'
-    extended_codicil = exception.value.get_extended_codicil()
+    extended_codicil = exception.value.get_extended_codicil('Peek a boo!')
+    assert len(extended_codicil) == 2
     expected = dedent("""
         |   2> key2 : value2
         |   3> key2 : value3
         |      ↑
         |   4> key4 : value4
+        |Peek a boo!
     """).strip()
-    extended_codicil = indent(extended_codicil, leader='|')
+    extended_codicil = indent('\n'.join(extended_codicil), leader='|')
     assert extended_codicil == expected
     assert exception.value.lineno == 3
     assert exception.value.get_codicil()[0] == "«key2 : value3»\n ↑"
@@ -817,13 +821,16 @@ def test_loads_errors():
     with pytest.raises(nestedtext.NestedTextError) as exception:
         nestedtext.loads(content)
     assert str(exception.value) == '4: duplicate key: key3.'
-    extended_codicil = exception.value.get_extended_codicil()
+    extended_codicil = exception.value.get_extended_codicil(('Peek a boo!', 'I see you.'))
+    assert len(extended_codicil) == 3
     expected = dedent("""
         |   3> key3 : value3
         |   4> key3 : value4
         |      ↑
+        |Peek a boo!
+        |I see you.
     """).strip()
-    extended_codicil = indent(extended_codicil, leader='|')
+    extended_codicil = indent('\n'.join(extended_codicil), leader='|')
     assert extended_codicil == expected
     assert exception.value.lineno == 4
     assert exception.value.get_codicil()[0] == "«key3 : value4»\n ↑"

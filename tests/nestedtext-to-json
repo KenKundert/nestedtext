@@ -41,4 +41,4 @@ try:
 except OSError as e:
     fatal(os_error(e))
 except nestedtext.NestedTextError as e:
-    e.terminate()
+    e.terminate(codicil=e.get_extended_codicil())
