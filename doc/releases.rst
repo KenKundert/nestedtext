@@ -14,6 +14,7 @@ Releases
     | Version: 0.3.2
     | Released: 2020-09-07
 
+**0.4 (2020-09-07)**:
     - Change rest-of-line strings to include all characters given, including 
       leading and trailing quotes and spaces.
     - The *NestedText* top-level is no longer restricted to only dictionaries 
