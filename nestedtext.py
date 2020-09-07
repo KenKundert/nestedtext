@@ -117,7 +117,7 @@ def report(message, line, *args, colno=None, **kwargs):
         kwargs['lineno'] = line.lineno
         kwargs['doc'] = line.content
     else:
-        kwargs['culprit'] = culprits  # pragma: no cover
+        kwargs['culprit'] = culprits
     raise NestedTextError(template=message, *args, **kwargs)
 
 
@@ -171,17 +171,19 @@ class Lines:
                 value = line[1:].strip()
             elif stripped == '-' or stripped.startswith('- '):
                 kind = "list item"
-                value = dequote(stripped[2:])
+                value = stripped[2:]
             elif stripped == '>' or stripped.startswith('> '):
                 kind = "string"
                 value = line[depth+2:]
             else:
+                # add space so tags with empty values can be specified w/o space
                 components = splitter.split(line + " ")
                 if dict_tag in components:
                     kind = "dict item"
                     split_loc = components.index(dict_tag)
                     key = dequote("".join(components[:split_loc]))
-                    value = dequote("".join(components[split_loc + 1 :]))
+                    value = "".join(components[split_loc + 1:])
+                    value = value[:-1]  # remove space added above
                 else:
                     kind = "unrecognized"
                     value = line
@@ -252,7 +254,9 @@ def read_value(lines, depth):
         return read_list(lines, depth)
     if lines.type_of_next() == "dict item":
         return read_dict(lines, depth)
-    return read_string(lines, depth)
+    if lines.type_of_next() == "string":
+        return read_string(lines, depth)
+    report('unrecognized line.', lines.get_next())
 
 
 # read_list() {{{2
@@ -320,32 +324,26 @@ def read_string(lines, depth):
 
 
 # loads() {{{2
-def loads(content, culprit=None):
+def loads(content, source=None):
     """
     Loads NestedText from string.
 
     Args:
         content (str):
             String that contains encoded data.
-        culprit (str):
-            Optional culprit. It is prepended to any error messages but is
-            otherwise unused. Is often the name of the file that originally
-            contained the NestedText content.
+        source (str):
+            If given, this string is attached to any error messages as the
+            culprit. It is otherwise unused. Is often the name of the file that
+            originally contained the NestedText content.
 
     Returns:
         A dictionary or list containing the data.  If content is empty, an
         empty dictionary is returned.
     """
-    with set_culprit(culprit):
+    with set_culprit(source):
         lines = Lines(content)
 
-        type_of_first = lines.type_of_next()
-        if type_of_first not in ["list item", "dict item"]:
-            if type_of_first:
-                report("expected list or dictionary item.", lines.get_next(), colno=0)
-            else:
-                return {}
-        else:
+        if lines.type_of_next():
             return read_value(lines, 0)
 
 
@@ -431,34 +429,28 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         )
 
     # render string
-    def render_str(s, is_key=False):
+    def render_key(s):
         stripped = s.strip(' ')
-        if is_key:
-            if '\n' in s:
-                raise NestedTextError(
-                    s,
-                    template='keys must not contain newlines.',
-                    culprit=repr(s)
-                )
-            if '"' in s and "'" in s:
-                raise NestedTextError(
-                    s,
-                    template="""keys must not contain both " and '.""",
-                    culprit=repr(s)
-                )
-            if (
-                len(stripped) < len(s)
-                or s[:1] == "#"
-                or s.startswith("- ")
-                or s.startswith("> ")
-                or ': ' in s
-                or '"' in s
-                or "'" in s
-            ):
-                return repr(s)
+        if '\n' in s:
+            raise NestedTextError(
+                s,
+                template='keys must not contain newlines.',
+                culprit=repr(s)
+            )
+        if '"' in s and "'" in s:
+            raise NestedTextError(
+                s,
+                template="""keys must not contain both " and '.""",
+                culprit=repr(s)
+            )
         if (
             len(stripped) < len(s)
-            or s[:1] + s[-1:] in ['""', "''"]
+            or s[:1] == "#"
+            or s.startswith("- ")
+            or s.startswith("> ")
+            or ': ' in s
+            or '"' in s
+            or "'" in s
         ):
             return repr(s)
         return s
@@ -485,7 +477,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             need_indented_block = True
     elif is_a_dict(obj):
         content = "\n".join(
-            add_prefix(render_str(k, True) + ":", rdumps(obj[k]))
+            add_prefix(render_key(k) + ":", rdumps(obj[k]))
             for k in sort(obj)
         )
     elif is_a_list(obj):
@@ -506,14 +498,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     else:
         error = "unsupported type."
 
-    if level == 0:
-        if not is_collection(obj):
-            error = 'expected top-level dictionary or list.'
-    else:
-        if need_indented_block:
-            content = "\n" + add_leader(content, indent*' ')
-        else:
-            content = render_str(content)
+    if need_indented_block and level != 0:
+        content = "\n" + add_leader(content, indent*' ')
 
     if error:
         raise NestedTextError(obj, template=error, culprit=repr(obj))

@@ -5,6 +5,12 @@ Releases
     | Version: 0.3.1
     | Released: 2020-09-05
 
+    - Change rest-of-line strings to include all characters given, including 
+      leading and trailing quotes and spaces.
+    - The *NestedText* top-level is no longer restricted to only dictionaries 
+      and lists. The top-level can now also be a single string.
+    - :func:`nestedtext.loads` now returns *None* when given an empty 
+      *NestedString*.
     - Change :exc:`nestedtext.NestedTextError` attribute names to make them more 
       consistent with those used by JSON package.
     - Added :meth:`nestedtext.NestedTextError.get_extended_codicil`.

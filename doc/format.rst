@@ -1,12 +1,13 @@
 The *NestedText* Format
 -----------------------
 
-A *NestedText* file starts with a dictionary or a list. A dictionary is 
-a sequence of key/value pairs and a list is a sequence of values.
+A *NestedText* file contains a possibly hierarchical combination of 
+dictionaries, lists, and strings.  A dictionary is a sequence of key/value 
+pairs, a list is a sequence of values, and a sting is a sequence of characters.
 
 A dictionary contains one or more dictionary items, each on its own line and in 
-each the key and value separated by a colon.  The value is optional and the 
-colon must be followed by a space or a newline to act as the key/value 
+each there is a key and a value separated by a colon.  The value is optional and 
+the colon must be followed by a space or a newline to act as the key/value 
 separator. So for example::
 
     name: Katheryn McDaniel
@@ -26,19 +27,9 @@ introduced with a dash and end at the end of line. So for example::
 
 The values in dictionary and list items may be rest-of-line strings or 
 multi-line strings.  Rest-of-line strings, also known as single-line strings,  
-are simply the remaining characters on the line exclusive of any leading or 
-trailing spaces.  If you prefer to keep the leading or trailing spaces, you can 
-add quotes using either single or double quotes.  An empty value represents an 
-empty string.
-
-::
-
-    before: '• '
-    separator: ' — '
-    after:
-
-A multi-line string is a newline followed by one or more indented text lines 
-where each line is introduced with '> '::
+are simply the remaining characters on the line.  An empty value represents an 
+empty string.  A multi-line string is a newline followed by one or more indented 
+text lines where each line is introduced with '> '::
 
     name: Katheryn McDaniel
     address:
@@ -99,7 +90,8 @@ A value can also be a list or another dictionary::
             - Zach
             - Maggie
 
-Dictionaries and lists can be nested to an arbitrary depth.
+Dictionaries and lists can be nested to an arbitrary depth, but the leaf values 
+are always strings.
 
 Blank lines and comment lines are ignored. Blank lines are empty lines or lines 
 that consist only of white space. Comment lines are lines where the first 
@@ -113,25 +105,35 @@ colon-space are treated as special.
 Multi-line keys are not supported; a key must not contain a newline. In 
 addition, all keys in the same dictionary must be unique. If a key contains 
 leading or trailing spaces, a leading '- ' or '> ', or a ': ' anywhere in the 
-key, you should quote the key.  Either single or double matching quotes may be 
-used.  Single line string values should also be quoted in leading or trailing 
-spaces are significant, otherwise those spaces are removed. The quotes clarify 
-the extent of the value.
-For example::
+key, you must quote the key.  The key is the text within the quotes with the 
+quotes removed.  Either single or double matching quotes may be used.  Quotes on 
+values are not needed nor are they stripped from the value. The value is taken 
+as given, with any leading or trailing quotes or white space. For example::
 
-    sep: ' — '
-    '- key: ': "- value: "
+    "- key1: ": - value1:␣
+    "- key2: ": "- value2: "
 
-Unlike with single-line strings, any leading or trailing white space on the 
-lines in a multi-line string is retained.
+when converted to Python becomes::
+
+    {
+        "- key1: ": "- value1: ",
+        "- key2: ": '"- value2: "'
+    }
+
+Leading and trailing white space and quotes are alse retained in multi-line 
+string.
+
+Notice that the trailing space on *value1* (represented by ␣) is retained, as 
+are the quotes on value2.  Also notice that the quotes are stripped from both 
+keys.
 
 It is highly recommended that each level of indentation be represented by 
 a consistent number of spaces with the suggested number being 4. However, it is 
 not required. Any increase in the number of spaced in the indentation represents 
 an indent and any decrease represents a dedent. Only spaces are allowed in the 
 indentation.  Specifically, tabs are not allowed in the indentation and they 
-cannot follow a colon, dash, or greater to form a dictionary, list, or 
-multi-line string tag, but can be used elsewhere.
+cannot immediately follow a colon, dash, or greater to form a dictionary, list, 
+or multi-line string tag, but can be contained in values or within keys.
 
 
 Summary of Rules
@@ -149,11 +151,11 @@ Comments are ignored.
 Blank lines are lines that are empty or consist only of white space characters 
 (spaces or tabs).  Blank lines are also ignored.
 
-The remaining lines are identifying by which of one of these characters are 
-found in an unquoted portion of the line: '-', ':', '>' when followed 
-immediately be a space or newline.  Once the first of one of these pairs has 
-been found in the unquoted portion of the line, any subsequent occurrences of 
-any of the line-type tags are treated as simple text.  For example::
+The remaining lines are identifying by which one of these characters are found 
+in an unquoted portion of the line: '-', ':', '>' when followed immediately by 
+a space or newline.  Once the first of one of these pairs has been found in the 
+unquoted portion of the line, any subsequent occurrences of any of the line-type 
+tags are treated as simple text.  For example::
 
     - And the winner is: {winner}
 
@@ -179,19 +181,10 @@ be a string; it must not contain a newline, and it must be quoted if it contains
 a line-type tag or has leading or trailing spaces.
 
 The values associated with list and dict items may take one of three forms. If 
-the line contains further text (non-white space characters after the '- ' or ': 
-'), then that text minus any leading or trailing white space is the value.  The 
-value may be quoted, in which case the value is the text within the matching 
-quotes. For example::
-
-    - this is the value
-    - 'this is the value'
-    key: this is the value
-    key: "this is the value"
-
-In each of these cases, the value resolves to the string: `this is the value`.
+the line contains further text (characters after the '- ' or ': '), then that 
+text is the value.
 
 If there is no further text on the line and the next line has greater 
 indentation, then the next line holds the value, which may be a list, 
 a dictionary, or a multi-line string.  Otherwise the value is empty; it is taken 
-to be an empty string. 
+to be an empty string.

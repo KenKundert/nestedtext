@@ -23,9 +23,9 @@ testcases = dict(
             # this is a comment, it is ignored
             key 1: value 1
 
-            "- key2:": "value2:"
+            "- key2:": value2:
 
-            '  #key3  ': '  #value3  '
+            '  #key3  ':   #value3  
 
             key 4:
                 key 4.1: value 4.1
@@ -121,7 +121,7 @@ testcases = dict(
         invarient = dedent("""
             key 1: value 1
             '- key2:': value2:
-            '  #key3  ': '  #value3  '
+            '  #key3  ':   #value3  
             key 4:
                 key 4.1: value 4.1
                 key 4.2: value 4.2
@@ -268,7 +268,7 @@ testcases = dict(
                 - crux
                 -
 
-                - ' — '
+                -  — 
 
         """),
         # expected {{{3
@@ -289,7 +289,7 @@ testcases = dict(
                     >
                 - crux
                 -
-                - ' — '
+                -  — 
         """).strip('\n')
     ),
 )
@@ -323,7 +323,7 @@ def test_testcase3():
 def test_loads():
     content = ''
     data = nestedtext.loads(content)
-    assert data == {}
+    assert data == None
 
     content = dedent("""
         ingredients:
@@ -336,7 +336,7 @@ def test_loads():
         what makes it green\t: \tgreen\tchilies\t
     """)
     data = nestedtext.loads(content)
-    assert data == {'what makes it green': 'green\tchilies'}
+    assert data == {'what makes it green': '\tgreen\tchilies\t'}
 
     content = dedent("""
         # this is a comment
@@ -393,10 +393,22 @@ def test_loads():
     assert data == expected
 
     content = dedent("""
-        key: 'And Fred said "yabba dabba doo!" to Barney.'
+        key1: 'And Fred said "yabba dabba doo!" to Barney.'
+        key2: "And Fred said 'yabba dabba doo!' to Barney."
+        key3: "And Fred said "yabba dabba doo!" to Barney."
+        key4: 'And Fred said 'yabba dabba doo!' to Barney.'
+        key5: And Fred said "yabba dabba doo!" to Barney.
+        key6: And Fred said 'yabba dabba doo!' to Barney.
     """).strip()
     data = nestedtext.loads(content)
-    expected = dict(key = 'And Fred said "yabba dabba doo!" to Barney.')
+    expected = dict(
+        key1 = """'And Fred said "yabba dabba doo!" to Barney.'""",
+        key2 = '''"And Fred said 'yabba dabba doo!' to Barney."''',
+        key3 = '''"And Fred said "yabba dabba doo!" to Barney."''',
+        key4 = """'And Fred said 'yabba dabba doo!' to Barney.'""",
+        key5 = """And Fred said "yabba dabba doo!" to Barney.""",
+        key6 = """And Fred said 'yabba dabba doo!' to Barney.""",
+    )
     assert data == expected
 
     content = dedent("""
@@ -432,6 +444,42 @@ def test_loads():
         '>:-#"\">:': ">:-#'\'>::",
     }
     assert data == expected
+
+    content = dedent("""
+        > ingredients
+        > green chilies
+    """).lstrip()
+    expected = dedent("""
+        ingredients
+        green chilies
+    """).strip()
+    data = nestedtext.loads(content)
+    assert data == expected
+
+    content = dedent("""
+        key1 :
+        key2 :
+    """).lstrip()
+    expected = dict(key1='', key2='')
+    data = nestedtext.loads(content)
+    assert data == expected
+
+    content = dedent("""
+        -
+        -
+    """).lstrip()
+    expected = ['', '']
+    data = nestedtext.loads(content)
+    assert data == expected
+
+    content = dedent("""
+        >
+        >
+    """).lstrip()
+    expected = '\n'
+    data = nestedtext.loads(content)
+    assert data == expected
+
 
 
 # test_loads_errors() {{{1
@@ -587,31 +635,6 @@ def test_loads_errors():
     assert exception.value.line == '    - red chilies'
     assert exception.value.source == 'recipe'
     assert exception.value.lineno == 3
-    assert exception.value.colno == 0
-    assert exception.value.doc == content
-    assert isinstance(exception.value, Error)
-    assert isinstance(exception.value, ValueError)
-
-    content = dedent("""
-        > ingredients
-        > green chilies
-    """).lstrip()
-    with pytest.raises(nestedtext.NestedTextError) as exception:
-        nestedtext.loads(content)
-    assert str(exception.value) == '1: expected list or dictionary item.'
-    assert exception.value.args == ()
-    assert exception.value.kwargs == dict(
-        culprit = (1,),
-        codicil = ('«> ingredients»\n ↑',),
-        line = '> ingredients',
-        lineno = 1,
-        colno = 0,
-        doc = content,
-        template = 'expected list or dictionary item.',
-    )
-    assert exception.value.line == '> ingredients'
-    assert exception.value.source == None
-    assert exception.value.lineno == 1
     assert exception.value.colno == 0
     assert exception.value.doc == content
     assert isinstance(exception.value, Error)
@@ -806,25 +829,14 @@ def test_loads_errors():
     assert exception.value.get_codicil()[0] == "«key3 : value4»\n ↑"
     assert exception.value.colno == 0
 
-    content = dedent("""
-        > line 1
-        > line 2
-        > line 3
-    """).strip()
+    content = "ingredients"
     with pytest.raises(nestedtext.NestedTextError) as exception:
         nestedtext.loads(content)
-    assert str(exception.value) == '1: expected list or dictionary item.'
-    extended_codicil = exception.value.get_extended_codicil()
-    expected = dedent("""
-        |   1> > line 1
-        |      ↑
-        |   2> > line 2
-    """).strip()
-    extended_codicil = indent(extended_codicil, leader='|')
-    assert extended_codicil == expected
+    assert str(exception.value) == '1: unrecognized line.'
+    assert exception.value.get_codicil()[0] == "«ingredients»"
     assert exception.value.lineno == 1
-    assert exception.value.get_codicil()[0] == "«> line 1»\n ↑"
-    assert exception.value.colno == 0
+    assert exception.value.colno == None
+    assert exception.value.get_extended_codicil()[0] == "«ingredients»"
 
 # test_dump() {{{1
 def test_dump():
@@ -905,14 +917,14 @@ def test_dump():
         # the following uses tabs in a legal way
         treasurer:
             name\t : \t       Fumiko\tPurvis    \t
-            address: \t
+            address:
                 > \t 3636 Buffalo Ave \t
                 > \t Topika, Kansas 20692\t 
     """)
     data = nestedtext.loads(content)
     expected_data = dict(
         treasurer = dict(
-            name = 'Fumiko\tPurvis',
+            name = '\t       Fumiko\tPurvis    \t',
             address = '\t 3636 Buffalo Ave \t\n\t Topika, Kansas 20692\t '
         )
     )
@@ -920,7 +932,7 @@ def test_dump():
     achieved_content = nestedtext.dumps(data, indent=2)
     expected_content = dedent("""
         treasurer:
-          name: Fumiko\tPurvis
+          name: \t       Fumiko\tPurvis    \t
           address:
             > \t 3636 Buffalo Ave \t
             > \t Topika, Kansas 20692\t 
@@ -935,23 +947,25 @@ def test_dump():
     content = nestedtext.dumps(data)
     assert content == ""
 
+    data = ""
+    content = nestedtext.dumps(data)
+    content = '>'
+
+    data = []
+    content = nestedtext.dumps(data)
+    content = '-'
+
+    data = {}
+    content = nestedtext.dumps(data)
+    content = ':'
+
+    data = 42
+    content = nestedtext.dumps(data)
+    content = '> 42'
+
 
 # test_dumps_errors() {{{1
 def test_dumps_errors():
-
-    data = ""
-    with pytest.raises(nestedtext.NestedTextError) as exception:
-        content = nestedtext.dumps(data)
-    assert str(exception.value) == "'': expected top-level dictionary or list."
-    assert exception.value.args == ('',)
-    assert exception.value.kwargs == dict(
-        culprit = ("''",),
-        template = 'expected top-level dictionary or list.',
-    )
-    assert isinstance(exception.value, Error)
-    assert isinstance(exception.value, ValueError)
-    assert exception.value.get_codicil() == ()
-    assert exception.value.get_extended_codicil() == ()
 
     data = {'peach': '3', 'apricot\n': '8', 'blueberry': '1 lb', 'orange': '4'}
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -1001,18 +1015,6 @@ def test_dumps_errors():
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
-    data = dict(name=None)
-    with pytest.raises(nestedtext.NestedTextError) as exception:
-        content = nestedtext.dumps(data, default='strict')
-    assert str(exception.value) == "None: unsupported type."
-    assert exception.value.args == (None,)
-    assert exception.value.kwargs == dict(
-        culprit = ('None',),
-        template = 'unsupported type.',
-    )
-    assert isinstance(exception.value, Error)
-    assert isinstance(exception.value, ValueError)
-
     data = dict(name=42)
     renderers = {int: False}
     with pytest.raises(nestedtext.NestedTextError) as exception:
@@ -1022,18 +1024,6 @@ def test_dumps_errors():
     assert exception.value.kwargs == dict(
         culprit = ('42',),
         template = 'unsupported type.',
-    )
-    assert isinstance(exception.value, Error)
-    assert isinstance(exception.value, ValueError)
-
-    data = 42
-    with pytest.raises(nestedtext.NestedTextError) as exception:
-        content = nestedtext.dumps(data)
-    assert str(exception.value) == "42: expected top-level dictionary or list."
-    assert exception.value.args == (42,)
-    assert exception.value.kwargs == dict(
-        culprit = ('42',),
-        template = 'expected top-level dictionary or list.',
     )
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)

@@ -150,7 +150,7 @@ with Inform(verbose=cmdline['--verbose']):
         except nestedtext.NestedTextError as e:
             e.report()
         except json.JSONDecodeError as e:
-            error(e)
+            error(e, culprit=src_file)
 
     failures = errors_accrued()
     status = 'FAIL' if failures else 'PASS'

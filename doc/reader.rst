@@ -5,6 +5,8 @@ Reader
 
 .. autofunction:: nestedtext.loads
 
+*NestedText* is specified to *loads* in the form of a string.
+
 **Example:**
 
 .. code-block:: python
@@ -30,11 +32,9 @@ Reader
         'age': '74',
     }
 
-*NestedText* is specified to *loads* in the form of a string:
-
-*loads()* takes an optional second argument, *culprit*. If specified, it will be 
-prepended to any error messages. It is often used to designate the source of 
-*contents*. For example,if *contents* were read from a file, *culprit* would be 
+*loads()* takes an optional second argument, *source*. If specified, it is 
+attached to any error messages. It is used to designate the source of 
+*contents*.  For example,if *contents* were read from a file, *culprit* would be 
 the file name.  Here is a typical example of reading *NestedText* from a file:
 
 **Example:**
@@ -89,8 +89,9 @@ function is helpful:
 The next step is to define a schema that declares the expected types of the 
 various fields in the configuration file. For example, imagine the configuration 
 file has has three values, *name*, *value*, and *editable*, the first of which 
-must be a string, the second a float, and the third a boolean that is specified 
-using either 'yes' or 'no'. This can be done as follows:
+must be a string, the second a float, and the third a Boolean that is specified 
+using either 'yes' or 'no'. A configuration in *NestedText* can be converted to 
+a Python dictionary where each value as the desired type as follows:
 
 .. code-block:: python
 

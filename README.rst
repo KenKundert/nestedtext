@@ -21,14 +21,14 @@ NestedText: A Human Friendly Data Format
 |
 
 
-*NestedText* is a file format for exchanging data held in strings that are 
-contained within lists, and dictionaries.  In this way it is similar to JSON, 
-YaML, or StrictYaML, but with a restricted set of supported data types, the file 
-format is simpler. It is designed to be easy to enter with a text editor and 
-easy to read.  The small number of data types supported means few rules need be 
-kept in mind when creating a file.  The result is a data file that is easily 
-created, modified, or viewed with a text editor and be understood and used by 
-both programmers and non-programmers.
+*NestedText* is a file format for exchanging data held in lists, dictionaries, 
+and strings.  In this way it is similar to JSON, YaML, or StrictYaML, but with 
+a restricted set of supported data types, the file format is simpler. It is 
+designed to be easy to enter with a text editor and easy to read.  The small 
+number of data types supported means few rules need be kept in mind when 
+creating a file.  The result is a data file that is easily created, modified, or 
+viewed with a text editor and easily understood and used by both programmers and 
+non-programmers.
 
 *NestedText* is convenient for configuration files, address books, account 
 information and the like.  Here is an example of a file that contains a few 
@@ -81,20 +81,20 @@ is not easily confused.
 Alternatives
 ------------
 
-There are no shortage of well established alternative to *NestedText* for 
+There are no shortage of well established alternatives to *NestedText* for 
 storing data in a human-readable text file. Probably the most obvious are `json 
 <https://docs.python.org/3/library/json.html>`_ and `YAML 
 <https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both have serious short 
 comings.
 
-*JSON* is a subset of JavaScript suitable for holding data. Like *NestedText* it 
-consists of a hierarchical collection of dictionaries, lists, and strings, but 
-also allows integers, floats, booleans and nulls.  The problem with *JSON* for 
-this application is that it is awkward. All strings have to be quoted; it only 
-supports multi-line strings by using long single-line strings with embedded 
+*JSON* is a subset of JavaScript suitable for holding data. Like *NestedText*, 
+it consists of a hierarchical collection of dictionaries, lists, and strings, 
+but also allows integers, floats, Booleans and nulls.  The problem with *JSON* 
+for this application is that it is awkward. All strings have to be quoted; it 
+only supports multi-line strings by using long single-line strings with embedded 
 newline characters; and dictionary and list items must be separated with commas.  
-All of which results in *JSON* being a frustrating format for humans to enter or 
-read.
+All of which results in *JSON* being a frustrating format for humans to read, 
+enter or edit.
 
 *YAML* was to be the human friendly alternative to *JSON*, but things went very 
 wrong at some point. The authors were too ambitious and tried to support too 
@@ -132,4 +132,3 @@ Contributing
 This package contains a Python reference implementation of *NestedText*.
 Implementation in many languages is required for *NestedText* to catch on widely.
 If you like the format, please consider contributing additional implementations. 
-

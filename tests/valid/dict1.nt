@@ -6,8 +6,8 @@
 '> key 5' : > value 5
 '# key 6' : #value 6
 ': key 7' : : value 7
-'" key 8 "' : '" value 8 "'
-"' key 9 '" : "' value 9 '"
+'" key 8 "' : " value 8 "
+"' key 9 '" : ' value 9 '
 key 10:
     > value '" 10
-key 11: "And Fred said 'yabba dabba doo!' to Barney."
+key 11: And Fred said 'yabba dabba doo!' to Barney.
