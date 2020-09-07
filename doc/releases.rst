@@ -11,7 +11,7 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.4.0
+    | Version: 0.4.1
     | Released: 2020-09-07
 
 **0.4 (2020-09-07)**:
