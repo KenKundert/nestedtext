@@ -162,6 +162,9 @@ class NestedTextError(Error, ValueError):
             2> name1: value2
                ↑
             2> name3: value3
+
+    Both the normal and the extended codicils are returned as tuples.
+    You should join them with newlines before printing them.
     '''
 
     def get_extended_codicil(self, codicil=None):
@@ -199,13 +202,13 @@ class NestedTextError(Error, ValueError):
             lines_before = doc.split('\n')[max(lineno-2, 0):lineno]
             lines = []
             for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
-                lines.append(f'{i+1:>4}> {l}')
-            lines_before = '\n'.join(l.rstrip() for l in lines)
+                lines.append(f'{i+1:>4} «{l}»')
+            lines_before = '\n'.join(lines)
             lines_after = doc.split('\n')[lineno:lineno+1]
             lines = []
             for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
-                lines.append(f'{i+1:>4}> {l}')
-            lines_after = '\n'.join(l.rstrip() for l in lines)
+                lines.append(f'{i+1:>4} «{l}»')
+            lines_after = '\n'.join(lines)
             exception_codicil = '\n'.join(cull([
                 lines_before,
                 '      ' + (colno*' ') + '↑',
@@ -527,10 +530,10 @@ def loads(content, source=None):
             ...     print(str(e))
             ...     print(e.get_extended_codicil()[0])
             examples/duplicate-keys.nt, 5: duplicate key: name.
-               4> name:
-               5> name:
+               4 «name:»
+               5 «name:»
                   ↑
-               6>
+               6 «»
 
     '''
     with set_culprit(source):

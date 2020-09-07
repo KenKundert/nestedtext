@@ -754,10 +754,10 @@ def test_loads_errors():
     extended_codicil = exception.value.get_extended_codicil()
     assert len(extended_codicil) == 1
     expected = dedent("""
-        |   2>   key1 : value1
-        |   3>   key1 : value2
+        |   2 «  key1 : value1»
+        |   3 «  key1 : value2»
         |        ↑
-        |   4>   key3 : value3
+        |   4 «  key3 : value3»
     """).strip()
     extended_codicil = indent(extended_codicil[0], leader='|')
     assert extended_codicil == expected
@@ -777,10 +777,10 @@ def test_loads_errors():
     extended_codicil = exception.value.get_extended_codicil()
     assert len(extended_codicil) == 1
     expected = dedent("""
-        |   1> key1 : value1
-        |   2> key1 : value2
+        |   1 «key1 : value1»
+        |   2 «key1 : value2»
         |      ↑
-        |   3> key3 : value3
+        |   3 «key3 : value3»
     """).strip()
     extended_codicil = indent(extended_codicil[0], leader='|')
     assert extended_codicil == expected
@@ -800,10 +800,10 @@ def test_loads_errors():
     extended_codicil = exception.value.get_extended_codicil('Peek a boo!')
     assert len(extended_codicil) == 2
     expected = dedent("""
-        |   2> key2 : value2
-        |   3> key2 : value3
+        |   2 «key2 : value2»
+        |   3 «key2 : value3»
         |      ↑
-        |   4> key4 : value4
+        |   4 «key4 : value4»
         |Peek a boo!
     """).strip()
     extended_codicil = indent('\n'.join(extended_codicil), leader='|')
@@ -824,8 +824,8 @@ def test_loads_errors():
     extended_codicil = exception.value.get_extended_codicil(('Peek a boo!', 'I see you.'))
     assert len(extended_codicil) == 3
     expected = dedent("""
-        |   3> key3 : value3
-        |   4> key3 : value4
+        |   3 «key3 : value3»
+        |   4 «key3 : value4»
         |      ↑
         |Peek a boo!
         |I see you.
