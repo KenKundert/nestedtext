@@ -11,8 +11,8 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.3.1
-    | Released: 2020-09-05
+    | Version: 0.3.2
+    | Released: 2020-09-07
 
     - Change rest-of-line strings to include all characters given, including 
       leading and trailing quotes and spaces.
