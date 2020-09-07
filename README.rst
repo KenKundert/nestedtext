@@ -111,14 +111,6 @@ only a limited number of types and has a very simple set of rules that make up
 the format.
 
 
-Quick Start
------------
-
-Install with::
-
-   pip3 install --user nestedtext
-
-
 Issues
 ------
 

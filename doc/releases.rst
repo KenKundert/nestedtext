@@ -1,6 +1,13 @@
-Releases
---------
+************
+Installation
+************
 
+::
+
+   pip3 install --user nestedtext
+
+Releases
+========
 **Latest development release**:
     | Version: 0.3.1
     | Released: 2020-09-05

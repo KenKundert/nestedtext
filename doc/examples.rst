@@ -1,10 +1,11 @@
+********
 Examples
-========
+********
 
 .. _json-to-nestedtext:
 
 JSON to NestedText
-------------------
+==================
 
 This example implements a command-line utility that converts a *JSON* file to 
 *NestedText*.  It demonstrates the use of :func:`nestedtext.dumps()` and 
@@ -63,7 +64,7 @@ This example implements a command-line utility that converts a *JSON* file to
 .. _nestedtext-to-json:
 
 NestedText to JSON
-------------------
+==================
 
 This example implements a command-line utility that converts a *NestedText* file 
 to *JSON*.  It demonstrates the use of :func:`nestedtext.loads()` and 
@@ -120,11 +121,11 @@ to *JSON*.  It demonstrates the use of :func:`nestedtext.loads()` and
 .. _cryptocurrency example:
 
 Cryptocurrency Holdings
-------------------------
+========================
 
 This example implements a command-line utility that displays the current value 
 of cryptocurrency holdings.  The program starts by reading a settings file held 
-in ~/.config/cc that in this case holds::
+in ``~/.config/cc`` that in this case holds::
 
     holdings:
         - 5 BTC
