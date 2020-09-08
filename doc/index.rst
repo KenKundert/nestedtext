@@ -6,6 +6,7 @@
 
    releases
    how_to_write
+   how_to_use
    structure_parser
    examples
    common_mistakes
