@@ -18,9 +18,8 @@ a :exc:`NestedTextError` exception is raised.
     >>> import nestedtext
 
     >>> content = """
-    ... Setting config vars and restarting myapp... done, v14
-    access key id: 8N029N81
-    secret access key: 9s83109d3+583493190
+    ... access key id: 8N029N81
+    ... secret access key: 9s83109d3+583493190
     ... """
 
     >>> try:
