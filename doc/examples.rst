@@ -48,7 +48,7 @@ in ``~/.config/cc`` that in this case holds::
     date format: h:mm A, dddd MMMM D
     screen width: 90
 
-This file, of course, is in *NextedText* format.  After being read by 
+This file, of course, is in *NestedText* format.  After being read by 
 :func:`loads()` it is processed by a `Voluptuous 
 <https://github.com/alecthomas/voluptuous>`_ schema that does some checking on 
 the form of the values specified and then converts the holdings to a list of 

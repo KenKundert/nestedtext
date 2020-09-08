@@ -1,28 +1,112 @@
 ************
 Basic syntax
 ************
-A *NestedText* file is composed entirely of:
 
-- Dictionaries_
-- Lists_
-- Strings_
-- Comments_
+This is a overview of the syntax of a *NestedText* document, which consists of 
+a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
+:ref:`lists <lists>`, and :ref:`strings <strings>`.  You can find more specifics 
+:ref:`later on <nestedtext file format>`.
 
+
+.. _dictionaries:
 
 Dictionaries
 ============
-A dictionary contains one or more dictionary items, each on its own line and in 
-each the key and value separated by a colon.  The value is optional and the 
-colon must be followed by a space or a newline to act as the key/value 
-separator. So for example::
 
-    name: Katheryn McDaniel
-    phone: 1-210-555-5297
-    email: KateMcD@aol.com
+    A dictionary is a collection of name/value pairs::
 
-In this example both the keys and values are strings.  Keys are always strings, 
-but the values may be strings, dictionaries, or lists.  Dictionaries and lists 
-can be nested to arbitrary depth::
+        name 1: value 1
+        name 2: value 2
+        ...
+
+    A dictionary item is introduced by a key (the name) and a colon at the start 
+    of a line.  Anything that follows the space after the colon is the value and 
+    is treated as a string.
+
+    The key is a string and must be quoted (delimited by matching single or 
+    double quote characters) if it contains characters that could be 
+    misinterpreted.
+
+    A dictionary is all adjacent dictionary items at the same indentation 
+    level.
+
+
+.. _lists:
+
+Lists
+=====
+
+    A list is a collection of simple values::
+
+        - value 1
+        - value 2
+        ...
+
+    A list item is introduced with a dash at the start of a line.  Anything that 
+    follows the space after the dash is the value and is treated as a string.
+
+    A list is all adjacent list items at the same indentation level.
+
+
+.. _strings:
+
+Strings
+=======
+
+    The values described in the last two sections are all rest-of-line strings; 
+    they end at the end of the line.  Rest-of-line strings are simply all the 
+    remaining characters on the line.  They can contain any character other than 
+    newline::
+
+        regex: [+-]?([0-9]*[.])?[0-9]+
+        math: -b + sqrt(b**2 - 4*a*c)
+        unicode: José and François
+
+    It is also possible to specify strings that are alone on a line and they can 
+    be combined to form multi-line strings. To do so, precede the line with 
+    a greater-than symbol::
+
+        >     this is the first line of a multi-line string, it is indented.
+        > this is the second line, it is not indented.
+
+    The content of each line starts after the space that follows the 
+    greater-than symbol.
+
+    You can include empty lines in the string simply by specifying the 
+    greater-than symbol alone on a line::
+
+        >
+        > The future ain’t what it used to be.
+        >
+        >                    - Yogi Berra
+        >
+
+
+.. _comments:
+
+Comments
+========
+
+    Lines that begin with a hash as the first non-space character, or lines that 
+    are empty or consist only of spaces and tabs are ignored.  Indentation level 
+    is not significant on comment lines.
+
+    ::
+
+        # this line is ignored
+
+
+.. _nesting:
+
+Nesting
+=======
+
+A value for a dictionary or list item may be a rest-of-line string as shown 
+above, or it may be a nested dictionary, list or a multi-line string.  
+Indentation is used to indicate nesting (or composition).  Indentation increases 
+to indicate the beginning of a new nested object, and indentation returns to 
+a prior level to indicate its end.  In this way, data can be nested to an 
+arbitrary depth::
 
     # Contact information for our officers
 
@@ -52,92 +136,8 @@ can be nested to arbitrary depth::
             - Zach
             - Maggie
 
-Note that each level of nesting must be indented. It is highly recommended that 
-each level of indentation be represented by a consistent number of spaces (with 
-the suggested number being 4). However, it is not required. Any increase in the 
-number of spaces in the indentation represents an indent and any decrease 
-represents a dedent. Only spaces are allowed in the indentation. Specifically, 
-tabs are not allowed in the indentation and they cannot follow a colon, dash, or 
-greater to form a dictionary, list, or multi-line string tag, but can be used 
-elsewhere.
-
-Multi-line keys are not supported; a key must not contain a newline. In 
-addition, all keys in the same dictionary must be unique. If a key contains 
-leading or trailing spaces, a leading '- ' or '> ', or a ': ' anywhere in the 
-key, you should quote the key.  Either single or double matching quotes may be 
-used.  For example::
-
-    '- key: ': value
-
-Lists
-=====
-A list is represented as one or more list items, which are values that are 
-introduced with a dash and end at the end of line. So for example::
-
-    - Alabama
-    - Alaska
-    - Arizona
-    - Arkansas
-
-Any characters that occur after the '- ' are interpreted as a string.  To nest 
-dictionaries or other lists within a list, put the nested data structure on a 
-new line::
-
-    -
-        state: Alabama
-        capital: Montgomery
-    -
-        state: Alaska
-        capital: Juneau
-
-The indentation rules for lists are the same as those for dictionaries.
-
-Strings
-=======
-Strings can be either rest-of-line or multi-line strings.  Rest-of-line strings 
-are simply the remaining characters on the line.  Note that rest-of-line strings 
-can contain any character (other than newline), because only the first ': ' or 
-'- ' on a line is significant to *NestedText*::
-
-    regex: [+-]?([0-9]*[.])?[0-9]+
-    math: -b + sqrt(b**2 - 4*a*c)
-    unicode: José and François
-
-A multi-line string is a newline followed by one or more indented text lines 
-where each line is introduced with '> '::
-
-    name: Katheryn McDaniel
-    address:
-        > 138 Almond Street
-        > Topika, Kansas 20697
-    phone: 1-210-555-5297
-    email: KateMcD@aol.com
-
-You can include empty lines at the beginning or end of the string by adding just 
-the prefix.  Note that blank lines are always ignored --- including before, 
-after, and even within multi-line strings::
-
-    Yogi Berra:
-        >
-        > The future ain’t what it used to be.
-        >
-
-Only the initial '> ' is removed from each line in the final string.  This makes 
-it trivial to specify strings with leading whitespace::
-
-    greeting: Dearest Kathy:
-    body:
-        >     It has been such a long time. I am very much looking forward to
-        > seeing both you and Margaret again.
-    closing: See you soon.
-    signature: -Rupert
-
-In this example, the value of *body* is a multi-line string for which the first 
-line is indented by 4 spaces.  The second line in *body* has no leading space.
-
-Comments
-========
-Blank lines and comment lines are ignored. Blank lines are empty lines or lines 
-that consist only of white space. Comment lines are lines where the first 
-non-space character on the line is a `#`.
-
+It is recommended that each level of indentation be represented by a consistent 
+number of spaces (with the suggested number being 2 or 4). However, it is not 
+required. Any increase in the number of spaces in the indentation represents an 
+indent and and the number of spaces need only be consistent over the length of 
+the nested object.

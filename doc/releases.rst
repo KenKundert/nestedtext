@@ -19,7 +19,7 @@ Releases
       leading and trailing quotes and spaces.
     - The *NestedText* top-level is no longer restricted to only dictionaries 
       and lists. The top-level can now also be a single string.
-    - :func:`loads` now returns *None* when given an empty *NestedString*.
+    - :func:`loads` now returns *None* when given an empty *NestedText* document.
     - Change :exc:`NestedTextError` attribute names to make them more consistent 
       with those used by JSON package.
     - Added :meth:`NestedTextError.get_extended_codicil`.
