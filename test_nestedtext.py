@@ -385,11 +385,11 @@ def test_loads():
     assert data == expected
 
     content = dedent("""
-        key:
+        key "' key:
           > value '" value
     """).strip()
     data = nestedtext.loads(content)
-    expected = dict(key = """value '" value""")
+    expected = {"""key "' key""": """value '" value"""}
     assert data == expected
 
     content = dedent("""
@@ -905,11 +905,10 @@ def test_dump():
     """).strip()
     assert content == expected
 
-    data = dict(key = """value '" value""")
+    data = {"""key "' key""": """value '" value"""}
     content = nestedtext.dumps(data, indent=2)
     expected = dedent("""
-        key:
-          > value '" value
+        key "' key: value '" value
     """).strip()
     assert content == expected
 
@@ -969,6 +968,10 @@ def test_dump():
     data = 42
     content = nestedtext.dumps(data)
     content = '> 42'
+
+    data = {"""key '" key""": 'value'}
+    content = nestedtext.dumps(data)
+    assert content == """key '" key: value"""
 
 
 # test_dumps_errors() {{{1
@@ -1035,14 +1038,26 @@ def test_dumps_errors():
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)
 
-    data = {"""key '" key""": 'value'}
+    data = {"""'key " key'""": 'value'}
     with pytest.raises(nestedtext.NestedTextError) as exception:
         content = nestedtext.dumps(data)
-    assert str(exception.value) == r"""'key \'" key': keys must not contain both " and '."""
-    assert exception.value.args == ('key \'" key',)
+    assert str(exception.value) == """'key " key': keys that require quoting must not contain both " and '."""
+    assert exception.value.args == ("""'key " key'""",)
     assert exception.value.kwargs == dict(
-        culprit = (r"""'key \'" key'""",),
-        template = """keys must not contain both " and '.""",
+        culprit = (r"""'key " key'""",),
+        template =  """keys that require quoting must not contain both " and '."""
+    )
+    assert isinstance(exception.value, Error)
+    assert isinstance(exception.value, ValueError)
+
+    data = {'''"key ' key"''': 'value'}
+    with pytest.raises(nestedtext.NestedTextError) as exception:
+        content = nestedtext.dumps(data)
+    assert str(exception.value) == '''"key ' key": keys that require quoting must not contain both " and '.'''
+    assert exception.value.args == ('''"key ' key"''',)
+    assert exception.value.kwargs == dict(
+        culprit = (r'''"key ' key"''',),
+        template =  """keys that require quoting must not contain both " and '."""
     )
     assert isinstance(exception.value, Error)
     assert isinstance(exception.value, ValueError)

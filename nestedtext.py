@@ -448,8 +448,6 @@ def read_dict(lines, depth):
             report("expected dictionary item", line, colno=depth)
         if line.key in data:
             report('duplicate key: {}.', line, line.key, colno=depth)
-        if '"' in line.key and "'" in line.key:
-            report("""key must not contain both " and '.""", line, line.key, colno=depth)
         if line.value:
             # dbg(line, 'dv')
             data.update({line.key: line.value})
@@ -754,21 +752,20 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
                 template='keys must not contain newlines.',
                 culprit=repr(s)
             )
-        if '"' in s and "'" in s:
-            raise NestedTextError(
-                s,
-                template="""keys must not contain both " and '.""",
-                culprit=repr(s)
-            )
         if (
             len(stripped) < len(s)
             or s[:1] == "#"
             or s.startswith("- ")
             or s.startswith("> ")
             or ': ' in s
-            or '"' in s
-            or "'" in s
+            or s[:1] + s[-1:] in ['""', "''"]
         ):
+            if '"' in s and "'" in s:
+                raise NestedTextError(
+                    s,
+                    template = """keys that require quoting must not contain both " and '.""",
+                    culprit = s,
+                )
             return repr(s)
         return s
 
@@ -803,7 +800,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             for v in obj
         )
     elif is_a_str(obj):
-        if "\n" in obj or ('"' in obj and "'" in obj):
+        if "\n" in obj:
             content = add_leader(obj, '> ')
             need_indented_block = True
         else:

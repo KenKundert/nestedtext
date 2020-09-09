@@ -58,13 +58,18 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Dictionary items**:
 
     If the line is not a string-item or a list item and it contains a colon 
-    followed by a space (':␣') or newline that does not fall within a quoted 
-    key, the line is considered a *dict-item*.  Adjacent dict-items with the 
-    same indentation level are combined into a dictionary with their order being 
-    retained.  Each dict-item consists of a key, the colon, and a value.  A key 
-    must be a string, it must not contain a newline, and it must be quoted if it 
-    contains a line-type tag or has leading or trailing spaces.  A key is quoted 
-    if it is delimited by matching single or double quote characters.
+    followed by either a space (':␣') that does not fall within a quoted key or 
+    is followed by a newline, the line is considered a *dict-item*.  Adjacent 
+    dict-items with the same indentation level are combined into a dictionary 
+    with their order being retained.  Each dict-item consists of a key, the 
+    colon, and a value.  A key must be a string, it must not contain a newline, 
+    and it must be quoted if it starts with a line-type or string-type tag or it 
+    contains a dict-item tag or if it is delimited by matching quote characters 
+    or has leading or trailing spaces.  A key is quoted by delimiting it with 
+    matching single or double quote characters. Double quotes are used if the 
+    key contains a single quote character and a single quotes are used if the 
+    key contains a double quote character.  A key that requires quoting must not 
+    contain both single and double quote characters.  
 
 **Values**:
 
@@ -110,19 +115,19 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     When a document is converted from *NestedText* the result takes one of the 
     following forms:
 
-    None:
+    **None**:
         The document is empty.
 
-    String:
+    **String**:
         The document consists of a single multiline string
 
-    List:
+    **List**:
         The top-level of the document is a list.
         Each value of the list may be a string, list, or a dictionary.
         The nesting of lists and dictionaries may be arbitrarily deep but the 
         leaf values are all strings as are all keys in all dictionaries.
 
-    Dictionary:
+    **Dictionary**:
         The top-level of the document is a dictionary.  Each value may be 
         a string, list, or a dictionary.  The nesting of lists and dictionaries 
         may be arbitrarily deep but the leaf values are all strings as are all 
