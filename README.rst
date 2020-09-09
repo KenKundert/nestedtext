@@ -97,7 +97,7 @@ for this application is that it is awkward.  With all those data types it must
 syntactically distinguish between them.  For example, in *JSON* 32 is an 
 integer, 32.0 is the real version of 32, and "32" is the string version. These 
 distinctions are not meaningful and can be confusing to non-programmers. In 
-addition, in most datasets a majority of leaf values are strings, and the 
+addition, in most datasets a majority of leaf values are strings and the 
 required quotes adds substantial visual clutter.  *NestedText* avoids these 
 issues by treating all leaf values as strings with no need for quoting or 
 escaping.  It is up to the application that employs *NestedText* as an input 
@@ -163,6 +163,7 @@ format:
 - simple
 - unambiguous (no implicit typing)
 - data type does not change based on seemingly insignificant details (2, 2.0, 2.0.0, "2")
+- syntax is insensitive to special characters within text
 - safe, no risk of malicious code execution
 
 
