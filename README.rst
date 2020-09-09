@@ -93,50 +93,49 @@ comings.
 *JSON* is a subset of JavaScript suitable for holding data. Like *NestedText*, 
 it consists of a hierarchical collection of dictionaries, lists, and strings, 
 but also allows integers, floats, Booleans and nulls.  The problem with *JSON* 
-for this application is that it is awkward. All strings have to be quoted; it 
-only supports multiline strings by using long single-line strings with embedded 
-newline characters; and dictionary and list items must be separated with commas.  
-All of which results in *JSON* being a frustrating format for humans to read, 
-enter or edit.
+for this application is that it is awkward.  With all those data types it must 
+syntactically distinguish between them.  For example, in *JSON* 32 is an 
+integer, 32.0 is the real version of 32, and "32" is the string version. These 
+distinctions are not meaningful and can be confusing to non-programmers. In 
+addition, in most datasets a majority of leaf values are strings, and the 
+required quotes adds substantial visual clutter.  *NestedText* avoids these 
+issues by treating all leaf values as strings with no need for quoting or 
+escaping.  It is up to the application that employs *NestedText* as an input 
+format to sort things out later.
+
+*JSON* does not provide for multiline strings and any special characters like 
+newlines or unicode are encoded with escape codes, which can make strings quite 
+difficult to interpret.  Finally, dictionary and list items must be separated 
+with commas, but a comma must not follow last item.  All of this results in 
+*JSON* being a frustrating format for humans to read, enter or edit.
 
 *NestedText* has the following clear advantages over *JSON* as human readable 
 and writable data file format:
 
+- text does not require quotes
+- data type does not change based on seemingly insignificant details (32, 32.0, "32")
 - comments
 - multiline strings
 - special characters without escaping them
 - Unicode characters without encoding them
+- commas are not used to separate dictionary and list items
 
-*YAML* was to be the human friendly alternative to *JSON*, but things went very 
-wrong. The authors were too ambitious and tried to support too many data types 
-and too many formats. To distinguish between all the various types and formats, 
-a complicated and non-intuitive set of rules developed.  *YAML* at first appears 
-very appealing when used with simple examples, but things quickly become very 
-complicated.  A reaction to this is the use of *YAML* subsets, such as 
-`StrictYAML <https://hitchdev.com/strictyaml>`_.  However, the subsets still try 
-to maintain compatibility with *YAML* and so inherits much of its complexity.
+*YAML* was to be the human friendly alternative to *JSON*, but the authors were 
+too ambitious and tried to support too many data types and too many formats. To 
+distinguish between all the various types and formats, a complicated and 
+non-intuitive set of rules developed.  For example, 2 is interpreted as an 
+integer, 2.0 as a real number, and both 2.0.0 and "2" are strings.  *YAML* at 
+first appears very appealing when used with simple examples, but things can 
+quickly become complicated or provide unexpected results.  A reaction to this is 
+the use of *YAML* subsets, such as `StrictYAML 
+<https://hitchdev.com/strictyaml>`_.  However, the subsets still try to maintain 
+compatibility with *YAML* and so inherit much of its complexity.
 
-*NestedText* has the following clear advantages over *YAML* as human readable 
-and writable data file format:
-
-- safe, no risk of malicious code execution
-- simple
-- unambiguous (no implicit typing) 
-
-*NestedText* was inspired by *YAML*, but eschews its complexity. It supports 
-only a limited number of types and has a very simple set of rules that make up 
-the format.  *NestedText* is an improvement over *JSON* in that it only accepts 
-strings as it leaf values, where as *JSON* needs to distinguish between many 
-possible types. For example, in *JSON* 32 is an integer, 32.0 is the real 
-version of 32, and "32" is the string version. As a result, all strings in 
-*JSON* must be quoted, which, since most leaf values are strings, adds 
-substantial clutter.  The problem is different in *YAML*, which tries to 
-determine the value's type based on context. So 32 alone in a field is an 
-integer, but if combined with other characters, such as 32.0.2 or *I have 32 
-kites*, it is part of a string.  *NestedText* avoids these issues by treating 
-all leaf values as strings. It is up to application that employs *NestedText* as 
-an input format to sort things out later.  Consider the following *YAML* 
-fragment::
+*YAML* recognized the problems that result from *JSON* needing to unambiguously 
+distinguish between many data types and instead uses implicit typing, which 
+creates its own `problems
+<https://hitchdev.com/strictyaml/why/implicit-typing-removed>_`.
+For example, consider the following *YAML* fragment::
 
     Enrolled: NO
     Country Code: NO
@@ -144,20 +143,27 @@ fragment::
 Presumably *Enrolled* is meant to be a Boolean value whereas *Country Code* is 
 meant to be a string (*NO* is the country code for Norway). Reading this 
 fragment with *YAML* results in {'Enrolled': *False*, 'Country Code': *False*}.  
-When read by *NestedText* both values become 'NO', but the assumption is that 
-*Enrolled* knows how to convert 'NO' to *False*. The same is not possible with 
-*YAML* because many possible strings map to *False* (`n`, `no`, `false`, `off`; 
-etc.) and it is hard to know which one was given. This particular issue of 
-*YAML* is referred to as its `Norway problem 
-<https://hitchdev.com/strictyaml/why/implicit-typing-removed>_` and it is one of 
-many that stem from implicit type determination as employed by *YAML*.)
+When read by *NestedText* both values are retained in their original form as 
+strings.  With *NestedText* any decisions about how to interpret the leaf values 
+are passed to the end application, which is the only place where they can be 
+made knowledgeably.  The assumption is that the end application knows that 
+*Enrolled* should be a Boolean and knows how to convert 'NO' to *False*.  The 
+same is not possible with *YAML* because the *Country Code* value has been 
+transformed and because there are many possible strings that map to *False* 
+(`n`, `no`, `false`, `off`; etc.).
 
-Fundamentally the issue with *YAML* is a crisis of its own making. It reads 
-a language that is inherently ambiguous and so is forced to make decisions it 
-has no ability to make sensibly.  With *NestedText* the language is unambiguous 
-and any decisions about how to interpret the leaf values are passed to the end 
-application, which is the only place where they can be made knowledgeably.
+This is one example of the many possible problems that stem from implicit 
+typing.  In fact, many people make it a habit to add quotes to all values simply 
+to avoid the ambiguities, which makes *YAML* more like *JSON*.
 
+*NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
+following clear advantages over *YAML* as human readable and writable data file 
+format:
+
+- simple
+- unambiguous (no implicit typing)
+- data type does not change based on seemingly insignificant details (2, 2.0, 2.0.0, "2")
+- safe, no risk of malicious code execution
 
 
 Issues
