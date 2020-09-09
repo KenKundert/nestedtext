@@ -23,10 +23,10 @@ NestedText: A Human Friendly Data Format
 
 *NestedText* is a file format for holding data that is to be entered, edited, or 
 viewed by people.  It allows data to be organized into a nested collection of 
-dictionaries, lists, and strings.  In this way it is similar to *JSON*, *YAML*, 
-or *StrictYAML*, but without the complexity and risk of *YAML* and without the 
-syntatic clutter of *JSON*.  *NestedText* is both simple and natural. Only 
-a small number of concepts and rules must be kept in mind when creating it.
+dictionaries, lists, and strings.  In this way it is similar to *JSON* and 
+*YAML*, but without the complexity and risk of *YAML* and without the syntatic 
+clutter of *JSON*.  *NestedText* is both simple and natural. Only a small number 
+of concepts and rules must be kept in mind when creating it.
 It is easily created, modified, or viewed with a text editor and easily 
 understood and used by both programmers and non-programmers.
 
@@ -134,7 +134,7 @@ compatibility with *YAML* and so inherit much of its complexity.
 *YAML* recognized the problems that result from *JSON* needing to unambiguously 
 distinguish between many data types and instead uses implicit typing, which 
 creates its own `problems
-<https://hitchdev.com/strictyaml/why/implicit-typing-removed>_`.
+<https://hitchdev.com/strictyaml/why/implicit-typing-removed>`_.
 For example, consider the following *YAML* fragment::
 
     Enrolled: NO
