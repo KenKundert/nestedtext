@@ -45,7 +45,7 @@ trailing blank line:
     > line 2
 
 leading comment:
-# ignore me
+  # ignore me
     > line 1
     > line 2
 internal comment:
@@ -55,7 +55,7 @@ internal comment:
 trailing comment:
     > line 1
     > line 2
-# ignore me
+  # ignore me
 
             # ignore me
 

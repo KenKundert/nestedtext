@@ -87,8 +87,8 @@ Comments
 ========
 
     Lines that begin with a hash as the first non-space character, or lines that 
-    are empty or consist only of spaces and tabs are ignored.  Indentation level 
-    is not significant on comment lines.
+    are empty or consist only of spaces and tabs are ignored.  Indentation is 
+    not significant on comment lines.
 
     ::
 

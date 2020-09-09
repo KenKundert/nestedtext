@@ -1,2 +1,4 @@
-# invalid indentation, expect multiple of 4 spaces
-  key 1: value 1
+# invalid indentation, inconsistent indent indent
+key:
+    > value 1
+  > value 2
