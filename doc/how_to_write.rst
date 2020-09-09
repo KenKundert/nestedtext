@@ -23,9 +23,8 @@ Dictionaries
     of a line.  Anything that follows the space after the colon is the value and 
     is treated as a string.
 
-    The key is a string and must be quoted (delimited by matching single or 
-    double quote characters) if it contains characters that could be 
-    misinterpreted.
+    The key is a string and must be quoted if it contains characters that could 
+    be misinterpreted.
 
     A dictionary is all adjacent dictionary items at the same indentation 
     level.
