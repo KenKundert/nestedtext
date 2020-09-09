@@ -11,8 +11,8 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.4.1
-    | Released: 2020-09-07
+    | Version: 0.4.2
+    | Released: 2020-09-09
 
 **0.4 (2020-09-07)**:
     - Change rest-of-line strings to include all characters given, including 
