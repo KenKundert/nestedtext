@@ -21,14 +21,14 @@ NestedText: A Human Friendly Data Format
 |
 
 
-*NestedText* is a file format for exchanging data held in lists, dictionaries, 
-and strings.  In this way it is similar to JSON, YaML, or StrictYaML, but with 
-a restricted set of supported data types, the file format is simpler. It is 
-designed to be easy to enter with a text editor and easy to read.  The small 
-number of data types supported means few rules need be kept in mind when 
-creating a file.  The result is a data file that is easily created, modified, or 
-viewed with a text editor and easily understood and used by both programmers and 
-non-programmers.
+*NestedText* is a file format for holding data that is to be entered, edited, or 
+viewed by people.  It allows data to be organized into a nested collection of 
+dictionaries, lists, and strings.  In this way it is similar to *JSON*, *YAML*, 
+or *StrictYAML*, but without the complexity and risk of *YAML* and without the 
+syntatic clutter of *JSON*.  *NestedText* is both simple and natural. Only 
+a small number of concepts and rules must be kept in mind when creating it.
+It is easily created, modified, or viewed with a text editor and easily 
+understood and used by both programmers and non-programmers.
 
 *NestedText* is convenient for configuration files, address books, account 
 information and the like.  Here is an example of a file that contains a few 
@@ -73,10 +73,12 @@ addresses::
             - Lue
 
 The format holds dictionaries (ordered collections of name/value pairs), lists 
-(ordered collections of values) and strings organized hierarchically to any 
-depth.  Indentation is used to indicate the hierarchy of the data, and a simple 
-natural syntax is used to distinguish the types of data in such a manner that it 
-is not easily confused.
+(ordered collections of values) and strings (text) organized hierarchically to 
+any depth.  Indentation is used to indicate the hierarchy of the data, and 
+a simple natural syntax is used to distinguish the types of data in such 
+a manner that it is not easily confused.  Specifically, lines that begin with 
+a word or words followed by a colon are dictionary items; a dash introduces list 
+items, and a leading greater-than symbol signifies a line in a multiline string.
 
 
 Alternatives
@@ -92,10 +94,18 @@ comings.
 it consists of a hierarchical collection of dictionaries, lists, and strings, 
 but also allows integers, floats, Booleans and nulls.  The problem with *JSON* 
 for this application is that it is awkward. All strings have to be quoted; it 
-only supports multi-line strings by using long single-line strings with embedded 
+only supports multiline strings by using long single-line strings with embedded 
 newline characters; and dictionary and list items must be separated with commas.  
 All of which results in *JSON* being a frustrating format for humans to read, 
 enter or edit.
+
+*NestedText* has the following clear advantages over *JSON* as human readable 
+and writable data file format:
+
+- comments
+- multiline strings
+- special characters without escaping them
+- Unicode characters without encoding them
 
 *YAML* was to be the human friendly alternative to *JSON*, but things went very 
 wrong. The authors were too ambitious and tried to support too many data types 
@@ -105,6 +115,13 @@ very appealing when used with simple examples, but things quickly become very
 complicated.  A reaction to this is the use of *YAML* subsets, such as 
 `StrictYAML <https://hitchdev.com/strictyaml>`_.  However, the subsets still try 
 to maintain compatibility with *YAML* and so inherits much of its complexity.
+
+*NestedText* has the following clear advantages over *YAML* as human readable 
+and writable data file format:
+
+- safe, no risk of malicious code execution
+- simple
+- unambiguous (no implicit typing) 
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It supports 
 only a limited number of types and has a very simple set of rules that make up 
@@ -130,7 +147,10 @@ fragment with *YAML* results in {'Enrolled': *False*, 'Country Code': *False*}.
 When read by *NestedText* both values become 'NO', but the assumption is that 
 *Enrolled* knows how to convert 'NO' to *False*. The same is not possible with 
 *YAML* because many possible strings map to *False* (`n`, `no`, `false`, `off`; 
-etc.) and it is hard to know which one was given.
+etc.) and it is hard to know which one was given. This particular issue of 
+*YAML* is referred to as its `Norway problem 
+<https://hitchdev.com/strictyaml/why/implicit-typing-removed>_` and it is one of 
+many that stem from implicit type determination as employed by *YAML*.)
 
 Fundamentally the issue with *YAML* is a crisis of its own making. It reads 
 a language that is inherently ambiguous and so is forced to make decisions it 
