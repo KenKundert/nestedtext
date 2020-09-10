@@ -64,7 +64,7 @@ Notice the ␣␣ that follow *address*.  These are replaced by 2 spaces before
 *content* is processed by *loads*.  Thus, in this case an extra space at the end 
 of line 4.  Anything beyond the ': ' is considered the value for *address*, and
 in this case that is the single extra space specified at the end of the line.
-This extra space is taken to be the value of *address*, making the multi-line 
+This extra space is taken to be the value of *address*, making the multiline 
 string in lines 5 and 6 a value too many.
 
 These kinds of problems can be easier to see and debug if you use 

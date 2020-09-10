@@ -62,10 +62,10 @@ Strings
         unicode: José and François
 
     It is also possible to specify strings that are alone on a line and they can 
-    be combined to form multi-line strings. To do so, precede the line with 
+    be combined to form multiline strings. To do so, precede the line with 
     a greater-than symbol::
 
-        >     this is the first line of a multi-line string, it is indented.
+        >     this is the first line of a multiline string, it is indented.
         > this is the second line, it is not indented.
 
     The content of each line starts after the space that follows the 
@@ -101,7 +101,7 @@ Nesting
 =======
 
 A value for a dictionary or list item may be a rest-of-line string as shown 
-above, or it may be a nested dictionary, list or a multi-line string.  
+above, or it may be a nested dictionary, list or a multiline string.  
 Indentation is used to indicate nesting (or composition).  Indentation increases 
 to indicate the beginning of a new nested object, and indentation returns to 
 a prior level to indicate its end.  In this way, data can be nested to an 

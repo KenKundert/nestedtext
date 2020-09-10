@@ -60,14 +60,14 @@ testcases = dict(
                 - value 9.1
                 - value 9.2
             key 10:
-                > This is a multi-line string.  It should end without a newline.
+                > This is a multiline string.  It should end without a newline.
             key 11:
-                > This is a multi-line string.  It should end with a newline.
+                > This is a multiline string.  It should end with a newline.
                 >
             key 12:
                 >
                 > This is another
-                > multi-line string.
+                > multiline string.
                 >
                 > This continues the same string.
                 >
@@ -104,13 +104,13 @@ testcases = dict(
             """).lstrip(),
             'key 8': ['value 8.1', 'value 8.2'],
             'key 9': ['value 9.1', 'value 9.2'],
-            'key 10': 'This is a multi-line string.  It should end without a newline.',
+            'key 10': 'This is a multiline string.  It should end without a newline.',
             'key 11': dedent("""
-                This is a multi-line string.  It should end with a newline.
+                This is a multiline string.  It should end with a newline.
             """).lstrip(),
             'key 12': dedent("""
                 This is another
-                multi-line string.
+                multiline string.
 
                 This continues the same string.
 
@@ -149,14 +149,14 @@ testcases = dict(
             key 9:
                 - value 9.1
                 - value 9.2
-            key 10: This is a multi-line string.  It should end without a newline.
+            key 10: This is a multiline string.  It should end without a newline.
             key 11:
-                > This is a multi-line string.  It should end with a newline.
+                > This is a multiline string.  It should end with a newline.
                 >
             key 12:
                 >
                 > This is another
-                > multi-line string.
+                > multiline string.
                 >
                 > This continues the same string.
                 >

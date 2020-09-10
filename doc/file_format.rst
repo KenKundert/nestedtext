@@ -44,9 +44,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     If the first non-space character on a line is a greater-than symbol followed 
     immediately by a space ('>␣') or a newline, the line is a *string-item*.  
     Adjacent string-items with the same indentation level are combined into 
-    a multi-line string with their order being retained.  Any leading white 
-    space that follows the space that follows the greater-than symbol is 
-    retained, as is any trailing white space.
+    a multiline string with their order being retained.  Any leading white space 
+    that follows the space that follows the greater-than symbol is retained, as 
+    is any trailing white space.
 
 **List items**:
 
@@ -80,7 +80,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     If there is no further text on the line and the next line has greater 
     indentation, then the next line holds the value, which may be a list, 
-    a dictionary, or a multi-line string.
+    a dictionary, or a multiline string.
 
     Otherwise the value is empty; it is taken to be an empty string.
 
