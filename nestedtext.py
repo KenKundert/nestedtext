@@ -20,7 +20,7 @@ NestedText: A Human Readable and Writable Data Format
 # this program.  If not, see http://www.gnu.org/licenses/.
 
 # Imports {{{1
-import re
+import os, re
 from inform import (
     cull,
     full_stop,
@@ -474,10 +474,74 @@ def read_string(lines, depth):
     return "\n".join(data)
 
 
+# load() {{{2
+def load(path_or_file):
+    """
+    Load the data structure specified by the NestedText in the given file.
+
+    Args:
+        path_or_file (str, os.PathLike, io.TextIOBase):
+            The file to read the NestedText content from.  This can be 
+            specified either as a path (e.g. a string or a `pathlib.Path`) or 
+            as a text IO object (e.g. an open file).  If a path is given, the 
+            file will be opened, read, and closed.  If an IO object is given, 
+            it will be read and not closed.
+
+    Returns:
+        The extracted data.  If the file is empty, None is returned.
+
+    Examples:
+
+        Load from a path specified as a string:
+
+        .. code-block:: pycon
+            >>> import nestedtext
+            >>> print(open('examples/groceries.nt').read())
+            - Bread
+            - Peanut butter
+            - Jam
+
+            >>> nestedtext.load('examples/groceries.nt')
+            ['Bread', 'Peanut butter', 'Jam']
+
+        Load from a `pathlib.Path`:
+
+        .. code-block:: pycon
+            >>> from pathlib import Path
+            >>> nestedtext.load(Path('examples/groceries.nt'))
+            ['Bread', 'Peanut butter', 'Jam']
+
+        Load from an open file object:
+
+        .. code-block:: pycon
+            >>> with open('examples/groceries.nt') as f:
+            ...     nestedtext.load(f)
+            ... 
+            ['Bread', 'Peanut butter', 'Jam']
+    """
+
+    try:
+        path = os.fspath(path_or_file)
+
+    except TypeError:
+        try:
+            content = path_or_file.read()
+        except AttributeError as err:
+            raise TypeError(r"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}") from err
+
+        source = getattr(path_or_file, 'name', repr(path_or_file))
+
+    else:
+        with open(path_or_file) as f:
+            content = f.read()
+            source = str(path)
+
+    return loads(content, source)
+
 # loads() {{{2
 def loads(content, source=None):
     '''
-    Loads NestedText from string.
+    Load the data structure specified by the NestedText in the given string.
 
     Args:
         content (str):
@@ -491,7 +555,6 @@ def loads(content, source=None):
         The extracted data.  If content is empty, None is returned.
 
     Examples:
-
         *NestedText* is specified to *loads* in the form of a string:
 
         .. code-block:: pycon
@@ -515,15 +578,14 @@ def loads(content, source=None):
         *loads()* takes an optional second argument, *culprit*. If specified,
         it will be prepended to any error messages. It is often used to
         designate the source of *contents*. For example, if *contents* were
-        read from a file, *culprit* would be the file name.  Here is a typical
-        example of reading *NestedText* from a file:
+        read from a file, *culprit* would be the file name:
 
         .. code-block:: pycon
 
-            >>> filename = 'examples/duplicate-keys.nt'
+            >>> path = 'examples/duplicate-keys.nt'
             >>> try:
-            ...     with open(filename) as f:
-            ...         addresses = nestedtext.loads(f.read(), filename)
+            ...     with open(path) as f:
+            ...         addresses = nestedtext.loads(f.read(), path)
             ... except nestedtext.NestedTextError as e:
             ...     print(str(e))
             ...     print(e.get_extended_codicil()[0])
@@ -557,8 +619,42 @@ def add_leader(s, leader):
 
 
 # dumps {{{2
+def dump(obj, path_or_file, **kwargs):
+    """
+    Write the NestedText representation of the given object to the given file.
+
+    Args:
+        obj:
+            The object to convert
+        path_or_file (str, os.PathLike, io.TextIOBase):
+            The file to write the NestedText content to.  The file can be 
+            specified either as a path (e.g. a string or a `pathlib.Path`) or 
+            as a text IO instance (e.g. an open file).  If a path is given, the 
+            will be opened, written, and closed.  If an IO object is given, it 
+            must have been opened in a mode that allows writing (e.g. 
+            ``open(path, 'w')``), if applicable.  It will be written and not 
+            closed.
+        kwargs:
+            See :func:`dumps` for optional arguments.
+    """
+    content = dumps(obj, **kwargs)
+    
+    try:
+        file = open(path_or_file, 'w')
+
+    except ValueError:
+        file_or_path.write(content)
+
+    else:
+        file.write(content)
+        file.close()
+
+
+
 def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):
-    """Recursively convert object to string with reasonable formatting.
+    """
+    Write the NestedText representation of the given object to a string, with 
+    reasonable formatting.
 
     Args:
         obj:
@@ -819,3 +915,5 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         raise NestedTextError(obj, template=error, culprit=repr(obj))
 
     return content
+
+# vim: foldmethod=marker
