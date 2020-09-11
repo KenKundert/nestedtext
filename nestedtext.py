@@ -81,7 +81,7 @@ class NestedTextError(Error, ValueError):
     As with most exceptions, you can simply cast it to a string to get a
     reasonable error message.
 
-    .. code-block:: pycon
+    .. code-block:: python
 
         >>> from textwrap import dedent
         >>> import nestedtext
@@ -100,9 +100,7 @@ class NestedTextError(Error, ValueError):
 
     You can also use the *report* method to print the message directly. This is
     appropriate if you are using *inform* for your messaging as it follows
-    *inform*'s conventions:
-
-    .. code-block:: pycon
+    *inform*'s conventions::
 
         >> try:
         ..     print(nestedtext.loads(content))
@@ -112,9 +110,7 @@ class NestedTextError(Error, ValueError):
             «name1: value2»
              ↑
 
-    The *terminate* method prints the message directly and exits:
-
-    .. code-block:: pycon
+    The *terminate* method prints the message directly and exits::
 
         >> try:
         ..     print(nestedtext.loads(content))
@@ -131,7 +127,7 @@ class NestedTextError(Error, ValueError):
     the passing of arguments.  For example, to convert a particular message to
     Spanish, you could use something like the following.
 
-    .. code-block:: pycon
+    .. code-block:: python
 
         >>> try:
         ...     print(nestedtext.loads(content))
@@ -149,9 +145,7 @@ class NestedTextError(Error, ValueError):
     access them using :meth:`NestedTextError.get_codicil`.  There is
     an additional method,
     :meth:`NestedTextError.get_extended_codicil` that also shows the
-    source of the problem, but with extra context.
-
-    .. code-block:: pycon
+    source of the problem, but with extra context::
 
         >> try:
         ..     print(nestedtext.loads(content))
@@ -243,14 +237,6 @@ splitter = re.compile("(" + "|".join(f"(?:{s})" for s in splitters) + ")")
 
 # debugging utilities {{{2
 highlight = InformantFactory(message_color='blue')
-
-
-def dbg(line, kind):  # pragma: no cover
-    if line.depth is None:
-        indents = ' '
-    else:
-        indents = line.depth
-    highlight(f'{indents}{kind}{line.lineno:>4}:{line.text}')
 
 
 # report {{{2
@@ -402,18 +388,18 @@ class Lines:
 
 
 # read_value() {{{2
-def read_value(lines, depth):
+def read_value(lines, depth, on_dup):
     if lines.type_of_next() == "list item":
-        return read_list(lines, depth)
+        return read_list(lines, depth, on_dup)
     if lines.type_of_next() == "dict item":
-        return read_dict(lines, depth)
+        return read_dict(lines, depth, on_dup)
     if lines.type_of_next() == "string":
         return read_string(lines, depth)
     report('unrecognized line.', lines.get_next())
 
 
 # read_list() {{{2
-def read_list(lines, depth):
+def read_list(lines, depth, on_dup):
     data = []
     while lines.still_within_level(depth):
         line = lines.get_next()
@@ -422,15 +408,13 @@ def read_list(lines, depth):
         if line.kind != "list item":
             report("expected list item", line, colno=depth)
         if line.value:
-            # dbg(line, 'lv')
             data.append(line.value)
         else:
-            # dbg(line, 'l↵')
             # value may simply be empty, or it may be on next line, in which
             # case it must be indented.
             depth_of_next = lines.depth_of_next()
             if depth_of_next > depth:
-                value = read_value(lines, depth_of_next)
+                value = read_value(lines, depth_of_next, on_dup)
             else:
                 value = ''
             data.append(value)
@@ -438,7 +422,7 @@ def read_list(lines, depth):
 
 
 # read_dict() {{{2
-def read_dict(lines, depth):
+def read_dict(lines, depth, on_dup):
     data = {}
     while lines.still_within_level(depth):
         line = lines.get_next()
@@ -446,21 +430,26 @@ def read_dict(lines, depth):
             indentation_error(line, depth)
         if line.kind != "dict item":
             report("expected dictionary item", line, colno=depth)
-        if line.key in data:
-            report('duplicate key: {}.', line, line.key, colno=depth)
-        if line.value:
-            # dbg(line, 'dv')
-            data.update({line.key: line.value})
-        else:
-            # dbg(line, 'd↵')
-            # value may simply be empty, or it may be on next line, in which
-            # case it must be indented.
+        key = line.key
+        value = line.value
+        if not value:
             depth_of_next = lines.depth_of_next()
             if depth_of_next > depth:
-                value = read_value(lines, depth_of_next)
+                value = read_value(lines, depth_of_next, on_dup)
             else:
                 value = ''
-            data.update({line.key: value})
+        if line.key in data:
+            # found duplicate key
+            if on_dup is None:
+                report('duplicate key: {}.', line, line.key, colno=depth)
+            if on_dup == 'ignore':
+                continue
+            if isinstance(on_dup, dict):
+                key = on_dup['_callback_func'](key, value, data, on_dup)
+                assert key not in data
+            elif on_dup != 'replace':
+                raise NotImplementedError(f'{on_dup}: unknown value for on_dup.')
+        data[key] = value
     return data
 
 
@@ -469,13 +458,12 @@ def read_string(lines, depth):
     data = []
     while lines.still_within_string(depth):
         line = lines.get_next()
-        # dbg(line, '""')
         data.append(line.value)
     return "\n".join(data)
 
 
 # loads() {{{2
-def loads(content, source=None):
+def loads(content, source=None, on_dup=None):
     '''
     Loads NestedText from string.
 
@@ -486,6 +474,20 @@ def loads(content, source=None):
             If given, this string is attached to any error messages as the
             culprit. It is otherwise unused. Is often the name of the file that
             originally contained the NestedText content.
+        on_dup (str or func):
+            Indicates how duplicate keys in dictionaries should be handled. By
+            default they raise exceptions. Specifying 'ignore' causes them to be
+            ignored. Specifying 'replace' results in them replacing earlier
+            items. By specifying a function, the keys can be de-duplicated.
+            This call-back function returns a new key and takes four arguments:
+
+            1. The new key (duplicates an existing key).
+            2. The new value.
+            3. The entire dictionary as it is at the moment the duplicate key is
+               found.
+            4. The state; a dictionary that is created as the *loads* is called
+               and deleted as it returns. Values placed in this dictionary are
+               retained between multiple calls to this call back function.
 
     Returns:
         The extracted data.  If content is empty, None is returned.
@@ -494,7 +496,7 @@ def loads(content, source=None):
 
         *NestedText* is specified to *loads* in the form of a string:
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> import nestedtext
 
@@ -518,7 +520,7 @@ def loads(content, source=None):
         read from a file, *culprit* would be the file name.  Here is a typical
         example of reading *NestedText* from a file:
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> filename = 'examples/duplicate-keys.nt'
             >>> try:
@@ -533,12 +535,48 @@ def loads(content, source=None):
                   ↑
                6 «»
 
+        The following examples demonstrate the various ways of handling
+        duplicate keys:
+
+        .. code-block:: python
+
+            >>> content = """
+            ... key: value 1
+            ... key: value 2
+            ... key: value 3
+            ... name: value 4
+            ... name: value 5
+            ... """
+
+            >>> print(nestedtext.loads(content))
+            Traceback (most recent call last):
+            ...
+            nestedtext.NestedTextError: 3: duplicate key: key.
+
+            >>> print(nestedtext.loads(content, on_dup='ignore'))
+            {'key': 'value 1', 'name': 'value 4'}
+
+            >>> print(nestedtext.loads(content, on_dup='replace'))
+            {'key': 'value 3', 'name': 'value 5'}
+
+            >>> def de_dup(key, value, data, state):
+            ...     if key not in state:
+            ...         state[key] = 1
+            ...     state[key] += 1
+            ...     return f"{key}#{state[key]}"
+
+            >>> print(nestedtext.loads(content, on_dup=de_dup))
+            {'key': 'value 1', 'key#2': 'value 2', 'key#3': 'value 3', 'name': 'value 4', 'name#2': 'value 5'}
+
     '''
+    if callable(on_dup):
+        on_dup = dict(_callback_func=on_dup)
+
     with set_culprit(source):
         lines = Lines(content)
 
         if lines.type_of_next():
-            return read_value(lines, 0)
+            return read_value(lines, 0, on_dup)
 
 
 # NestedText Writer {{{1
@@ -593,7 +631,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         The file name and extension are arbitrary. However, by convention a
         '.nt' suffix is generally used for *NestedText* files.
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> import nestedtext
 
@@ -621,7 +659,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         `default='strict'` to *dumps*.  Doing so means that values that are not
         dictionaries, lists, or strings generate exceptions.
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
@@ -643,7 +681,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         to convert values to strings.  It is used if no other converter is
         available.  Typical values are *str* and *repr*.
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> class Color:
             ...     def __init__(self, color):
@@ -669,7 +707,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         You can also specify a dictionary of renderers. The dictionary maps the
         object type to a render function.
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> renderers = {
             ...     bool: lambda b: 'yes' if b else 'no',
@@ -690,7 +728,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         If the dictionary maps a type to *None*, then the default behavior is
         used for that type. If it maps to *False*, then an exception is raised.
 
-        .. code-block:: pycon
+        .. code-block:: python
 
             >>> renderers = {
             ...     bool: lambda b: 'yes' if b else 'no',

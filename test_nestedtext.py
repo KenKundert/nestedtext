@@ -480,6 +480,44 @@ def test_loads():
     data = nestedtext.loads(content)
     assert data == expected
 
+    content = dedent("""
+        key: value 1
+        key: value 2
+        key: value 3
+        key: value 4
+        name: value 5
+        name: value 6
+    """).strip()
+    data = nestedtext.loads(content, on_dup='ignore')
+    expected = dict(
+        key = 'value 1',
+        name = 'value 5',
+    )
+    assert data == expected
+
+    data = nestedtext.loads(content, on_dup='replace')
+    expected = dict(
+        key = 'value 4',
+        name = 'value 6',
+    )
+    assert data == expected
+
+    def de_dup(key, value, data, state):
+        if key not in state:
+            state[key] = 1
+        state[key] += 1
+        return f"{key}#{state[key]}"
+
+    data = nestedtext.loads(content, on_dup=de_dup)
+    expected = {
+        'key'  : 'value 1',
+        'key#2': 'value 2',
+        'key#3': 'value 3',
+        'key#4': 'value 4',
+        'name': 'value 5',
+        'name#2': 'value 6',
+    }
+    assert data == expected
 
 
 # test_loads_errors() {{{1

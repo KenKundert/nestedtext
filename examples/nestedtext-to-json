@@ -7,6 +7,7 @@ usage:
 
 options:
     -f, --force   force overwrite of output file
+    -d, --dedup   de-duplicate keys in dictionaries
 
 If <filename> is not given, NestedText input is taken from stdin and JSON output 
 is written to stdout.
@@ -19,8 +20,17 @@ import json
 import nestedtext
 import sys
 
+
+def de_dup(key, value, data, state):
+    if key not in state:
+        state[key] = 1
+    state[key] += 1
+    return f"{key}#{state[key]}"
+
+
 cmdline = docopt(__doc__)
 input_filename = cmdline['<filename>']
+on_dup = de_dup if cmdline['--dedup'] else None
 
 try:
     if input_filename:
@@ -28,7 +38,7 @@ try:
         nestedtext_content = input_path.read_text()
     else:
         nestedtext_content = sys.stdin.read()
-    data = nestedtext.loads(nestedtext_content, input_filename)
+    data = nestedtext.loads(nestedtext_content, input_filename, on_dup=de_dup)
     json_content = json.dumps(data, indent=4)
     if input_filename:
         output_path = input_path.with_suffix('.json')

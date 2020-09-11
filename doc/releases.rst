@@ -14,6 +14,8 @@ Releases
     | Version: 0.4.2
     | Released: 2020-09-09
 
+    - allow user to manage duplicate keys detected by :func:`loads`.
+
 **0.4 (2020-09-07)**:
     - Change rest-of-line strings to include all characters given, including 
       leading and trailing quotes and spaces.

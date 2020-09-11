@@ -6,7 +6,8 @@ usage:
     json-to-nestedtext [options] [<filename>]
 
 options:
-    -f, --force   force overwrite of output file
+    -f, --force            force overwrite of output file
+    -i <n>, --indent <n>   number of spaces per indent [default: 4]
 
 If <filename> is not given, json input is taken from stdin and NestedText output 
 is written to stdout.
@@ -21,6 +22,11 @@ import sys
 
 cmdline = docopt(__doc__)
 input_filename = cmdline['<filename>']
+try:
+    indent = int(cmdline['--indent'])
+except Exception:
+    warn('indent garbled.', culprit=cmdline['--indent'])
+    indent = 4
 
 try:
     # read JSON content; from file or from stdin
@@ -32,7 +38,7 @@ try:
     data = json.loads(json_content)
 
     # convert to NestedText
-    nestedtext_content = nestedtext.dumps(data) + "\n"
+    nestedtext_content = nestedtext.dumps(data, indent=indent) + "\n"
 
     # output NestedText content; to file or to stdout
     if input_filename:
@@ -48,4 +54,25 @@ except OSError as e:
 except nestedtext.NestedTextError as e:
     e.terminate(culprit=input_filename)
 except json.JSONDecodeError as e:
-    fatal(e, culprit=input_filename)
+    # create a nice error message with surrounding context
+    msg = e.msg
+    culprit = input_filename
+    codicil = None
+    try:
+        lineno = e.lineno
+        culprit = (culprit, lineno)
+        colno = e.colno
+        lines_before = e.doc.split('\n')[lineno-2:lineno]
+        lines = []
+        for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
+            lines.append(f'{i+1:>4}> {l}')
+        lines_before = '\n'.join(lines)
+        lines_after = e.doc.split('\n')[lineno:lineno+1]
+        lines = []
+        for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
+            lines.append(f'{i+1:>4}> {l}')
+        lines_after = '\n'.join(lines)
+        codicil = f"{lines_before}\n     {colno*' '}↑\n{lines_after}"
+    except Exception:
+        pass
+    fatal(full_stop(msg), culprit=culprit, codicil=codicil)

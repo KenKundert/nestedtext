@@ -13,7 +13,7 @@ This example implements a command-line utility that converts a *JSON* file to
 *NestedText*.  It demonstrates the use of :func:`dumps()` and 
 :exc:`NestedTextError`.
 
-.. literalinclude:: ../tests/json-to-nestedtext
+.. literalinclude:: ../examples/json-to-nestedtext
    :language: python
 
 
@@ -26,7 +26,7 @@ This example implements a command-line utility that converts a *NestedText* file
 to *JSON*.  It demonstrates the use of :func:`loads()` and 
 :exc:`NestedTextError`.
 
-.. literalinclude:: ../tests/nestedtext-to-json
+.. literalinclude:: ../examples/nestedtext-to-json
    :language: python
 
 
@@ -65,5 +65,5 @@ then displayed. The result looks like this::
 
 And finally, the code:
 
-.. literalinclude:: ../examples/cryptocurrency.py
+.. literalinclude:: ../examples/cryptocurrency
    :language: python
