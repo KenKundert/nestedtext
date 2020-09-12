@@ -19,6 +19,8 @@ from pathlib import Path
 import json
 import nestedtext
 import sys
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
 
 
 def de_dup(key, value, data, state):
@@ -35,7 +37,7 @@ on_dup = de_dup if cmdline['--dedup'] else None
 try:
     if input_filename:
         input_path = Path(input_filename)
-        nestedtext_content = input_path.read_text()
+        nestedtext_content = input_path.read_text(encoding='utf-8')
     else:
         nestedtext_content = sys.stdin.read()
     data = nestedtext.loads(nestedtext_content, input_filename, on_dup=de_dup)
@@ -45,7 +47,7 @@ try:
         if output_path.exists():
             if not cmdline['--force']:
                 fatal('file exists, use -f to force over-write.', culprit=output_path)
-        output_path.write_text(json_content)
+        output_path.write_text(json_content, encoding='utf-8')
     else:
         sys.stdout.write(json_content)
 except OSError as e:

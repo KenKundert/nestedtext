@@ -524,7 +524,7 @@ def loads(content, source=None, on_dup=None):
 
             >>> filename = 'examples/duplicate-keys.nt'
             >>> try:
-            ...     with open(filename) as f:
+            ...     with open(filename, encoding='utf-8') as f:
             ...         addresses = nestedtext.loads(f.read(), filename)
             ... except nestedtext.NestedTextError as e:
             ...     print(str(e))
@@ -534,6 +534,10 @@ def loads(content, source=None, on_dup=None):
                5 «name:»
                   ↑
                6 «»
+
+        Notice in the above example the encoding is explicitly specified as
+        'utf-8'.  *NestedText* files should always be read and written using
+        *utf-8* encoding.
 
         The following examples demonstrate the various ways of handling
         duplicate keys:

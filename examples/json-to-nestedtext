@@ -19,6 +19,8 @@ from pathlib import Path
 import json
 import nestedtext
 import sys
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
 
 cmdline = docopt(__doc__)
 input_filename = cmdline['<filename>']
@@ -32,7 +34,7 @@ try:
     # read JSON content; from file or from stdin
     if input_filename:
         input_path = Path(input_filename)
-        json_content = input_path.read_text()
+        json_content = input_path.read_text(encoding='utf-8')
     else:
         json_content = sys.stdin.read()
     data = json.loads(json_content)
@@ -46,7 +48,7 @@ try:
         if output_path.exists():
             if not cmdline['--force']:
                 fatal('file exists, use -f to force over-write.', culprit=output_path)
-        output_path.write_text(nestedtext_content)
+        output_path.write_text(nestedtext_content, encoding='utf-8')
     else:
         sys.stdout.write(nestedtext_content)
 except OSError as e:
