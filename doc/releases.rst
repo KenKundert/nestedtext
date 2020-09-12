@@ -11,7 +11,7 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.4.3
+    | Version: 0.5.0
     | Released: 2020-09-11
 
     - allow user to manage duplicate keys detected by :func:`loads`.
