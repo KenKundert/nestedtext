@@ -1,0 +1,6 @@
+This test case includes:
+
+- Multiple dictionary keys
+- A variety of special characters
+- Unicode characters
+- Comments interspersed in multiline strings

@@ -221,7 +221,7 @@ class NestedTextError(Error, ValueError):
         if codicil:
             if not is_collection(codicil):
                 codicil = (codicil,)
-            return exception_codicil + codicil
+            return exception_codicil + tuple(codicil)
         return exception_codicil
 
 
@@ -500,6 +500,7 @@ def load(path_or_file):
             - Bread
             - Peanut butter
             - Jam
+            <BLANKLINE>
 
             >>> nestedtext.load('examples/groceries.nt')
             ['Bread', 'Peanut butter', 'Jam']
@@ -520,21 +521,36 @@ def load(path_or_file):
             ['Bread', 'Peanut butter', 'Jam']
     """
 
-    try:
-        path = os.fspath(path_or_file)
+    # Avoid nested try-except blocks, since they lead to chained exceptions 
+    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the 
+    # stack trace.
 
-    except TypeError:
+    content = None
+    
+    if content is None:
         try:
             content = path_or_file.read()
-        except AttributeError as err:
-            raise TypeError(r"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}") from err
+        except AttributeError:
+            pass
+        else:
+            source = getattr(path_or_file, 'name', repr(path_or_file))
 
-        source = getattr(path_or_file, 'name', repr(path_or_file))
+    if content is None:
+        # Don't use a with block, because we don't want to catch type errors 
+        # that might be raised within the block.
+        try:
+            f = open(path_or_file)
+        except TypeError:
+            pass
+        else:
+            try:
+                content = f.read()
+                source = str(path_or_file)
+            finally:
+                f.close()
 
-    else:
-        with open(path_or_file) as f:
-            content = f.read()
-            source = str(path)
+    if content is None:
+        raise TypeError(f"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}")
 
     return loads(content, source)
 
@@ -639,16 +655,32 @@ def dump(obj, path_or_file, **kwargs):
     """
     content = dumps(obj, **kwargs)
     
+    # Avoid nested try-except blocks, since they lead to chained exceptions 
+    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the 
+    # stack trace.
+
     try:
-        file = open(path_or_file, 'w')
-
-    except ValueError:
-        file_or_path.write(content)
-
+        path_or_file.write(content)
+    except AttributeError:
+        pass
     else:
-        file.write(content)
-        file.close()
+        return
 
+    # Don't use a with block, because we don't want to catch type errors that 
+    # might be raised within the block.
+
+    try:
+        f = open(path_or_file, 'w')
+    except TypeError:
+        pass
+    else:
+        try:
+            f.write(content)
+        finally:
+            f.close()
+        return
+
+    raise TypeError(f"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}")
 
 
 def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):

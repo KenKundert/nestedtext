@@ -1,0 +1,2 @@
+No need to test dump() for this case, because the "multi-line" string will be 
+dumped as a single line string, and that is tested elsewhere.

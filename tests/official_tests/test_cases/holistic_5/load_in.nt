@@ -1,0 +1,13 @@
+president:
+    name: Katheryn McDaniel
+    address:
+        > 138 Almond Street
+        > Topika, Kansas 20697
+    phone:
+        cell: 1-210-835-5297
+        home: 1-210-478-8470
+    email: KateMcD@aol.com
+    kids:
+        - Joanie
+        - Terrance
+
