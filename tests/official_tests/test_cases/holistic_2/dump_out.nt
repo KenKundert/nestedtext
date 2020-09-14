@@ -1,0 +1,23 @@
+src_dir: /
+excludes:
+    - /dev
+    - /home/*/.cache
+    - /root/*/.cache
+    - /proc
+    - /sys
+    - /tmp
+    - /var/cache
+    - /var/lock
+    - /var/run
+    - /var/tmp
+keep:
+    hourly: 24
+    daily: 7
+    weekly: 4
+    monthly: 12
+    yearly: 5
+passphrase:
+    > trouper segregate militia airway pricey sweetmeat tartan bookstall
+    > obsession charlady twosome silky puffball grubby ranger notation
+    > rosebud replicate freshen javelin abbot autocue beater byway
+    >

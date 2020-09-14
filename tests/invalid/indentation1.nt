@@ -1,4 +1,0 @@
-# invalid indentation, inconsistent indent indent
-key:
-    > value 1
-  > value 2

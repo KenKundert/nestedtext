@@ -1,0 +1,18 @@
+{
+    "": "",
+    "~!@#$%^&*()_+-1234567890{}[]|\\;<>?,./": "~!@#$%^&*()_+-1234567890{}[]|\\:;<>?,./",
+    "- key 3": "- value 3",
+    "key 4: ": "value 4: ",
+    "> key 5": "> value 5",
+    "# key 6": "#value 6",
+    ": key 7": ": value 7",
+    "\" key 8 \"": "\" value 8 \"",
+    "' key 9 '": "' value 9 '",
+    "key 10": "value '\" 10",
+    "key 11": "And Fred said 'yabba dabba doo!' to Barney.",
+    "key \" 12": "value ' 12",
+    "$€¥£₩₺₽₹ɃΞȄ": "$€¥£₩₺₽₹ɃΞȄ",
+    "YZEPTGMKk_cmuµμnpfazy": "YZEPTGMKk_cmuµμnpfazy",
+    "a-zA-Z%√{us}{cur}][-^/()\\w·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧": "a-zA-Z%√{us}{cur}][-^/()\\w·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧"
+}
+

@@ -1,0 +1,17 @@
+{
+    "no newlines": "line 1\nline 2",
+    "leading newline": "\nline 1\nline 2",
+    "internal newline": "line 1\n\nline 2",
+    "trailing newline": "line 1\nline 2\n",
+    "leading, internal, and trailing newline": "\nline 1\n\nline 2\n",
+    "leading newlines": "\n\nline 1\nline 2",
+    "internal newlines": "line 1\n\n\nline 2",
+    "trailing newlines": "line 1\nline 2\n\n",
+    "leading, internal, and trailing newlines": "\n\nline 1\n\n\nline 2\n\n",
+    "leading blank line": "line 1\nline 2",
+    "internal blank line": "line 1\nline 2",
+    "trailing blank line": "line 1\nline 2",
+    "leading comment": "line 1\nline 2",
+    "internal comment": "line 1\nline 2",
+    "trailing comment": "line 1\nline 2"
+}

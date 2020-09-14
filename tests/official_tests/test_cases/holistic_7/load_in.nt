@@ -1,0 +1,9 @@
+# This example focuses on legal tabs and significant trailing whitespace.  If 
+# you want to understand what's going on, make sure your editor is configureed 
+# to show spaces and tabs.
+treasurer:
+    name	 : 	       Fumiko	Purvis    	
+    address:
+        > 	 3636 Buffalo Ave 	
+        > 	 Topika, Kansas 20692	 
+
