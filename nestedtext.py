@@ -20,9 +20,7 @@ NestedText: A Human Readable and Writable Data Format
 # this program.  If not, see http://www.gnu.org/licenses/.
 
 # Imports {{{1
-import re
 from inform import (
-    cull,
     full_stop,
     set_culprit,
     get_culprit,
@@ -31,19 +29,20 @@ from inform import (
     is_mapping,
     Error,
     Info,
-    InformantFactory,
 )
+import collections.abc
+import re
 
 
 # Globals {{{1
 __version__ = "0.5.0"
 __released__ = "2020-09-11"
-__all__ = ['loads', 'dumps', 'NestedTextError']
+__all__ = ['load', 'loads', 'dumps', 'NestedTextError']
 
 
 # Exception {{{1
 class NestedTextError(Error, ValueError):
-    '''
+    r'''
     :func:`loads()` and :func:`dumps()` both raise
     *NestedTextError* when they discover an error. *NestedTextError* subclasses both
     the Python *ValueError* and the *Error* exception from *Inform*.
@@ -58,13 +57,9 @@ class NestedTextError(Error, ValueError):
         The source of the *NestedText* content, if given. This is often a
         filename.
 
-    doc:
-
-        The *NestedText* content passed to :func:`loads`.
-
     line:
 
-        The line of *NestedText* content where the problem was found.
+        The text of the line of *NestedText* content where the problem was found.
 
     lineno:
 
@@ -73,6 +68,10 @@ class NestedTextError(Error, ValueError):
     colno:
 
         The number of the character where the problem was found on *line*.
+
+    prev_line:
+
+        The text of the line immediately before where the problem was found.
 
     template:
 
@@ -108,7 +107,7 @@ class NestedTextError(Error, ValueError):
         ..     e.report()
         error: 2: duplicate key: name1.
             «name1: value2»
-             ↑
+             ▲
 
     The *terminate* method prints the message directly and exits::
 
@@ -118,7 +117,32 @@ class NestedTextError(Error, ValueError):
         ..     e.terminate()
         error: 2: duplicate key: name1.
             «name1: value2»
-             ↑
+             ▲
+
+    With exceptions generated from :func:`load` or :func:`loads` you may see
+    extra lines at the end of the message that show the problematic lines if
+    you have the exception report itself as above.  Those extra lines are
+    referred to as the codicil and they can be very helpful in illustrating the
+    actual problem. You do not get them if you simply cast the exception to a
+    string, but you can access them using :meth:`NestedTextError.get_codicil`.
+    The codicil or codicils are returned as a tuple.  You should join them with
+    newlines before printing them.
+
+    .. code-block:: python
+
+        >>> try:
+        ...     print(nestedtext.loads(content))
+        ... except nestedtext.NestedTextError as e:
+        ...     print(e.get_message())
+        ...     print(*e.get_codicil(), sep="\n")
+        duplicate key: name1.
+           1 «name1: value1»
+           2 «name1: value2»
+              ▲
+
+    Note the « and » characters in the codicil. They delimit the extend of the
+    text on each line and help you see troublesome leading or trailing white
+    space.
 
     Exceptions produced by *NestedText* contain a *template* attribute that
     contains the basic text of the message. You can change this message by
@@ -138,105 +162,23 @@ class NestedTextError(Error, ValueError):
         ...     print(e.render(template=template))
         2: llave duplicada: name1.
 
-    When you have the exception report itself, you see up to two extra lines in
-    the message that are used to display the line and the location where the
-    problem was found.  Those extra lines are referred to as the codicil. You
-    do not get them if you simply cast the exception to a string, but you can
-    access them using :meth:`NestedTextError.get_codicil`.  There is
-    an additional method,
-    :meth:`NestedTextError.get_extended_codicil` that also shows the
-    source of the problem, but with extra context::
-
-        >> try:
-        ..     print(nestedtext.loads(content))
-        .. except nestedtext.NestedTextError as e:
-        ..     e.report(codicil=e.get_extended_codicil())
-        error: 2: duplicate key: name1.
-            1> name1: value1
-            2> name1: value2
-               ↑
-            2> name3: value3
-
-    Both the normal and the extended codicils are returned as tuples.
-    You should join them with newlines before printing them.
     '''
-
-    def get_extended_codicil(self, codicil=None):
-        """Get the extended codicil.
-
-        The extended codicil is like the normal codicil in that it shows the
-        line where the problem was found and points to the suspect character.
-        However, it also shows a few lines of surrounding context.
-
-        This method counts on the fact that no user specified codicils have been
-        added to the exception; that the only codicil available is the one added
-        by *NestedText* itself.  Any additional codicils can be add by passing
-        them into this method.
-
-        Args:
-            codicil (string or tuple of strings):
-                An extra codicil or collection of codicils.  Appended to the
-                return value without modifying the cached codicil.
-
-        Returns:
-            The codicil argument is appended to the exception's codicil and the
-            combination is returned. The return value is always in the form of a
-            tuple even if there is only one component.
-        """
-        exception_codicil = self.kwargs.get('codicil', ())
-        if not is_collection(exception_codicil):
-            exception_codicil = (exception_codicil,)  # pragma: no cover
-
-        # Like the normal codicil, but provides a few lines of surrounding
-        # context.
-        try:
-            lineno = self.lineno
-            doc = self.doc
-            colno = self.colno
-            lines_before = doc.split('\n')[max(lineno-2, 0):lineno]
-            lines = []
-            for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
-                lines.append(f'{i+1:>4} «{l}»')
-            lines_before = '\n'.join(lines)
-            lines_after = doc.split('\n')[lineno:lineno+1]
-            lines = []
-            for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
-                lines.append(f'{i+1:>4} «{l}»')
-            lines_after = '\n'.join(lines)
-            exception_codicil = '\n'.join(cull([
-                lines_before,
-                '      ' + (colno*' ') + '↑',
-                lines_after
-            ]))
-            exception_codicil = (exception_codicil, )
-        except Exception:
-            exception_codicil = self.get_codicil()
-
-        if codicil:
-            if not is_collection(codicil):
-                codicil = (codicil,)
-            return exception_codicil + tuple(codicil)
-        return exception_codicil
 
 
 # NestedText Reader {{{1
 # Converts NestedText into Python data hierarchies.
 
 # constants {{{2
-dict_tag = ": "
-quoted = "|".join([
+# build regex use to split dict items
+colon_space = ": "
+colon_newline = ":\n"
+splitters = [
     r'"[^"\n]*"',  # "string"
     r"'[^'\n]*'",  # 'string'
-])
-splitters = (
-    quoted,           # "string" or 'string' (must be first)
-    dict_tag,         # key/value separator in dictionary item
-)
+    colon_space,
+    colon_newline,
+]
 splitter = re.compile("(" + "|".join(f"(?:{s})" for s in splitters) + ")")
-
-
-# debugging utilities {{{2
-highlight = InformantFactory(message_color='blue')
 
 
 # report {{{2
@@ -248,13 +190,22 @@ def report(message, line, *args, colno=None, **kwargs):
     if line:
         kwargs['culprit'] = get_culprit(line.lineno)
         if colno is not None:
-            kwargs['codicil'] = f"«{line.text}»\n {colno*' '}↑"
+            # build codicil that shows both the line and the preceding line
+            if line.prev_line is not None:
+                codicil = [f'{line.lineno-1:>4} «{line.prev_line}»']
+            else:
+                codicil = []
+            codicil += [
+                f'{line.lineno:>4} «{line.text}»',
+                '      ' + (colno*' ') + '▲',
+            ]
+            kwargs['codicil'] = '\n'.join(codicil)
             kwargs['colno'] = colno
         else:
             kwargs['codicil'] = f"«{line.text}»"
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
-        kwargs['doc'] = line.content
+        kwargs['prev_line'] = line.prev_line
     else:
         kwargs['culprit'] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
@@ -281,12 +232,9 @@ def dequote(s):
 
 # Lines class {{{2
 class Lines:
-    class Line(Info):
-        pass
-
     # constructor {{{3
-    def __init__(self, content):
-        self.content = content
+    def __init__(self, lines):
+        self.lines = lines
         self.generator = self.read_lines()
         self.next_line = True
         while self.next_line:
@@ -294,39 +242,59 @@ class Lines:
             if self.next_line and self.next_line.kind not in ["blank", "comment"]:
                 return
 
+    # Line class {{{3
+    class Line(Info):
+        pass
+
     # read_lines() {{{3
     def read_lines(self):
-        for lineno, line in enumerate(self.content.splitlines()):
+        prev_line = None
+        for lineno, line in enumerate(self.lines):
             depth = None
             key = None
             value = None
+
+            # last line may not have trailing newline, which we count on
+            if line[-1:] != '\n':
+                line += '\n'
+
+            # compute indentation
             stripped = line.lstrip()
             depth = len(line) - len(stripped)
+
+            # determine line type and extract values
             if stripped == "":
                 kind = "blank"
-                value = "\n"
+                value = None
+                depth = None
             elif stripped[:1] == "#":
                 kind = "comment"
-                value = line[1:].strip()
-            elif stripped == '-' or stripped.startswith('- '):
+                value = line[1:-1].strip()
+                depth = None
+            elif stripped == '-\n' or stripped.startswith('- '):
                 kind = "list item"
-                value = stripped[2:]
-            elif stripped == '>' or stripped.startswith('> '):
+                value = stripped[2:-1]
+            elif stripped == '>\n' or stripped.startswith('> '):
                 kind = "string"
-                value = line[depth+2:]
+                value = line[depth+2:-1]
             else:
-                # add space so tags with empty values can be specified w/o space
-                components = splitter.split(line + " ")
-                if dict_tag in components:
-                    kind = "dict item"
-                    split_loc = components.index(dict_tag)
+                components = splitter.split(line)
+                kind = "dict item"
+                if colon_space in components:
+                    split_loc = components.index(colon_space)
                     key = dequote("".join(components[:split_loc]))
                     value = "".join(components[split_loc + 1:])
-                    value = value[:-1]  # remove space added above
+                elif colon_newline in components:
+                    # :\n is always second to last component and followed by ''
+                    key = dequote("".join(components[:-2]))
+                    value = "\n"
                 else:
                     kind = "unrecognized"
                     value = line
+                value = value[:-1]
 
+            # bundle information about line
+            line = line[:-1]  # remove trailing newline
             the_line = self.Line(
                 text = line,
                 lineno = lineno+1,
@@ -334,8 +302,9 @@ class Lines:
                 depth = depth,
                 key = key,
                 value = value,
-                content = self.content
+                prev_line = prev_line,
             )
+            prev_line = line
 
             # check the indent for non-spaces
             if depth:
@@ -462,96 +431,27 @@ def read_string(lines, depth):
     return "\n".join(data)
 
 
-# load() {{{2
-def load(path_or_file):
-    """
-    Load the data structure specified by the NestedText in the given file.
+# read_all() {{{2
+def read_all(lines, source, on_dup):
+    if callable(on_dup):
+        on_dup = dict(_callback_func=on_dup)
 
-    Args:
-        path_or_file (str, os.PathLike, io.TextIOBase):
-            The file to read the NestedText content from.  This can be
-            specified either as a path (e.g. a string or a `pathlib.Path`) or
-            as a text IO object (e.g. an open file).  If a path is given, the
-            file will be opened, read, and closed.  If an IO object is given,
-            it will be read and not closed.
+    with set_culprit(source):
+        lines = Lines(lines)
 
-    Returns:
-        The extracted data.  If the file is empty, None is returned.
-
-    Examples:
-
-        Load from a path specified as a string:
-
-        .. code-block:: pycon
-            >>> import nestedtext
-            >>> print(open('examples/groceries.nt').read())
-            - Bread
-            - Peanut butter
-            - Jam
-            <BLANKLINE>
-
-            >>> nestedtext.load('examples/groceries.nt')
-            ['Bread', 'Peanut butter', 'Jam']
-
-        Load from a `pathlib.Path`:
-
-        .. code-block:: pycon
-            >>> from pathlib import Path
-            >>> nestedtext.load(Path('examples/groceries.nt'))
-            ['Bread', 'Peanut butter', 'Jam']
-
-        Load from an open file object:
-
-        .. code-block:: pycon
-            >>> with open('examples/groceries.nt') as f:
-            ...     nestedtext.load(f)
-            ...
-            ['Bread', 'Peanut butter', 'Jam']
-    """
-
-    # Avoid nested try-except blocks, since they lead to chained exceptions
-    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
-    # stack trace.
-
-    content = None
-
-    if content is None:
-        try:
-            content = path_or_file.read()
-        except AttributeError:
-            pass
-        else:
-            source = getattr(path_or_file, 'name', repr(path_or_file))
-
-    if content is None:
-        # Don't use a with block, because we don't want to catch type errors
-        # that might be raised within the block.
-        try:
-            f = open(path_or_file)
-        except TypeError:
-            pass
-        else:
-            try:
-                content = f.read()
-                source = str(path_or_file)
-            finally:
-                f.close()
-
-    if content is None:
-        raise TypeError(f"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}")
-
-    return loads(content, source)
+        if lines.type_of_next():
+            return read_value(lines, 0, on_dup)
 
 
 # loads() {{{2
-def loads(content, source=None, on_dup=None):
-    '''
-    Load the data structure specified by the NestedText in the given string.
+def loads(content, source=None, *, on_dup=None):
+    r'''
+    Loads *NestedText* from string.
 
     Args:
         content (str):
             String that contains encoded data.
-        source (str):
+        source (str or Path):
             If given, this string is attached to any error messages as the
             culprit. It is otherwise unused. Is often the name of the file that
             originally contained the NestedText content.
@@ -573,7 +473,11 @@ def loads(content, source=None, on_dup=None):
     Returns:
         The extracted data.  If content is empty, None is returned.
 
+    Raises:
+        NestedTextError: if there is a problem in the *NextedText* content.
+
     Examples:
+
         *NestedText* is specified to *loads* in the form of a string:
 
         .. code-block:: python
@@ -597,22 +501,22 @@ def loads(content, source=None, on_dup=None):
         *loads()* takes an optional second argument, *culprit*. If specified,
         it will be prepended to any error messages. It is often used to
         designate the source of *contents*. For example, if *contents* were
-        read from a file, *culprit* would be the file name:
+        read from a file, *culprit* would be the file name.  Here is a typical
+        example of reading *NestedText* from a file:
 
         .. code-block:: python
 
-            >>> path = 'examples/duplicate-keys.nt'
+            >>> filename = 'examples/duplicate-keys.nt'
             >>> try:
-            ...     with open(path, encoding='utf-8') as f:
-            ...         addresses = nestedtext.loads(f.read(), path)
+            ...     with open(filename, encoding='utf-8') as f:
+            ...         addresses = nestedtext.loads(f.read(), filename)
             ... except nestedtext.NestedTextError as e:
-            ...     print(str(e))
-            ...     print(e.get_extended_codicil()[0])
+            ...     print(e.render())
+            ...     print(*e.get_codicil(), sep="\n")
             examples/duplicate-keys.nt, 5: duplicate key: name.
                4 «name:»
                5 «name:»
-                  ↑
-               6 «»
+                  ▲
 
         Notice in the above example the encoding is explicitly specified as
         'utf-8'.  *NestedText* files should always be read and written using
@@ -652,18 +556,116 @@ def loads(content, source=None, on_dup=None):
             {'key': 'value 1', 'key#2': 'value 2', 'key#3': 'value 3', 'name': 'value 4', 'name#2': 'value 5'}
 
     '''
-    if callable(on_dup):
-        on_dup = dict(_callback_func=on_dup)
 
-    with set_culprit(source):
-        lines = Lines(content)
+    return read_all(content.splitlines(True), source, on_dup)
 
-        if lines.type_of_next():
-            return read_value(lines, 0, on_dup)
+
+# load() {{{2
+def load(f=None, on_dup=None):
+    r'''
+    Loads *NestedText* from file or stream.
+
+    Is the same as :func:`loads` except the *NextedText* is accessed by reading
+    a file rather than directly from a string. It does not keep the full
+    contents of the file in memory and so is more memory efficient with large
+    files.
+
+    Args:
+        f (str, os.PathLike, io.TextIOBase):
+            The file to read the *NestedText* content from.  This can be
+            specified either as a path (e.g. a string or a `pathlib.Path`) or
+            as a text IO object (e.g. an open file).  If a path is given, the
+            file will be opened, read, and closed.  If an IO object is given,
+            it will be read and not closed.
+        on_dup:
+            See :func:`loads` description of this argument.
+
+    Returns:
+        The extracted data.  If content is empty, None is returned.
+
+    Raises:
+        NestedTextError: if there is a problem in the *NextedText* content.
+        OSError: if there is a problem opening the file.
+
+    Examples:
+
+        Load from a path specified as a string:
+
+        .. code-block:: python
+
+            >>> import nestedtext
+            >>> print(open('examples/groceries.nt').read())
+            - Bread
+            - Peanut butter
+            - Jam
+            <BLANKLINE>
+
+            >>> nestedtext.load('examples/groceries.nt')
+            ['Bread', 'Peanut butter', 'Jam']
+
+        Load from a `pathlib.Path`:
+
+        .. code-block:: pycon
+            >>> from pathlib import Path
+            >>> nestedtext.load(Path('examples/groceries.nt'))
+            ['Bread', 'Peanut butter', 'Jam']
+
+        Load from an open file object:
+
+        .. code-block:: pycon
+            >>> with open('examples/groceries.nt') as f:
+            ...     nestedtext.load(f)
+            ...
+            ['Bread', 'Peanut butter', 'Jam']
+
+    '''
+
+    # Do not invoke the read method as that would read in the entire contents of
+    # the file, possibly consuming a lot of memory. Instead pass the file
+    # pointer into read_all(), it will iterate through the lines, discarding
+    # them once they are no longer needed, which reduces the memory usage.
+
+    if isinstance(f, collections.abc.Iterator):
+        source = getattr(f, 'name', None)
+        return read_all(f, source, on_dup)
+    else:
+        source = str(f)
+        with open(f, encoding='utf-8') as fp:
+            return read_all(fp, source, on_dup)
 
 
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
+
+
+# render_key {{{2
+def render_key(s):
+    if not is_str(s):
+        raise NestedTextError(template='keys must be strings.', culprit=s)
+    stripped = s.strip(' ')
+    if '\n' in s:
+        raise NestedTextError(
+            s,
+            template='keys must not contain newlines.',
+            culprit=repr(s)
+        )
+    if (
+        len(stripped) < len(s)
+        or s[:1] == "#"
+        or s.startswith("- ")
+        or s.startswith("> ")
+        or ': ' in s
+        or s[:1] + s[-1:] in ['""', "''"]
+    ):
+        if '"' in s and "'" in s:
+            raise NestedTextError(
+                s,
+                template = """keys that require quoting must not contain both " and '.""",
+                culprit = s,
+            )
+        return repr(s)
+    return s
+
 
 # add_leader {{{2
 def add_leader(s, leader):
@@ -677,63 +679,23 @@ def add_leader(s, leader):
     )
 
 
+# add_prefix {{{2
+def add_prefix(prefix, suffix):
+    # A simple formatting of dict and list items will result in a space
+    # after the colon or dash if the value is placed on next line.
+    # This, function simply eliminates that space.
+    if not suffix or suffix.startswith("\n"):
+        return prefix + suffix
+    return prefix + " " + suffix
+
+
 # dumps {{{2
-def dump(obj, path_or_file, **kwargs):
-    """
-    Write the NestedText representation of the given object to the given file.
-
-    Args:
-        obj:
-            The object to convert
-        path_or_file (str, os.PathLike, io.TextIOBase):
-            The file to write the NestedText content to.  The file can be
-            specified either as a path (e.g. a string or a `pathlib.Path`) or
-            as a text IO instance (e.g. an open file).  If a path is given, the
-            will be opened, written, and closed.  If an IO object is given, it
-            must have been opened in a mode that allows writing (e.g.
-            ``open(path, 'w')``), if applicable.  It will be written and not
-            closed.
-        kwargs:
-            See :func:`dumps` for optional arguments.
-    """
-    content = dumps(obj, **kwargs)
-
-    # Avoid nested try-except blocks, since they lead to chained exceptions
-    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
-    # stack trace.
-
-    try:
-        path_or_file.write(content)
-    except AttributeError:
-        pass
-    else:
-        return
-
-    # Don't use a with block, because we don't want to catch type errors that
-    # might be raised within the block.
-
-    try:
-        f = open(path_or_file, 'w')
-    except TypeError:
-        pass
-    else:
-        try:
-            f.write(content)
-        finally:
-            f.close()
-        return
-
-    raise TypeError(f"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}")
-
-
 def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):
-    """
-    Write the NestedText representation of the given object to a string, with
-    reasonable formatting.
+    """Recursively convert object to *NestedText* string.
 
     Args:
         obj:
-            The object to convert.
+            The object to convert to *NestedText*.
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is true.
             If a function is passed in, it is used as the key function.
@@ -758,6 +720,12 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             this is used to increment the level and so the indent.  Generally
             not specified by the user, but can be useful in unusual situations
             to specify an initial indent.
+
+    Returns:
+        The *NestedText* content.
+
+    Raises:
+        NestedTextError: if there is a problem in the input data.
 
     Examples:
         This example writes to a string, but it is common to write to a file.
@@ -914,40 +882,6 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             level = level + 1
         )
 
-    # render string
-    def render_key(s):
-        stripped = s.strip(' ')
-        if '\n' in s:
-            raise NestedTextError(
-                s,
-                template='keys must not contain newlines.',
-                culprit=repr(s)
-            )
-        if (
-            len(stripped) < len(s)
-            or s[:1] == "#"
-            or s.startswith("- ")
-            or s.startswith("> ")
-            or ': ' in s
-            or s[:1] + s[-1:] in ['""', "''"]
-        ):
-            if '"' in s and "'" in s:
-                raise NestedTextError(
-                    s,
-                    template = """keys that require quoting must not contain both " and '.""",
-                    culprit = s,
-                )
-            return repr(s)
-        return s
-
-    def add_prefix(prefix, suffix):
-        # A simple formatting of dict and list items will result in a space
-        # after the colon or dash if the value is placed on next line.
-        # This, function simply eliminates that space.
-        if not suffix or suffix.startswith("\n"):
-            return prefix + suffix
-        return prefix + " " + suffix
-
     # render content
     assert indent > 0
     error = None
@@ -991,4 +925,84 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
     return content
 
-# vim: foldmethod=marker
+
+# dump {{{2
+def dump(obj, f, **kwargs):
+    """Write the *NestedText* representation of the given object to the given file.
+
+    Args:
+        obj:
+            The object to convert to *NestedText*.
+        f (str, os.PathLike, io.TextIOBase):
+            The file to write the *NestedText* content to.  The file can be
+            specified either as a path (e.g. a string or a `pathlib.Path`) or
+            as a text IO instance (e.g. an open file).  If a path is given, the
+            will be opened, written, and closed.  If an IO object is given, it
+            must have been opened in a mode that allows writing (e.g.
+            ``open(path, 'w')``), if applicable.  It will be written and not
+            closed.
+
+            The name used for the file is arbitrary but it is tradition to use a
+            .nt suffix.
+
+        kwargs:
+            See :func:`dumps` for optional arguments.
+
+    Returns:
+        The *NestedText* content.
+
+    Raises:
+        NestedTextError: if there is a problem in the input data.
+        OSError: if there is a problem opening the file.
+
+    Examples:
+
+        This example writes to a pointer to an open file.
+
+        .. code-block:: python
+
+            >>> import nestedtext
+            >>> from inform import fatal, os_error
+
+            >>> data = {
+            ...     'name': 'Kristel Templeton',
+            ...     'sex': 'female',
+            ...     'age': '74',
+            ... }
+
+            >>> try:
+            ...     with open('data.nt', 'w', encoding='utf-8') as f:
+            ...         nestedtext.dump(data, f)
+            ... except nestedtext.NestedTextError as e:
+            ...     fatal(e)
+            ... except OSError as e:
+            ...     fatal(os_error(e))
+
+        This example writes to a file specified by file name.
+
+        .. code-block:: python
+
+            >>> try:
+            ...     nestedtext.dump(data, 'data.nt')
+            ... except nestedtext.NestedTextError as e:
+            ...     fatal(e)
+            ... except OSError as e:
+            ...     fatal(os_error(e))
+            >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
+
+    """
+    content = dumps(obj, **kwargs)
+
+    # Avoid nested try-except blocks, since they lead to chained exceptions
+    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
+    # stack trace.
+
+    try:
+        f.write(content)
+    except AttributeError:
+        pass
+    else:
+        return
+
+    with open(f, 'w', encoding='utf-8') as fp:
+        fp.write(content)

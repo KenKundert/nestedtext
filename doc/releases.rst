@@ -14,6 +14,11 @@ Releases
     | Version: 0.5.0
     | Released: 2020-09-11
 
+    - Added :func:`load` and :func:`dump`.
+    - Eliminated *NestedTextError.get_extended_codicil*.
+
+**0.5 (2020-09-11)**:
+
     - allow user to manage duplicate keys detected by :func:`loads`.
 
 **0.4 (2020-09-07)**:
@@ -24,7 +29,7 @@ Releases
     - :func:`loads` now returns *None* when given an empty *NestedText* document.
     - Change :exc:`NestedTextError` attribute names to make them more consistent 
       with those used by JSON package.
-    - Added :meth:`NestedTextError.get_extended_codicil`.
+    - Added *NestedTextError.get_extended_codicil*.
 
 **0.3 (2020-09-03)**:
     - Allow comments to be indented.

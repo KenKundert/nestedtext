@@ -26,11 +26,12 @@ were not for the line above it.  For example, consider the following example:
     >>> try:
     ...     data = nestedtext.loads(content)
     ... except nestedtext.NestedTextError as e:
-    ...     print(str(e))
+    ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
-    5: invalid indentation.
-    «        > 3636 Buffalo Ave»
-         ↑
+    invalid indentation.
+       4 «    address: Home»
+       5 «        > 3636 Buffalo Ave»
+              ▲
 
 Notice that the complaint is about line 5, but problem stems from line 4 where 
 *Home* gave a value to *address*. With a value specified for *address*, any 
@@ -54,30 +55,16 @@ A more subtle version of this same error follows:
     >>> try:
     ...     data = nestedtext.loads(content.replace('␣␣', '  '))
     ... except nestedtext.NestedTextError as e:
-    ...     print(str(e))
+    ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
-    5: invalid indentation.
-    «        > 3636 Buffalo Ave»
-         ↑
-
-Notice the ␣␣ that follow *address*.  These are replaced by 2 spaces before 
-*content* is processed by *loads*.  Thus, in this case an extra space at the end 
-of line 4.  Anything beyond the ': ' is considered the value for *address*, and
-in this case that is the single extra space specified at the end of the line.
-This extra space is taken to be the value of *address*, making the multiline 
-string in lines 5 and 6 a value too many.
-
-These kinds of problems can be easier to see and debug if you use 
-:meth:NestedTextError.get_extended_codicil`, which shows more context.
-
-    >>> try:
-    ...     data = nestedtext.loads(content.replace('␣␣', '  '))
-    ... except nestedtext.NestedTextError as e:
-    ...     print(str(e))
-    ...     print(e.get_extended_codicil()[0])
-    5: invalid indentation.
+    invalid indentation.
        4 «    address:  »
        5 «        > 3636 Buffalo Ave»
-              ↑
-       6 «        > Topika, Kansas 20692»
+              ▲
 
+Notice the ␣␣ that follows *address* in *content*.  These are replaced by 
+2 spaces before *content* is processed by *loads*.  Thus, in this case there is 
+an extra space at the end of line 4.  Anything beyond the ': ' is considered the 
+value for *address*, and in this case that is the single extra space specified 
+at the end of the line.  This extra space is taken to be the value of *address*, 
+making the multiline string in lines 5 and 6 a value too many.
