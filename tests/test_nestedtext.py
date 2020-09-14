@@ -304,7 +304,8 @@ def parametrize_via_nt(relpath):
 
         # Make sure there aren't any missing/extra parameters:
         for params in raw_params:
-            if missing := raw_args - set(params):
+            missing = raw_args - set(params)
+            if missing:
                 missing_str = ', '.join(f"'{x}'" for x in missing)
                 raise ValueError(f"{nt_path}: {f.__name__}: missing parameter(s) {missing_str}")
 
