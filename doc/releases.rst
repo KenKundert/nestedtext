@@ -11,8 +11,8 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.5.0
-    | Released: 2020-09-11
+    | Version: 0.5.1
+    | Released: 2020-09-14
 
     - Added :func:`load` and :func:`dump`.
     - Eliminated *NestedTextError.get_extended_codicil*.
