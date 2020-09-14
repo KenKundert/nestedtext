@@ -911,6 +911,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             need_indented_block = True
         else:
             content = obj
+            if level == 0:
+                content = add_leader(content, '> ').strip()
     elif is_a_scalar(obj):
         content = str(obj)
     elif default and callable(default):

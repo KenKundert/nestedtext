@@ -236,7 +236,7 @@ def parametrize_dump_success_cases(f):
     args = 'data_in', 'path_out'
     params = []
     marks = {
-            'string_5': [pytest.mark.skip],
+        #   'string_5': [pytest.mark.skip],
     }
 
     for case in official.iter_dump_success_cases(cases):

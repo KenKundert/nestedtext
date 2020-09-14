@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set nonomatch
+shopt -s globstar
 rm -rf generated_settings
 rm -rf .cache
 
