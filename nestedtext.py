@@ -202,7 +202,7 @@ def report(message, line, *args, colno=None, **kwargs):
             kwargs['codicil'] = '\n'.join(codicil)
             kwargs['colno'] = colno
         else:
-            kwargs['codicil'] = f"«{line.text}»"
+            kwargs['codicil'] = f'{line.lineno:>4} «{line.text}»'
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
         kwargs['prev_line'] = line.prev_line

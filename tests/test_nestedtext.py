@@ -20,25 +20,25 @@ parametrize = pytest.mark.parametrize
 # parametrize_load_api {{{2
 def parametrize_load_api(f):
     """
-    Parametrize a test function with different ways to load NestedText from a 
+    Parametrize a test function with different ways to load NestedText from a
     file.
 
-    In particular, this parametrizes the different load functions (`load` and 
-    `loads`), and the different types of arguments that both functions accepts.  
+    In particular, this parametrizes the different load functions (`load` and
+    `loads`), and the different types of arguments that both functions accepts.
     The test function will receive the following parameter:
 
-    - ``load_factory``: A callable that can be used to create a parametrized 
-      load function.  The factory takes two arguments: 
+    - ``load_factory``: A callable that can be used to create a parametrized
+      load function.  The factory takes two arguments:
 
       - ``content`: A string in the NestedText format, to be loaded.
       - ``tmp_path``: The ``tmp_path`` pytest fixture.
 
       The factory returns two values:
-        
-      - ``load``: A function that can be called with no arguments to load the 
-        content given previously to the factory with a unique set of 
+
+      - ``load``: A function that can be called with no arguments to load the
+        content given previously to the factory with a unique set of
         parameters.
-      - ``source``: A string indicating where the content was loaded from (e.g.  
+      - ``source``: A string indicating where the content was loaded from (e.g.
         a temporary file name).
     """
     args = 'load_factory',
@@ -47,7 +47,7 @@ def parametrize_load_api(f):
     def param(f):
         params.append(pytest.param(f, id=f.__name__))
         return f
-        
+
     def write_file(name):
         def decorator(f):
             @wraps(f)
@@ -84,7 +84,7 @@ def parametrize_load_api(f):
     @param
     def load_io(content, _):
         io = StringIO(content)
-        return lambda: nestedtext.load(io), str(io)
+        return lambda: nestedtext.load(io), None
 
     @param
     def loads(content, _):
@@ -123,7 +123,6 @@ def parametrize_load_success_cases(f):
         )
         params.append(param)
 
-
     return parametrize(args, params)(f)
 
 # parametrize_load_error_cases {{{2
@@ -144,7 +143,7 @@ def parametrize_load_error_cases(f):
     args = 'path_in', 'lineno', 'colno', 'message'
     params = []
     marks = {}
-    
+
     for case in official.iter_load_error_cases(cases):
         param = pytest.param(
                 case['load']['in']['path'],
@@ -182,7 +181,7 @@ def parametrize_dump_api(f):
     def param(f):
         params.append(pytest.param(f, id=f.__name__))
         return f
-        
+
     @param
     def dumps(x, tmp_path, **kwargs):
         return nestedtext.dumps(x, **kwargs)
@@ -336,6 +335,7 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     load, source = load_factory(content, tmp_path)
     lines = content.splitlines()
     line = lines[lineno-1]
+    prev_line = lines[lineno-2:lineno-1]
 
     with pytest.raises(nestedtext.NestedTextError) as exc_info:
         load()
@@ -349,10 +349,18 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     assert e.source == source
     assert e.lineno == lineno
     assert e.colno == colno
-    assert e.doc == content
     assert e.culprit == (source, lineno) if source else (lineno,)
-    assert e.codicil == (f'«{line}»' + 
-                (f'\n {" "*colno}↑' if colno is not None else ''),)
+    if lineno is None:
+        assert e.codicil == (f'«{line}»',)
+    else:
+        if colno is None:
+            assert e.codicil == (f'{lineno:>4} «{line}»',)
+        else:
+            assert e.codicil == (
+                (f'{lineno-1:>4} «{prev_line[0]}»\n' if prev_line else '') +
+                f'{lineno:>4} «{line}»' +
+                (f'\n      {" "*colno}▲' if colno is not None else ''),
+            )
 
     assert isinstance(e, Error)
     assert isinstance(e, ValueError)
@@ -364,28 +372,6 @@ def test_load_api_errors():
 
     with pytest.raises(TypeError):
         nestedtext.load(['path_1.nt', 'path_2.nt'])
-
-# test_load_extended_codicil {{{1
-@parametrize_via_nt('test_extended_codicil.nt')
-def test_load_extended_codicil(content, user_codicil, expected):
-    if not user_codicil:
-        user_codicil_arg = None
-        user_codicil_len = 0
-    elif isinstance(user_codicil, str):
-        user_codicil_arg = user_codicil
-        user_codicil_len = 1
-    else:
-        user_codicil_arg = user_codicil
-        user_codicil_len = len(user_codicil)
-
-    with pytest.raises(nestedtext.NestedTextError) as e:
-        nestedtext.loads(content)
-
-    extended_codicil = e.value.get_extended_codicil(user_codicil_arg)
-    assert len(extended_codicil) == 1 + user_codicil_len
-    assert '\n'.join(extended_codicil) == expected
-
-# }}}1
 
 # test_dump_success_cases {{{1
 @parametrize_dump_api
