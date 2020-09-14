@@ -1,0 +1,54 @@
+# this is a comment, it is ignored
+key 1: value 1
+                                                                    
+"- key2:": value2:
+                                                                    
+'  #key3  ':   #value3  
+                                                                    
+key 4:
+    key 4.1: value 4.1
+    key 4.2: value 4.2
+    key 4.3:
+        key 4.3.1: value 4.3.1
+        key 4.3.2: value 4.3.2
+    key 4.4:
+        - value 4.4.1
+                                                                    
+        - value 4.4.2
+        -
+            - value 4.4.3.1
+            - value 4.4.3.2
+key 5:
+    > value 5 part 1
+key 6:
+    > value 6 part 1
+    > value 6 part 2
+key 7:
+    > value 7 part 1
+    >
+    > value 7 part 3
+    >
+                                                                    
+key 8:
+    - value 8.1
+                                                                    
+    - value 8.2
+                                                                    
+key 9:
+    - value 9.1
+    - value 9.2
+key 10:
+    > This is a multiline string.  It should end without a newline.
+key 11:
+    > This is a multiline string.  It should end with a newline.
+    >
+key 12:
+    >
+    > This is another
+    > multiline string.
+    >
+    > This continues the same string.
+    >
+    >
+key 13:
+
