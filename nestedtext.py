@@ -37,7 +37,7 @@ import re
 # Globals {{{1
 __version__ = "0.5.0"
 __released__ = "2020-09-11"
-__all__ = ['load', 'loads', 'dumps', 'NestedTextError']
+__all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 
 
 # Exception {{{1
@@ -571,12 +571,13 @@ def load(f=None, on_dup=None):
     files.
 
     Args:
-        f (str, os.PathLike, io.TextIOBase):
+        f (str, os.PathLike, io.TextIOBase, collections.abc.Iterator):
             The file to read the *NestedText* content from.  This can be
             specified either as a path (e.g. a string or a `pathlib.Path`) or
             as a text IO object (e.g. an open file).  If a path is given, the
             file will be opened, read, and closed.  If an IO object is given,
-            it will be read and not closed.
+            it will be read and not closed.  If an iterator is given, it should
+            generate full lines.
         on_dup:
             See :func:`loads` description of this argument.
 
