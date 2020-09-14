@@ -20,7 +20,7 @@ NestedText: A Human Readable and Writable Data Format
 # this program.  If not, see http://www.gnu.org/licenses/.
 
 # Imports {{{1
-import os, re
+import re
 from inform import (
     cull,
     full_stop,
@@ -469,10 +469,10 @@ def load(path_or_file):
 
     Args:
         path_or_file (str, os.PathLike, io.TextIOBase):
-            The file to read the NestedText content from.  This can be 
-            specified either as a path (e.g. a string or a `pathlib.Path`) or 
-            as a text IO object (e.g. an open file).  If a path is given, the 
-            file will be opened, read, and closed.  If an IO object is given, 
+            The file to read the NestedText content from.  This can be
+            specified either as a path (e.g. a string or a `pathlib.Path`) or
+            as a text IO object (e.g. an open file).  If a path is given, the
+            file will be opened, read, and closed.  If an IO object is given,
             it will be read and not closed.
 
     Returns:
@@ -505,16 +505,16 @@ def load(path_or_file):
         .. code-block:: pycon
             >>> with open('examples/groceries.nt') as f:
             ...     nestedtext.load(f)
-            ... 
+            ...
             ['Bread', 'Peanut butter', 'Jam']
     """
 
-    # Avoid nested try-except blocks, since they lead to chained exceptions 
-    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the 
+    # Avoid nested try-except blocks, since they lead to chained exceptions
+    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
     # stack trace.
 
     content = None
-    
+
     if content is None:
         try:
             content = path_or_file.read()
@@ -524,7 +524,7 @@ def load(path_or_file):
             source = getattr(path_or_file, 'name', repr(path_or_file))
 
     if content is None:
-        # Don't use a with block, because we don't want to catch type errors 
+        # Don't use a with block, because we don't want to catch type errors
         # that might be raised within the block.
         try:
             f = open(path_or_file)
@@ -541,6 +541,7 @@ def load(path_or_file):
         raise TypeError(f"expected str, os.PathLike, or io.TextIOBase; got {path_or_file!r}")
 
     return loads(content, source)
+
 
 # loads() {{{2
 def loads(content, source=None, on_dup=None):
@@ -685,20 +686,20 @@ def dump(obj, path_or_file, **kwargs):
         obj:
             The object to convert
         path_or_file (str, os.PathLike, io.TextIOBase):
-            The file to write the NestedText content to.  The file can be 
-            specified either as a path (e.g. a string or a `pathlib.Path`) or 
-            as a text IO instance (e.g. an open file).  If a path is given, the 
-            will be opened, written, and closed.  If an IO object is given, it 
-            must have been opened in a mode that allows writing (e.g. 
-            ``open(path, 'w')``), if applicable.  It will be written and not 
+            The file to write the NestedText content to.  The file can be
+            specified either as a path (e.g. a string or a `pathlib.Path`) or
+            as a text IO instance (e.g. an open file).  If a path is given, the
+            will be opened, written, and closed.  If an IO object is given, it
+            must have been opened in a mode that allows writing (e.g.
+            ``open(path, 'w')``), if applicable.  It will be written and not
             closed.
         kwargs:
             See :func:`dumps` for optional arguments.
     """
     content = dumps(obj, **kwargs)
-    
-    # Avoid nested try-except blocks, since they lead to chained exceptions 
-    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the 
+
+    # Avoid nested try-except blocks, since they lead to chained exceptions
+    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
     # stack trace.
 
     try:
@@ -708,7 +709,7 @@ def dump(obj, path_or_file, **kwargs):
     else:
         return
 
-    # Don't use a with block, because we don't want to catch type errors that 
+    # Don't use a with block, because we don't want to catch type errors that
     # might be raised within the block.
 
     try:
@@ -727,7 +728,7 @@ def dump(obj, path_or_file, **kwargs):
 
 def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):
     """
-    Write the NestedText representation of the given object to a string, with 
+    Write the NestedText representation of the given object to a string, with
     reasonable formatting.
 
     Args:

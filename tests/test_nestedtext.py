@@ -351,7 +351,6 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     assert e.colno == colno
     assert e.doc == content
     assert e.culprit == (source, lineno) if source else (lineno,)
-    debug(lines, line)
     assert e.codicil == (f'«{line}»' + 
                 (f'\n {" "*colno}↑' if colno is not None else ''),)
 
