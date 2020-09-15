@@ -13,7 +13,7 @@ were not for the line above it.  For example, consider the following example:
 
 .. code-block:: python
 
-    >>> import nestedtext
+    >>> import nestedtext as nt
 
     >>> content = """
     ... treasurer:
@@ -24,8 +24,8 @@ were not for the line above it.  For example, consider the following example:
     ... """
 
     >>> try:
-    ...     data = nestedtext.loads(content)
-    ... except nestedtext.NestedTextError as e:
+    ...     data = nt.loads(content)
+    ... except nt.NestedTextError as e:
     ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
     invalid indentation.
@@ -53,8 +53,8 @@ A more subtle version of this same error follows:
     ... """
 
     >>> try:
-    ...     data = nestedtext.loads(content.replace('␣␣', '  '))
-    ... except nestedtext.NestedTextError as e:
+    ...     data = nt.loads(content.replace('␣␣', '  '))
+    ... except nt.NestedTextError as e:
     ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
     invalid indentation.

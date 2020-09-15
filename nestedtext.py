@@ -83,7 +83,7 @@ class NestedTextError(Error, ValueError):
     .. code-block:: python
 
         >>> from textwrap import dedent
-        >>> import nestedtext
+        >>> import nestedtext as nt
 
         >>> content = dedent("""
         ...     name1: value1
@@ -92,8 +92,8 @@ class NestedTextError(Error, ValueError):
         ... """).strip()
 
         >>> try:
-        ...     print(nestedtext.loads(content))
-        ... except nestedtext.NestedTextError as e:
+        ...     print(nt.loads(content))
+        ... except nt.NestedTextError as e:
         ...     print(str(e))
         2: duplicate key: name1.
 
@@ -102,8 +102,8 @@ class NestedTextError(Error, ValueError):
     *inform*'s conventions::
 
         >> try:
-        ..     print(nestedtext.loads(content))
-        .. except nestedtext.NestedTextError as e:
+        ..     print(nt.loads(content))
+        .. except nt.NestedTextError as e:
         ..     e.report()
         error: 2: duplicate key: name1.
             «name1: value2»
@@ -112,8 +112,8 @@ class NestedTextError(Error, ValueError):
     The *terminate* method prints the message directly and exits::
 
         >> try:
-        ..     print(nestedtext.loads(content))
-        .. except nestedtext.NestedTextError as e:
+        ..     print(nt.loads(content))
+        .. except nt.NestedTextError as e:
         ..     e.terminate()
         error: 2: duplicate key: name1.
             «name1: value2»
@@ -131,8 +131,8 @@ class NestedTextError(Error, ValueError):
     .. code-block:: python
 
         >>> try:
-        ...     print(nestedtext.loads(content))
-        ... except nestedtext.NestedTextError as e:
+        ...     print(nt.loads(content))
+        ... except nt.NestedTextError as e:
         ...     print(e.get_message())
         ...     print(*e.get_codicil(), sep="\n")
         duplicate key: name1.
@@ -154,8 +154,8 @@ class NestedTextError(Error, ValueError):
     .. code-block:: python
 
         >>> try:
-        ...     print(nestedtext.loads(content))
-        ... except nestedtext.NestedTextError as e:
+        ...     print(nt.loads(content))
+        ... except nt.NestedTextError as e:
         ...     template = None
         ...     if e.template == 'duplicate key: {}.':
         ...         template = 'llave duplicada: {}.'
@@ -482,7 +482,7 @@ def loads(content, source=None, *, on_dup=None):
 
         .. code-block:: python
 
-            >>> import nestedtext
+            >>> import nestedtext as nt
 
             >>> contents = """
             ... name: Kristel Templeton
@@ -491,8 +491,8 @@ def loads(content, source=None, *, on_dup=None):
             ... """
 
             >>> try:
-            ...     data = nestedtext.loads(contents)
-            ... except nestedtext.NestedTextError as e:
+            ...     data = nt.loads(contents)
+            ... except nt.NestedTextError as e:
             ...     e.terminate()
 
             >>> print(data)
@@ -509,8 +509,8 @@ def loads(content, source=None, *, on_dup=None):
             >>> filename = 'examples/duplicate-keys.nt'
             >>> try:
             ...     with open(filename, encoding='utf-8') as f:
-            ...         addresses = nestedtext.loads(f.read(), filename)
-            ... except nestedtext.NestedTextError as e:
+            ...         addresses = nt.loads(f.read(), filename)
+            ... except nt.NestedTextError as e:
             ...     print(e.render())
             ...     print(*e.get_codicil(), sep="\n")
             examples/duplicate-keys.nt, 5: duplicate key: name.
@@ -535,15 +535,15 @@ def loads(content, source=None, *, on_dup=None):
             ... name: value 5
             ... """
 
-            >>> print(nestedtext.loads(content))
+            >>> print(nt.loads(content))
             Traceback (most recent call last):
             ...
             nestedtext.NestedTextError: 3: duplicate key: key.
 
-            >>> print(nestedtext.loads(content, on_dup='ignore'))
+            >>> print(nt.loads(content, on_dup='ignore'))
             {'key': 'value 1', 'name': 'value 4'}
 
-            >>> print(nestedtext.loads(content, on_dup='replace'))
+            >>> print(nt.loads(content, on_dup='replace'))
             {'key': 'value 3', 'name': 'value 5'}
 
             >>> def de_dup(key, value, data, state):
@@ -552,7 +552,7 @@ def loads(content, source=None, *, on_dup=None):
             ...     state[key] += 1
             ...     return f"{key}#{state[key]}"
 
-            >>> print(nestedtext.loads(content, on_dup=de_dup))
+            >>> print(nt.loads(content, on_dup=de_dup))
             {'key': 'value 1', 'key#2': 'value 2', 'key#3': 'value 3', 'name': 'value 4', 'name#2': 'value 5'}
 
     '''
@@ -594,28 +594,28 @@ def load(f=None, on_dup=None):
 
         .. code-block:: python
 
-            >>> import nestedtext
+            >>> import nestedtext as nt
             >>> print(open('examples/groceries.nt').read())
             - Bread
             - Peanut butter
             - Jam
             <BLANKLINE>
 
-            >>> nestedtext.load('examples/groceries.nt')
+            >>> nt.load('examples/groceries.nt')
             ['Bread', 'Peanut butter', 'Jam']
 
         Load from a `pathlib.Path`:
 
         .. code-block:: pycon
             >>> from pathlib import Path
-            >>> nestedtext.load(Path('examples/groceries.nt'))
+            >>> nt.load(Path('examples/groceries.nt'))
             ['Bread', 'Peanut butter', 'Jam']
 
         Load from an open file object:
 
         .. code-block:: pycon
             >>> with open('examples/groceries.nt') as f:
-            ...     nestedtext.load(f)
+            ...     nt.load(f)
             ...
             ['Bread', 'Peanut butter', 'Jam']
 
@@ -735,7 +735,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
         .. code-block:: python
 
-            >>> import nestedtext
+            >>> import nestedtext as nt
 
             >>> data = {
             ...     'name': 'Kristel Templeton',
@@ -744,8 +744,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             ... }
 
             >>> try:
-            ...     print(nestedtext.dumps(data))
-            ... except nestedtext.NestedTextError as e:
+            ...     print(nt.dumps(data))
+            ... except nt.NestedTextError as e:
             ...     print(str(e))
             name: Kristel Templeton
             sex: female
@@ -766,16 +766,16 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
             >>> try:
-            ...     print(nestedtext.dumps(data))
-            ... except nestedtext.NestedTextError as e:
+            ...     print(nt.dumps(data))
+            ... except nt.NestedTextError as e:
             ...     print(str(e))
             key: 42
             value: 3.1415926
             valid: True
 
             >>> try:
-            ...     print(nestedtext.dumps(data, default='strict'))
-            ... except nestedtext.NestedTextError as e:
+            ...     print(nt.dumps(data, default='strict'))
+            ... except nt.NestedTextError as e:
             ...     print(str(e))
             42: unsupported type.
 
@@ -794,13 +794,13 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             ...         return self.color
 
             >>> data['house'] = Color('red')
-            >>> print(nestedtext.dumps(data, default=repr))
+            >>> print(nt.dumps(data, default=repr))
             key: 42
             value: 3.1415926
             valid: True
             house: Color('red')
 
-            >>> print(nestedtext.dumps(data, default=str))
+            >>> print(nt.dumps(data, default=str))
             key: 42
             value: 3.1415926
             valid: True
@@ -819,8 +819,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             ... }
 
             >>> try:
-            ...    print(nestedtext.dumps(data, renderers=renderers))
-            ... except nestedtext.NestedTextError as e:
+            ...    print(nt.dumps(data, renderers=renderers))
+            ... except nt.NestedTextError as e:
             ...     print(str(e))
             key: 0x2a
             value: 3.14
@@ -840,8 +840,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             ... }
 
             >>> try:
-            ...    print(nestedtext.dumps(data, renderers=renderers))
-            ... except nestedtext.NestedTextError as e:
+            ...    print(nt.dumps(data, renderers=renderers))
+            ... except nt.NestedTextError as e:
             ...     print(str(e))
             3.1415926: unsupported type.
 
@@ -964,7 +964,7 @@ def dump(obj, f, **kwargs):
 
         .. code-block:: python
 
-            >>> import nestedtext
+            >>> import nestedtext as nt
             >>> from inform import fatal, os_error
 
             >>> data = {
@@ -975,8 +975,8 @@ def dump(obj, f, **kwargs):
 
             >>> try:
             ...     with open('data.nt', 'w', encoding='utf-8') as f:
-            ...         nestedtext.dump(data, f)
-            ... except nestedtext.NestedTextError as e:
+            ...         nt.dump(data, f)
+            ... except nt.NestedTextError as e:
             ...     fatal(e)
             ... except OSError as e:
             ...     fatal(os_error(e))
@@ -986,8 +986,8 @@ def dump(obj, f, **kwargs):
         .. code-block:: python
 
             >>> try:
-            ...     nestedtext.dump(data, 'data.nt')
-            ... except nestedtext.NestedTextError as e:
+            ...     nt.dump(data, 'data.nt')
+            ... except nt.NestedTextError as e:
             ...     fatal(e)
             ... except OSError as e:
             ...     fatal(os_error(e))

@@ -15,7 +15,7 @@ a :exc:`NestedTextError` exception is raised.
 
 .. code-block:: python
 
-    >>> import nestedtext
+    >>> import nestedtext as nt
 
     >>> content = """
     ... access key id: 8N029N81
@@ -23,8 +23,8 @@ a :exc:`NestedTextError` exception is raised.
     ... """
 
     >>> try:
-    ...     data = nestedtext.loads(content)
-    ... except nestedtext.NestedTextError as e:
+    ...     data = nt.loads(content)
+    ... except nt.NestedTextError as e:
     ...     e.terminate()
 
     >>> print(data)
@@ -41,8 +41,8 @@ a :exc:`NestedTextError` exception is raised.
 .. code-block:: python
 
     >>> try:
-    ...     content = nestedtext.dumps(data)
-    ... except nestedtext.NestedTextError as e:
+    ...     content = nt.dumps(data)
+    ... except nt.NestedTextError as e:
     ...     e.terminate()
 
     >>> print(content)

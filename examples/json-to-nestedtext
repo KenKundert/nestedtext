@@ -17,7 +17,7 @@ from docopt import docopt
 from inform import fatal, os_error
 from pathlib import Path
 import json
-import nestedtext
+import nestedtext as nt
 import sys
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
@@ -40,7 +40,7 @@ try:
     data = json.loads(json_content)
 
     # convert to NestedText
-    nestedtext_content = nestedtext.dumps(data, indent=indent) + "\n"
+    nestedtext_content = nt.dumps(data, indent=indent) + "\n"
 
     # output NestedText content; to file or to stdout
     if input_filename:
@@ -53,7 +53,7 @@ try:
         sys.stdout.write(nestedtext_content)
 except OSError as e:
     fatal(os_error(e))
-except nestedtext.NestedTextError as e:
+except nt.NestedTextError as e:
     e.terminate(culprit=input_filename)
 except json.JSONDecodeError as e:
     # create a nice error message with surrounding context

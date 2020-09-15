@@ -2,7 +2,7 @@
 
 # Imports {{{1
 import pytest
-import nestedtext
+import nestedtext as nt
 from pathlib import Path
 from functools import wraps
 from io import StringIO
@@ -61,38 +61,38 @@ def parametrize_load_api(f):
     @param
     @write_file('load_str.nt')
     def load_str(p):
-        return lambda: nestedtext.load(str(p)), str(p)
+        return lambda: nt.load(str(p)), str(p)
 
     @param
     @write_file('load_path.nt')
     def load_path(p):
-        return lambda: nestedtext.load(p), str(p)
+        return lambda: nt.load(p), str(p)
 
     @param
     @write_file('load_path_no_ext')
     def load_path_no_ext(p):
-        return lambda: nestedtext.load(p), str(p)
+        return lambda: nt.load(p), str(p)
 
     @param
     @write_file('load_fp.nt')
     def load_fp(p):
         def factory():
             with open(p) as f:
-                return nestedtext.load(f)
+                return nt.load(f)
         return factory, str(p)
 
     @param
     def load_io(content, _):
         io = StringIO(content)
-        return lambda: nestedtext.load(io), None
+        return lambda: nt.load(io), None
 
     @param
     def loads(content, _):
-        return lambda: nestedtext.loads(content), None
+        return lambda: nt.loads(content), None
 
     @param
     def loads_src(content, _):
-        return lambda: nestedtext.loads(content, 'SOURCE'), 'SOURCE'
+        return lambda: nt.loads(content, 'SOURCE'), 'SOURCE'
 
     return parametrize(args, params)(f)
 
@@ -184,37 +184,37 @@ def parametrize_dump_api(f):
 
     @param
     def dumps(x, tmp_path, **kwargs):
-        return nestedtext.dumps(x, **kwargs)
+        return nt.dumps(x, **kwargs)
 
     @param
     def dump_str(x, tmp_path, **kwargs):
         p = tmp_path / 'data.nt'
-        nestedtext.dump(x, str(p), **kwargs)
+        nt.dump(x, str(p), **kwargs)
         return p.read_text()
 
     @param
     def dump_path(x, tmp_path, **kwargs):
         p = tmp_path / 'data.nt'
-        nestedtext.dump(x, p, **kwargs)
+        nt.dump(x, p, **kwargs)
         return p.read_text()
 
     @param
     def dump_path_no_ext(x, tmp_path, **kwargs):
         p = tmp_path / 'data'
-        nestedtext.dump(x, p, **kwargs)
+        nt.dump(x, p, **kwargs)
         return p.read_text()
 
     @param
     def dump_fp(x, tmp_path, **kwargs):
         p = tmp_path / 'data.nt'
         with open(p, 'w') as f:
-            nestedtext.dump(x, f, **kwargs)
+            nt.dump(x, f, **kwargs)
         return p.read_text()
 
     @param
     def dump_io(x, tmp_path, **kwargs):
         io = StringIO()
-        nestedtext.dump(x, io, **kwargs)
+        nt.dump(x, io, **kwargs)
         return io.getvalue()
 
     return parametrize(args, params)(f)
@@ -299,7 +299,7 @@ def parametrize_via_nt(relpath):
         test_path = Path(module.__file__)
         nt_path = test_path.parent / relpath
 
-        raw_params = nestedtext.load(nt_path)
+        raw_params = nt.load(nt_path)
         raw_args = set.union(*(set(x) for x in raw_params)) - {'id'}
 
         # Make sure there aren't any missing/extra parameters:
@@ -338,7 +338,7 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     line = lines[lineno-1]
     prev_line = lines[lineno-2:lineno-1]
 
-    with pytest.raises(nestedtext.NestedTextError) as exc_info:
+    with pytest.raises(nt.NestedTextError) as exc_info:
         load()
 
     e = exc_info.value
@@ -369,10 +369,10 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
 # test_load_api_errors {{{1
 def test_load_api_errors():
     with pytest.raises(FileNotFoundError):
-        nestedtext.load('does_not_exist.nt')
+        nt.load('does_not_exist.nt')
 
     with pytest.raises(TypeError):
-        nestedtext.load(['path_1.nt', 'path_2.nt'])
+        nt.load(['path_1.nt', 'path_2.nt'])
 
 # test_dump_success_cases {{{1
 @parametrize_dump_api
@@ -384,7 +384,7 @@ def test_dump_success_cases(dump, data_in, path_out, tmp_path):
 @parametrize_dump_api
 @parametrize_dump_error_cases
 def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
-    with pytest.raises(nestedtext.NestedTextError) as exc_info:
+    with pytest.raises(nt.NestedTextError) as exc_info:
         dump(data_in, tmp_path)
 
     e = exc_info.value
@@ -469,7 +469,7 @@ def test_dump_renderers(dump, tmp_path):
         ]
 )
 def test_dump_renderers_err(dump, tmp_path, data, culprit, kwargs):
-    with pytest.raises(nestedtext.NestedTextError) as exc:
+    with pytest.raises(nt.NestedTextError) as exc:
         dump(data, tmp_path, **kwargs)
 
     assert str(exc.value) == f"{culprit}: unsupported type."

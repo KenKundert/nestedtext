@@ -45,7 +45,7 @@ This can be done as follows:
 
 .. code-block:: pycon
 
-    >>> import nestedtext
+    >>> import nestedtext as nt
 
     >>> def to_bool(v):
     ...     try:
@@ -61,7 +61,7 @@ This can be done as follows:
     ... editable: yes
     ... """
 
-    >>> config_data = nestedtext.loads(config)
+    >>> config_data = nt.loads(config)
     >>> print(config_data)
     {'name': 'volume', 'value': '50', 'editable': 'yes'}
 
