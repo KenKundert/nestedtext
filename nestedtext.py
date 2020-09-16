@@ -4,7 +4,7 @@ NestedText: A Human Readable and Writable Data Format
 """
 
 # License {{{1
-# Copyright (c) 2020 Kenneth S. Kundert
+# Copyright (c) 2020 Kenneth S. Kundert and Kale Kundert
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software

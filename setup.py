@@ -9,7 +9,7 @@ setup(
     description = 'human readable and writable data interchange format',
     long_description = readme,
     long_description_content_type = 'text/x-rst',
-    author = "Ken Kundert",
+    author = "Ken Kundert and Kale Kundert",
     author_email = 'nestedtext@nurdletech.com',
     url = 'https://nestedtext.readthedocs.io',
     download_url = 'https://github.com/kenkundert/nestedtext/tarball/master',
