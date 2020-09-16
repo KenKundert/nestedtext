@@ -38,7 +38,7 @@ function.
     >>> from inform import fatal, os_error
 
     >>> try:
-    ...     groceries = nt.load('../examples/groceries.nt')
+    ...     groceries = nt.load('examples/groceries.nt')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
     ... except OSError as e:
@@ -71,7 +71,7 @@ The :func:`dump` function writes *NestedText* to a file or stream.
 .. code-block:: python
 
     >>> try:
-    ...     content = nt.dump(data, '../examples/access.nt')
+    ...     content = nt.dump(data, 'examples/access.nt')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
     ... except OSError as e:
