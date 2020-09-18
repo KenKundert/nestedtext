@@ -573,11 +573,12 @@ def load(f=None, on_dup=None):
     Args:
         f (str, os.PathLike, io.TextIOBase, collections.abc.Iterator):
             The file to read the *NestedText* content from.  This can be
-            specified either as a path (e.g. a string or a `pathlib.Path`) or
-            as a text IO object (e.g. an open file).  If a path is given, the
-            file will be opened, read, and closed.  If an IO object is given,
-            it will be read and not closed.  If an iterator is given, it should
-            generate full lines.
+            specified either as a path (e.g. a string or a `pathlib.Path`),
+            as a text IO object (e.g. an open file), or as an iterator.  If a
+            path is given, the file will be opened, read, and closed.  If an IO
+            object is given, it will be read and not closed; utf-8 encoding
+            should be used..  If an iterator is given, it should generate full
+            lines in the same manner that iterating on a file descriptor would.
         on_dup:
             See :func:`loads` description of this argument.
 
