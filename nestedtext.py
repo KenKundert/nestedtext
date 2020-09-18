@@ -606,14 +606,16 @@ def load(f=None, on_dup=None):
 
         Load from a `pathlib.Path`:
 
-        .. code-block:: pycon
+        .. code-block:: python
+
             >>> from pathlib import Path
             >>> nt.load(Path('examples/groceries.nt'))
             ['Bread', 'Peanut butter', 'Jam']
 
         Load from an open file object:
 
-        .. code-block:: pycon
+        .. code-block:: python
+
             >>> with open('examples/groceries.nt') as f:
             ...     nt.load(f)
             ...
