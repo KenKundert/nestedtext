@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from appdirs import user_config_dir
-from  nestedtext import loads, dumps, NestedTextError
+import nestedtext as nt
 from voluptuous import Schema, Required, All, Length, Invalid
 from inform import display, fatal, is_collection, os_error, render_bar
 import arrow
@@ -33,7 +33,7 @@ try:
         'date format': str,
         'screen width': coerce(int)
     })
-    settings = settings_schema(loads(settings_file.read_text(), settings_file))
+    settings = settings_schema(nt.load(settings_file))
     currency = settings.get('currency', 'USD')
     currency_symbol = currency_symbols.get(currency, currency)
     screen_width = settings.get('screen width', 80)
@@ -71,7 +71,7 @@ try:
         print(f'{summary:<30} {portion:<5.1%} {render_bar(portion, bar_width)}')
     print(f'Total value = {total}.')
 
-except NestedTextError as e:
+except nt.NestedTextError as e:
     e.terminate()
 except Invalid as e:
     fatal(e)

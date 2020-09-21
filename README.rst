@@ -80,6 +80,7 @@ a simple natural syntax is used to distinguish the types of data in such
 a manner that it is not easily confused.  Specifically, lines that begin with 
 a word or words followed by a colon are dictionary items; a dash introduces list 
 items, and a leading greater-than symbol signifies a line in a multiline string.
+Dictionaries and lists are used for nesting, the leaf values are always strings.
 
 
 Alternatives
