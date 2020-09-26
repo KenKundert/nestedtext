@@ -48,11 +48,10 @@ __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 # Exception {{{1
 class NestedTextError(Error, ValueError):
     r'''
-    :func:`loads()` and :func:`dumps()` both raise
-    *NestedTextError* when they discover an error. *NestedTextError* subclasses both
-    the Python *ValueError* and the *Error* exception from *Inform*.
-    You can find more documentation on what you can do with this exception in the
-    `Inform documentation
+    The *load* and *dump* functions all raise *NestedTextError* when they
+    discover an error. *NestedTextError* subclasses both the Python *ValueError*
+    and the *Error* exception from *Inform*.  You can find more documentation on
+    what you can do with this exception in the `Inform documentation
     <https://inform.readthedocs.io/en/stable/api.html#exceptions>`_.
 
     The exception provides the following attributes:
