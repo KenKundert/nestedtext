@@ -11,8 +11,8 @@ Installation
 Releases
 ========
 **Latest development release**:
-    | Version: 0.5.1
-    | Released: 2020-09-14
+    | Version: 0.6.0
+    | Released: 2020-09-26
 
 **0.6 (2020-09-26)**:
     - Added :func:`load` and :func:`dump`.
