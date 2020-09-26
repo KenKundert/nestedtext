@@ -14,11 +14,11 @@ Releases
     | Version: 0.5.1
     | Released: 2020-09-14
 
+**0.6 (2020-09-26)**:
     - Added :func:`load` and :func:`dump`.
     - Eliminated *NestedTextError.get_extended_codicil*.
 
 **0.5 (2020-09-11)**:
-
     - allow user to manage duplicate keys detected by :func:`loads`.
 
 **0.4 (2020-09-07)**:
