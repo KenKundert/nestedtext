@@ -6,4 +6,3 @@ nestedtext.NestedTextError
 .. autoexception:: NestedTextError
     :members:
         render, report, terminate, get_codicil, get_culprit, get_message
-    :inherited-members:

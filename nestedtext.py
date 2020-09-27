@@ -150,10 +150,11 @@ class NestedTextError(Error, ValueError):
 
     Exceptions produced by *NestedText* contain a *template* attribute that
     contains the basic text of the message. You can change this message by
-    overriding the attribute when using *report*, *terminate*, or *render*.
-    *render* is like casting the exception to a string except that allows for
-    the passing of arguments.  For example, to convert a particular message to
-    Spanish, you could use something like the following.
+    overriding the attribute using the *template* argument when using *report*,
+    *terminate*, or *render*.  *render* is like casting the exception to a
+    string except that allows for the passing of arguments.  For example, to
+    convert a particular message to Spanish, you could use something like the
+    following.
 
     .. code-block:: python
 
