@@ -131,7 +131,9 @@ first appears very appealing when used with simple examples, but things can
 quickly become complicated or provide unexpected results.  A reaction to this is 
 the use of *YAML* subsets, such as `StrictYAML 
 <https://hitchdev.com/strictyaml>`_.  However, the subsets still try to maintain 
-compatibility with *YAML* and so inherit much of its complexity.
+compatibility with *YAML* and so inherit much of its complexity. For example, 
+both *YAML* and *StrictYAML* support the `nine different ways to write 
+multi-line strings in YAML <http://stackoverflow.com/a/21699210/660921>`_.
 
 *YAML* recognized the problems that result from *JSON* needing to unambiguously 
 distinguish between many data types and instead uses implicit typing, which 
