@@ -9,9 +9,8 @@ president:
         cell: 1-210-555-5297
         home: 1-210-555-8470
     email: KateMcD@aol.com
-    kids:
-        - Joanie
-        - Terrance
+    additional roles:
+        - board member
 
 vice president:
     name: Margaret Hodge
@@ -20,20 +19,18 @@ vice president:
         > Topika, Kansas 20682
     phone: 1-470-555-0398
     email: margaret.hodge@uk.edu
-    kids:
-        - Arnie
-        - Zach
-        - Maggie
+    additional roles:
+        - new membership task force
+        - accounting task force
 
 treasurer:
     name: Fumiko Purvis
+        # Fumiko's term is ending at the end of the year.
+        # She will be replaced by Merrill Eldridge.
     address:
         > 3636 Buffalo Ave
         > Topika, Kansas 20692
     phone: 1-268-555-0280
     email: fumiko.purvis@hotmail.com
-    kids:
-        - Lue
-    comments:
-        > Fumiko's term is ending at the end of the year.
-        > She will be replaced by Mariah Mobley.
+    additional roles:
+        - accounting task force

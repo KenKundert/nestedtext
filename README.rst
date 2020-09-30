@@ -47,9 +47,8 @@ addresses::
             home: 1-210-555-8470
                 # Katheryn prefers that we always call her on her cell phone.
         email: KateMcD@aol.com
-        kids:
-            - Joanie
-            - Terrance
+        additional roles:
+            - board member
 
     vice president:
         name: Margaret Hodge
@@ -58,20 +57,21 @@ addresses::
             > Topika, Kansas 20682
         phone: 1-470-555-0398
         email: margaret.hodge@uk.edu
-        kids:
-            - Arnie
-            - Zach
-            - Maggie
+        additional roles:
+            - new membership task force
+            - accounting task force
 
     treasurer:
         name: Fumiko Purvis
+            # Fumiko's term is ending at the end of the year.
+            # She will be replaced by Merrill Eldridge.
         address:
             > 3636 Buffalo Ave
             > Topika, Kansas 20692
         phone: 1-268-555-0280
         email: fumiko.purvis@hotmail.com
-        kids:
-            - Lue
+        additional roles:
+            - accounting task force
 
 The format holds dictionaries (ordered collections of name/value pairs), lists 
 (ordered collections of values) and strings (text) organized hierarchically to 
