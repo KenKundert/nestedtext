@@ -13,8 +13,8 @@ Releases
 ========
 
 **Latest development release**:
-    | Version: 1.0.1
-    | Released: 2020-10-04
+    | Version: 1.0.2
+    | Released: 2020-10-05
 
     - Empty dictionaries and lists are rejected by :func:`dump` and 
       :func:`dumps` if *default* argument is specified as 'strict'.
