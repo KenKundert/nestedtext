@@ -65,10 +65,10 @@ Strings
     be combined to form multiline strings. To do so, precede the line with 
     a greater-than symbol::
 
-        >     this is the first line of a multiline string, it is indented.
-        > this is the second line, it is not indented.
+        >     This is the first line of a multiline string, it is indented.
+        > This is the second line, it is not indented.
 
-    The content of each line starts after the space that follows the 
+    The content of each line starts after the first space that follows the 
     greater-than symbol.
 
     You can include empty lines in the string simply by specifying the 
@@ -140,3 +140,6 @@ number of spaces (with the suggested number being 2 or 4). However, it is not
 required. Any increase in the number of spaces in the indentation represents an 
 indent and and the number of spaces need only be consistent over the length of 
 the nested object.
+
+The data can be nested arbitrarily deeply using dictionaries and lists, but the 
+leaf values, the values that are nested most deeply, must all be strings.

@@ -92,6 +92,10 @@ storing data in a human-readable text file. Probably the most obvious are `json
 <https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both have serious short 
 comings.
 
+
+JSON
+""""
+
 *JSON* is a subset of JavaScript suitable for holding data. Like *NestedText*, 
 it consists of a hierarchical collection of dictionaries, lists, and strings, 
 but also allows integers, floats, Booleans and nulls.  The problem with *JSON* 
@@ -122,20 +126,24 @@ and writable data file format:
 - Unicode characters without encoding them
 - commas are not used to separate dictionary and list items
 
-*YAML* was to be the human friendly alternative to *JSON*, but the authors were 
-too ambitious and tried to support too many data types and too many formats. To 
-distinguish between all the various types and formats, a complicated and 
-non-intuitive set of rules developed.  For example, 2 is interpreted as an 
-integer, 2.0 as a real number, and both 2.0.0 and "2" are strings.  *YAML* at 
-first appears very appealing when used with simple examples, but things can 
-quickly become complicated or provide unexpected results.  A reaction to this is 
-the use of *YAML* subsets, such as `StrictYAML 
+
+YAML
+""""
+
+*YAML* is considered by many to be a human friendly alternative to *JSON*, but 
+the authors were too ambitious and tried to support too many data types and too 
+many formats. To distinguish between all the various types and formats, 
+a complicated and non-intuitive set of rules developed.  For example, 2 is 
+interpreted as an integer, 2.0 as a real number, while $2.00, 2.0km, 2.0.0 and 
+"2" are strings.  *YAML* at first appears very appealing when used with simple 
+examples, but things can quickly become complicated or provide unexpected 
+results.  A reaction to this is the use of *YAML* subsets, such as `StrictYAML 
 <https://hitchdev.com/strictyaml>`_.  However, the subsets still try to maintain 
 compatibility with *YAML* and so inherit much of its complexity. For example, 
 both *YAML* and *StrictYAML* support the `nine different ways to write 
 multi-line strings in YAML <http://stackoverflow.com/a/21699210/660921>`_.
 
-*YAML* recognized the problems that result from *JSON* needing to unambiguously 
+*YAML* avoids the problems that result from *JSON* needing to unambiguously 
 distinguish between many data types and instead uses implicit typing, which 
 creates its own `problems
 <https://hitchdev.com/strictyaml/why/implicit-typing-removed>`_.
@@ -158,7 +166,7 @@ transformed and because there are many possible strings that map to *False*
 
 This is one example of the many possible problems that stem from implicit 
 typing.  In fact, many people make it a habit to add quotes to all values simply 
-to avoid the ambiguities, which makes *YAML* more like *JSON*.
+to avoid the ambiguities, which in practice makes *YAML* more like *JSON*.
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
 following clear advantages over *YAML* as human readable and writable data file 
@@ -166,7 +174,7 @@ format:
 
 - simple
 - unambiguous (no implicit typing)
-- data type does not change based on seemingly insignificant details (2, 2.0, 2.0.0, "2")
+- data type does not change based on seemingly insignificant details (2, 2.0, 2.0km, $2.00, 2.0.0, "2")
 - syntax is insensitive to special characters within text
 - safe, no risk of malicious code execution
 

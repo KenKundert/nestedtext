@@ -8,11 +8,19 @@ Installation
 
    pip3 install --user nestedtext
 
+
 Releases
 ========
+
 **Latest development release**:
     | Version: 1.0.0
     | Released: 2020-10-03
+
+    - Empty dictionaries and lists are rejected by :func:`dump` and 
+      :func:`dumps` if *default* argument is specified as 'strict'.
+
+**1.0 (2020-10-03)**:
+    - Production release.
 
 **0.6 (2020-09-26)**:
     - Added :func:`load` and :func:`dump`.

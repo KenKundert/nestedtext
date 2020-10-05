@@ -868,8 +868,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
     # define object type identification functions
     if default == 'strict':
-        is_a_dict = lambda obj: isinstance(obj, dict)
-        is_a_list = lambda obj: isinstance(obj, list)
+        is_a_dict = lambda obj: obj and isinstance(obj, dict)
+        is_a_list = lambda obj: obj and isinstance(obj, list)
         is_a_str = lambda obj: isinstance(obj, str)
         is_a_scalar = lambda obj: False
     else:
