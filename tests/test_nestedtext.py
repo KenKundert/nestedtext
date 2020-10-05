@@ -378,14 +378,14 @@ def test_load_api_errors():
 @parametrize_dump_api
 @parametrize_dump_success_cases
 def test_dump_success_cases(dump, data_in, path_out, tmp_path):
-    assert dump(data_in, tmp_path) == path_out.read_text().rstrip('\n')
+    assert dump(data_in, tmp_path, default='strict') == path_out.read_text().rstrip('\n')
 
 # test_dump_error_cases {{{1
 @parametrize_dump_api
 @parametrize_dump_error_cases
 def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
     with pytest.raises(nt.NestedTextError) as exc_info:
-        dump(data_in, tmp_path)
+        dump(data_in, tmp_path, default='strict')
 
     e = exc_info.value
 
@@ -394,6 +394,19 @@ def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
 
     assert isinstance(e, Error)
     assert isinstance(e, ValueError)
+
+# test_dump_default {{{1
+@parametrize_dump_api
+def test_dump_default(dump, tmp_path):
+    data = dict(none=None, true=True, false=False, empty_dict={}, empty_list=[])
+
+    assert dump(data, tmp_path) == dedent('''\
+            none: None
+            true: True
+            false: False
+            empty_dict:
+            empty_list:
+    ''').strip()
 
 # test_dump_sort_keys {{{1
 @parametrize_dump_api

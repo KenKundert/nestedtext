@@ -646,7 +646,6 @@ def load(f=None, on_dup=None):
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
 
-
 # render_key {{{2
 def render_key(s):
     if not is_str(s):
@@ -927,7 +926,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     else:
         error = "unsupported type."
 
-    if need_indented_block and level != 0:
+    if need_indented_block and content and level != 0:
         content = "\n" + add_leader(content, indent*' ')
 
     if error:
