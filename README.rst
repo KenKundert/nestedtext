@@ -159,14 +159,22 @@ When read by *NestedText* both values are retained in their original form as
 strings.  With *NestedText* any decisions about how to interpret the leaf values 
 are passed to the end application, which is the only place where they can be 
 made knowledgeably.  The assumption is that the end application knows that 
-*Enrolled* should be a Boolean and knows how to convert 'NO' to *False*.  The 
-same is not possible with *YAML* because the *Country Code* value has been 
+*Enrolled* should be a Boolean and knows how to convert 'NO' to *False*.  It 
+also knows to check that the value of *Country Code* is a known country code. 
+The same is not possible with *YAML* because the *Country Code* value has been 
 transformed and because there are many possible strings that map to *False* 
 (`n`, `no`, `false`, `off`; etc.).
 
 This is one example of the many possible problems that stem from implicit 
 typing.  In fact, many people make it a habit to add quotes to all values simply 
-to avoid the ambiguities, which in practice makes *YAML* more like *JSON*.
+to avoid the ambiguities, a practice that makes *YAML* feel more like *JSON*.
+
+To be fair, the implicit typing is not innate to *YAML*.  One always employs 
+a loader with *YAML*, and it is the loader that implements the implicit  typing.  
+It is free to do so as it wishes. Some implement the implicit typing described 
+above, some implement less, some implement none at all. For example, *PyYAML*'s  
+*BaseLoader* leaves everything as a string, just like *StrictYAML* and 
+*NestedText*.
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
 following clear advantages over *YAML* as human readable and writable data file 

@@ -737,9 +737,6 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         NestedTextError: if there is a problem in the input data.
 
     Examples:
-        This example writes to a string, but it is common to write to a file.
-        The file name and extension are arbitrary. However, by convention a
-        '.nt' suffix is generally used for *NestedText* files.
 
         .. code-block:: python
 
@@ -759,15 +756,17 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             sex: female
             age: 74
 
-        The *NestedText* format only supports dictionaries, lists, and strings.
-        By default, *dumps* is configured to be rather forgiving, so it will
-        render many of the base Python data types, such as *None*, *bool*,
-        *int*, *float* and list-like types such as *tuple* and *set* by
-        converting them to the types supported by the format.  This implies
-        that a round trip through *dumps* and *loads* could result in the types
-        of values being transformed. You can prevent this by passing
+        The *NestedText* format only supports dictionaries, lists, and strings
+        and all leaf values must be strings.  By default, *dumps* is configured
+        to be rather forgiving, so it will render many of the base Python data
+        types, such as *None*, *bool*, *int*, *float* and list-like types such
+        as *tuple* and *set* by converting them to the types supported by the
+        format.  This implies that a round trip through *dumps* and *loads*
+        could result in the types of values being transformed. You can restrict
+        *dumps* to only supporting the native types of *NestedText* by passing
         `default='strict'` to *dumps*.  Doing so means that values that are not
-        dictionaries, lists, or strings generate exceptions.
+        dictionaries, lists, or strings generate exceptions; as do empty
+        dictionaries and lists.
 
         .. code-block:: python
 
@@ -985,21 +984,22 @@ def dump(obj, f, **kwargs):
             ...     with open('data.nt', 'w', encoding='utf-8') as f:
             ...         nt.dump(data, f)
             ... except nt.NestedTextError as e:
-            ...     fatal(e)
+            ...     e.terminate()
             ... except OSError as e:
             ...     fatal(os_error(e))
 
-        This example writes to a file specified by file name.
+        This example writes to a file specified by file name.  In general, the
+        file name and extension are arbitrary. However, by convention a
+        '.nt' suffix is generally used for *NestedText* files.
 
         .. code-block:: python
 
             >>> try:
             ...     nt.dump(data, 'data.nt')
             ... except nt.NestedTextError as e:
-            ...     fatal(e)
+            ...     e.terminate()
             ... except OSError as e:
             ...     fatal(os_error(e))
-            >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
 
     """
     content = dumps(obj, **kwargs)
