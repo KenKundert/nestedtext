@@ -41,7 +41,7 @@ addresses::
         name: Katheryn McDaniel
         address:
             > 138 Almond Street
-            > Topika, Kansas 20697
+            > Topeka, Kansas 20697
         phone:
             cell: 1-210-555-5297
             home: 1-210-555-8470
@@ -54,9 +54,9 @@ addresses::
         name: Margaret Hodge
         address:
             > 2586 Marigold Lane
-            > Topika, Kansas 20682
+            > Topeka, Kansas 20682
         phone: 1-470-555-0398
-        email: margaret.hodge@uk.edu
+        email: margaret.hodge@ku.edu
         additional roles:
             - new membership task force
             - accounting task force
@@ -67,7 +67,7 @@ addresses::
             # She will be replaced by Merrill Eldridge.
         address:
             > 3636 Buffalo Ave
-            > Topika, Kansas 20692
+            > Topeka, Kansas 20692
         phone: 1-268-555-0280
         email: fumiko.purvis@hotmail.com
         additional roles:
@@ -79,8 +79,37 @@ any depth.  Indentation is used to indicate the hierarchy of the data, and
 a simple natural syntax is used to distinguish the types of data in such 
 a manner that it is not easily confused.  Specifically, lines that begin with 
 a word or words followed by a colon are dictionary items; a dash introduces list 
-items, and a leading greater-than symbol signifies a line in a multiline string.
-Dictionaries and lists are used for nesting, the leaf values are always strings.
+items, and a leading greater-than symbol signifies a line in a multi-line 
+string.  Dictionaries and lists are used for nesting and the leaf values are 
+always strings, hence the name, *NestedText*.
+
+*NestedText* is somewhat unique in that the leaf values are always strings. Of 
+course the values start off as strings in the input file, but alternatives like 
+JSON or YAML aggressively convert those values into the underlying data types 
+such as integers, floats, and Booleans.  For example, a value like 2.10 would be 
+converted to a floating point number. But making the decision to do so is based 
+purely on the form of the value, not the context in which it is found.  This can 
+lead to misinterpretations.  For example, assume that this value is the software 
+version number two point ten. By converting it to a floating point number it 
+becomes two point one, which is wrong. There are many possible versions of this 
+basic issue. But there is also the inverse problem; values that should be 
+converted to particular data types but are not recognized. For example, a value 
+of $2.00 should be converted to a real number but would likely not be.  There 
+are simply too many values types for a general purpose solution that is only 
+looking at the values themselves to be able to interpret all of them.  For 
+example, 12/10/09 is likely a date, but is it in MM/DD/YY, YY/MM/DD or DD/MM/YY 
+form?  The fact is, the value alone is often insufficient to reliably determine 
+how to convert values into internal data types.  *NestedText* avoids these 
+problems by leaving the values in their original form and allowing the decision 
+to be made by the end application where more context is available to help guide 
+the conversions. For example, if a price is expected for a value, then $2.00 
+would be checked and converted accordingly. Similarly, local conventions along 
+with the fact that a date is expected for a particular value allows 12/10/09 to 
+be correctly validated and converted.  This process of validation and conversion 
+is referred to as applying a schema to the data. There are packages such as 
+`Voluptuous <https://github.com/alecthomas/voluptuous>`_ and `Pydantic 
+<https://pydantic-docs.helpmanual.io>`_ available that make this process easy 
+and reliable.
 
 
 Alternatives
@@ -89,8 +118,11 @@ Alternatives
 There are no shortage of well established alternatives to *NestedText* for 
 storing data in a human-readable text file. Probably the most obvious are `json 
 <https://docs.python.org/3/library/json.html>`_ and `YAML 
-<https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both have serious short 
-comings.
+<https://pyyaml.org/wiki/PyYAMLDocumentation>`_.  Both are primarily intended to 
+be used as serialization languages. *NestedText* is not intended to be used as 
+a serialization language, rather it is more suitable for configuration and hand 
+generated and edited data files.  In these applications, both *JSON* and *YAML* 
+have significant short comings.
 
 
 JSON
@@ -105,12 +137,13 @@ integer, 32.0 is the real version of 32, and "32" is the string version. These
 distinctions are not meaningful and can be confusing to non-programmers. In 
 addition, in most datasets a majority of leaf values are strings and the 
 required quotes adds substantial visual clutter.  *NestedText* avoids these 
-issues by treating all leaf values as strings with no need for quoting or 
+issues by keeping all leaf values as unmodified strings; no need for quoting or 
 escaping.  It is up to the application that employs *NestedText* as an input 
-format to sort things out later.
+format to use context to check these strings and convert them to the right 
+datatype.
 
-*JSON* does not provide for multiline strings and any special characters like 
-newlines or unicode are encoded with escape codes, which can make strings quite 
+*JSON* does not provide for multi-line strings and any special characters like 
+newlines are encoded with escape codes, which can make strings long and 
 difficult to interpret.  Finally, dictionary and list items must be separated 
 with commas, but a comma must not follow last item.  All of this results in 
 *JSON* being a frustrating format for humans to read, enter or edit.
@@ -118,12 +151,11 @@ with commas, but a comma must not follow last item.  All of this results in
 *NestedText* has the following clear advantages over *JSON* as human readable 
 and writable data file format:
 
-- text does not require quotes
+- text does not require quotes or escape codes
 - data type does not change based on seemingly insignificant details (32, 32.0, "32")
 - comments
 - multiline strings
 - special characters without escaping them
-- Unicode characters without encoding them
 - commas are not used to separate dictionary and list items
 
 
@@ -131,13 +163,13 @@ YAML
 """"
 
 *YAML* is considered by many to be a human friendly alternative to *JSON*, but 
-the authors were too ambitious and tried to support too many data types and too 
-many formats. To distinguish between all the various types and formats, 
-a complicated and non-intuitive set of rules developed.  For example, 2 is 
-interpreted as an integer, 2.0 as a real number, while $2.00, 2.0km, 2.0.0 and 
-"2" are strings.  *YAML* at first appears very appealing when used with simple 
-examples, but things can quickly become complicated or provide unexpected 
-results.  A reaction to this is the use of *YAML* subsets, such as `StrictYAML 
+over time it has accumulated too many data types and too many formats.  To 
+distinguish between all the various types and formats, a complicated and 
+non-intuitive set of rules developed.  For example, 2 is interpreted as an 
+integer, 2.0 as a real number, while $2.00, 2.0km, 2.0.0 and "2" are strings.  
+*YAML* at first appears very appealing when used with simple examples, but 
+things can quickly become complicated or provide unexpected results.  A reaction 
+to this is the use of *YAML* subsets, such as `StrictYAML 
 <https://hitchdev.com/strictyaml>`_.  However, the subsets still try to maintain 
 compatibility with *YAML* and so inherit much of its complexity. For example, 
 both *YAML* and *StrictYAML* support the `nine different ways to write 

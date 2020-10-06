@@ -113,7 +113,7 @@ arbitrary depth::
         name: Katheryn McDaniel
         address:
             > 138 Almond Street
-            > Topika, Kansas 20697
+            > Topeka, Kansas 20697
         phone:
             cell: 1-210-555-5297
             home: 1-210-555-8470
@@ -127,9 +127,9 @@ arbitrary depth::
         name: Margaret Hodge
         address:
             > 2586 Marigold Land
-            > Topika, Kansas 20697
+            > Topeka, Kansas 20697
         phone: 1-470-555-0398
-        email: margaret.hodge@uk.edu
+        email: margaret.hodge@ku.edu
         kids:
             - Arnie
             - Zach

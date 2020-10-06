@@ -20,7 +20,7 @@ were not for the line above it.  For example, consider the following example:
     ...     name: Fumiko Purvis
     ...     address: Home
     ...         > 3636 Buffalo Ave
-    ...         > Topika, Kansas 20692
+    ...         > Topeka, Kansas 20692
     ... """
 
     >>> try:
@@ -49,7 +49,7 @@ A more subtle version of this same error follows:
     ...     name: Fumiko Purvis
     ...     address:␣␣
     ...         > 3636 Buffalo Ave
-    ...         > Topika, Kansas 20692
+    ...         > Topeka, Kansas 20692
     ... """
 
     >>> try:
