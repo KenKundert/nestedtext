@@ -4,10 +4,11 @@ Common mistakes
 
 .. currentmodule:: nestedtext
 
-When :func:`.loads()` complains of errors it is important to look both at the 
-line fingered by the error message and the one above it.  The line that is the 
-target of the error message might by an otherwise valid *NestedText* line if it 
-were not for the line above it.  For example, consider the following example:
+When :func:`load()` or :func:`loads()` complains of errors it is important to 
+look both at the line fingered by the error message and the one above it.  The 
+line that is the target of the error message might by an otherwise valid 
+*NestedText* line if it were not for the line above it.  For example, consider 
+the following example:
 
 **Example:**
 

@@ -5,12 +5,12 @@ Schemas
 The default schema used by *NestedText* is that all leaf values are arbitrary 
 strings.  This is not always desired. It may be that the data contains certain 
 values that should be represented as data types other than strings.  Common 
-examples include Booleans, numbers, dates, times, etc.  For example, in a list 
-of employees, the dictionary that describes each employee may contain a field 
-*year born* that should be converted to an integer that is greater than 1900 and 
-less than the current year.  This involves two operations: validation (assuring 
-that given value represents a year in the acceptable range) and coercion 
-(converting value from a string to an integer).  Both operations can be 
+examples include Booleans, numbers, quantities, dates, times, etc.  For example, 
+in a list of employees, the dictionary that describes each employee may contain 
+a field *year born* that should be converted to an integer that is greater than 
+1900 and less than the current year.  This involves two operations: validation 
+(assuring that given value represents a year in the acceptable range) and 
+coercion (converting value from a string to an integer).  Both operations can be 
 performed by a transforming validator like `Voluptuous 
 <https://github.com/alecthomas/voluptuous>`_.
 

@@ -1,3 +1,4 @@
-- green chilies
-    - red chilies
+ingredients:
+    - green chilies
+        - red chilies
 

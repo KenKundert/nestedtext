@@ -1,3 +1,4 @@
-- Bread
-- Peanut butter
-- Jam
+groceries:
+  - Bread
+  - Peanut butter
+  - Jam

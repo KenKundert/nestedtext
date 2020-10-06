@@ -444,8 +444,13 @@ def read_all(lines, source, on_dup):
     with set_culprit(source):
         lines = Lines(lines)
 
-        if lines.type_of_next():
-            return read_value(lines, 0, on_dup)
+        next_is = lines.type_of_next()
+        if next_is == "dict item":
+            return read_dict(lines, 0, on_dup)
+        elif next_is:
+            report('content must start with key.', lines.get_next())
+        else:
+            return {}
 
 
 # loads() {{{2
@@ -463,9 +468,10 @@ def loads(content, source=None, *, on_dup=None):
         on_dup (str or func):
             Indicates how duplicate keys in dictionaries should be handled. By
             default they raise exceptions. Specifying 'ignore' causes them to be
-            ignored. Specifying 'replace' results in them replacing earlier
-            items. By specifying a function, the keys can be de-duplicated.
-            This call-back function returns a new key and takes four arguments:
+            ignored (first wins). Specifying 'replace' results in them replacing
+            earlier items (last wins). By specifying a function, the keys can be
+            de-duplicated.  This call-back function returns a new key and takes
+            four arguments:
 
             1. The new key (duplicates an existing key).
             2. The new value.
@@ -602,13 +608,14 @@ def load(f=None, on_dup=None):
 
             >>> import nestedtext as nt
             >>> print(open('examples/groceries.nt').read())
-            - Bread
-            - Peanut butter
-            - Jam
+            groceries:
+              - Bread
+              - Peanut butter
+              - Jam
             <BLANKLINE>
 
             >>> nt.load('examples/groceries.nt')
-            ['Bread', 'Peanut butter', 'Jam']
+            {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
         Load from a `pathlib.Path`:
 
@@ -616,7 +623,7 @@ def load(f=None, on_dup=None):
 
             >>> from pathlib import Path
             >>> nt.load(Path('examples/groceries.nt'))
-            ['Bread', 'Peanut butter', 'Jam']
+            {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
         Load from an open file object:
 
@@ -625,7 +632,7 @@ def load(f=None, on_dup=None):
             >>> with open('examples/groceries.nt') as f:
             ...     nt.load(f)
             ...
-            ['Bread', 'Peanut butter', 'Jam']
+            {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
     '''
 
@@ -723,6 +730,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             specified in *renderers* are allowed. If *default* is not specified
             then a broader collection of value types are supported, including
             *None*, *bool*, *int*, *float*, and *list*- and *dict*-like objects.
+            In this case Booleans is rendered as 'True' and 'False' and None and
+            empty lists and dictionaries are rendered as empty strings.
         level (int):
             The number of indentation levels.  When dumps is invoked recursively
             this is used to increment the level and so the indent.  Generally
@@ -866,7 +875,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
     # define object type identification functions
     if default == 'strict':
-        is_a_dict = lambda obj: obj and isinstance(obj, dict)
+        is_a_dict = lambda obj: (obj or level == 0) and isinstance(obj, dict)
         is_a_list = lambda obj: obj and isinstance(obj, list)
         is_a_str = lambda obj: isinstance(obj, str)
         is_a_scalar = lambda obj: False
@@ -890,6 +899,9 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         )
 
     # render content
+    if level == 0:
+        if not is_a_dict(obj):
+            raise NestedTextError('the top-level must be a dictionary.')
     assert indent > 0
     error = None
     need_indented_block = is_collection(obj)
@@ -917,16 +929,17 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             need_indented_block = True
         else:
             content = obj
-            if level == 0:
-                content = add_leader(content, '> ').strip()
     elif is_a_scalar(obj):
-        content = str(obj)
+        if obj is None:
+            content = ''
+        else:
+            content = str(obj)
     elif default and callable(default):
         content = default(obj)
     else:
         error = "unsupported type."
 
-    if need_indented_block and content and level != 0:
+    if need_indented_block and content and level:
         content = "\n" + add_leader(content, indent*' ')
 
     if error:

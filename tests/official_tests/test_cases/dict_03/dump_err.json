@@ -1,4 +1,4 @@
 {
   "culprit": "'key \" key'",
-  "message": "keys that require quoting must not contain both \" and '"
+  "message": "keys that require quoting must not contain both \" and '."
 }

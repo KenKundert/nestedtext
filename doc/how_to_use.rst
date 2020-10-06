@@ -4,13 +4,13 @@
 Basic use
 *********
 
-The *NestedText* API is patterned after that of JSON.
+The *NestedText* Python API is patterned after that of JSON.
 
 NestedText Reader
 -----------------
 
-The :func:`loads` function is used to convert *NestedText* into a Python data 
-structure.  If there is a problem interpreting the input text, 
+The :func:`loads` function is used to convert *NestedText* held in a string into 
+a Python data structure.  If there is a problem interpreting the input text, 
 a :exc:`NestedTextError` exception is raised.
 
 .. code-block:: python
@@ -45,15 +45,15 @@ function.
     ...     fatal(os_error(e))
 
     >>> print(groceries)
-    ['Bread', 'Peanut butter', 'Jam']
+    {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
 
 NestedText Writer
 -----------------
 
 The :func:`dumps` function is used to convert a Python data structure into 
-*NestedText*.  As before, if there is a problem converting the input data, 
-a :exc:`NestedTextError` exception is raised.
+a *NestedText* string.  As before, if there is a problem converting the input 
+data, a :exc:`NestedTextError` exception is raised.
 
 .. code-block:: python
 

@@ -1,4 +1,4 @@
 {
-  "culprit": "apricot\\n",
-  "message": "keys must not contain newlines"
+  "culprit": "'apricot\\n'",
+  "message": "keys must not contain newlines."
 }

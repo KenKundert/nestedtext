@@ -16,8 +16,20 @@ Releases
     | Version: 1.0.2
     | Released: 2020-10-05
 
+    - Top-level object must now be a dictionary.
     - Empty dictionaries and lists are rejected by :func:`dump` and 
       :func:`dumps` if *default* argument is specified as 'strict'.
+
+    .. warn:
+
+        Be aware that this version is not fully backward compatible.  
+        Specifically, the previous version allowed a list or a string as the 
+        top-level data, but this version only allows a dictionary as the 
+        top-level.  This results in a simpler return value from :func:`load` and 
+        :func:`loads` and substantially reduces the change of coding errors.  It 
+        was noticed that it was common to simply assume that the top-level was 
+        a dictionary when writing code that used these functions, which would 
+        result in unexpected errors when users hand-create the input data.
 
 **1.0 (2020-10-03)**:
     - Production release.

@@ -1,4 +1,4 @@
 {
-  "culprit": "8",
+  "culprit": 8,
   "message": "keys must be strings."
 }

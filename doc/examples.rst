@@ -16,6 +16,10 @@ This example implements a command-line utility that converts a *JSON* file to
 .. literalinclude:: ../examples/json-to-nestedtext
    :language: python
 
+The presence of this example should not be taken as a suggestion that 
+*NestedText* is a replacement for *JSON*.  Be aware that not all *JSON* data can 
+be converted to *NestedText*, and in the conversion all type information is 
+lost.
 
 .. _nestedtext-to-json:
 
@@ -23,7 +27,7 @@ NestedText to JSON
 ==================
 
 This example implements a command-line utility that converts a *NestedText* file 
-to *JSON*.  It demonstrates the use of :func:`loads()` and 
+to *JSON*.  It demonstrates the use of :func:`load()` and 
 :exc:`NestedTextError`.
 
 .. literalinclude:: ../examples/nestedtext-to-json

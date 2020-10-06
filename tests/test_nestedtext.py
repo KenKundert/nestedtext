@@ -389,8 +389,12 @@ def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
 
     e = exc_info.value
 
-    assert culprit in str(e)
-    assert message in str(e)
+    if culprit is None:
+        culprit = ()
+    elif not isinstance(culprit, tuple):
+        culprit = (culprit,)
+    assert culprit == e.get_culprit()
+    assert message == e.get_message()
 
     assert isinstance(e, Error)
     assert isinstance(e, ValueError)
@@ -401,7 +405,7 @@ def test_dump_default(dump, tmp_path):
     data = dict(none=None, true=True, false=False, empty_dict={}, empty_list=[])
 
     assert dump(data, tmp_path) == dedent('''\
-            none: None
+            none:
             true: True
             false: False
             empty_dict:

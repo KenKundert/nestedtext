@@ -44,9 +44,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     If the first non-space character on a line is a greater-than symbol followed 
     immediately by a space ('>␣') or a newline, the line is a *string-item*.  
     Adjacent string-items with the same indentation level are combined into 
-    a multiline string with their order being retained.  Any leading white space 
-    that follows the space that follows the greater-than symbol is retained, as 
-    is any trailing white space.
+    a multi-line string with their order being retained.  Any leading white 
+    space that follows the space that follows the greater-than symbol is 
+    retained, as is any trailing white space.
 
 **List items**:
 
@@ -62,14 +62,16 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     is followed by a newline, the line is considered a *dict-item*.  Adjacent 
     dict-items with the same indentation level are combined into a dictionary 
     with their order being retained.  Each dict-item consists of a key, the 
-    colon, and a value.  A key must be a string, it must not contain a newline, 
-    and it must be quoted if it starts with a line-type or string-type tag or it 
-    contains a dict-item tag or if it is delimited by matching quote characters 
-    or has leading or trailing spaces.  A key is quoted by delimiting it with 
-    matching single or double quote characters. Double quotes are used if the 
-    key contains a single quote character and a single quotes are used if the 
-    key contains a double quote character.  A key that requires quoting must not 
-    contain both single and double quote characters.  
+    colon, and a value.
+
+    A key must be a string, it must not contain a newline, and it must be quoted 
+    if it starts with a line-type or string-type tag or it contains a dict-item 
+    tag or if it is delimited by matching quote characters or has leading or 
+    trailing spaces.  A key is quoted by delimiting it with matching single or 
+    double quote characters. Double quotes are used if the key contains a single 
+    quote character and a single quotes are used if the key contains a double 
+    quote character.  A key that requires quoting must not contain both single 
+    and double quote characters.  
 
 **Values**:
 
@@ -80,7 +82,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     If there is no further text on the line and the next line has greater 
     indentation, then the next line holds the value, which may be a list, 
-    a dictionary, or a multiline string.
+    a dictionary, or a multi-line string.
 
     Otherwise the value is empty; it is taken to be an empty string.
 
@@ -105,30 +107,19 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Only spaces are allowed in the indentation. Specifically, tabs are not 
     allowed.
 
+**Top level**:
+
+    The top-level must be a dictionary.
+
 **Empty document**:
 
     A document may be empty. A document is empty if it consists only of
-    comments and blank lines.
+    comments and blank lines.  An empty document is equivalent to an empty 
+    dictionary.
 
 **Result**:
 
-    When a document is converted from *NestedText* the result takes one of the 
-    following forms:
-
-    **None**:
-        The document is empty.
-
-    **String**:
-        The document consists of a single multiline string
-
-    **List**:
-        The top-level of the document is a list.
-        Each value of the list may be a string, list, or a dictionary.
-        The nesting of lists and dictionaries may be arbitrarily deep but the 
-        leaf values are all strings as are all keys in all dictionaries.
-
-    **Dictionary**:
-        The top-level of the document is a dictionary.  Each value may be 
-        a string, list, or a dictionary.  The nesting of lists and dictionaries 
-        may be arbitrarily deep but the leaf values are all strings as are all 
-        keys in all dictionaries.
+    When a document is converted from *NestedText* the result is a hierarchical 
+    collection of dictionaries, lists and strings where the top-level is 
+    a dictionary and all leaf values are strings.  All dictionary keys are also 
+    strings.
