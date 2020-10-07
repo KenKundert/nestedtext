@@ -5,8 +5,8 @@
    :maxdepth: 1
 
    releases
-   how_to_write
-   how_to_use
+   basic_syntax
+   basic_use
    schemas
    examples
    common_mistakes
