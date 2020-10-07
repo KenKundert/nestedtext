@@ -13,8 +13,8 @@ Releases
 ========
 
 **Latest development release**:
-    | Version: 1.0.2
-    | Released: 2020-10-05
+    | Version: 1.0.3
+    | Released: 2020-10-06
 
     - Top-level object must now be a dictionary.
     - Empty dictionaries and lists are rejected by :func:`dump` and 
