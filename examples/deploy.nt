@@ -1,0 +1,13 @@
+debug: false
+secret_key: t=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch
+
+allowed_hosts:
+  - www.example.com
+
+database:
+  engine: django.db.backends.mysql
+  host: db.example.com
+  port: 3306
+  user: www
+
+webmaster_email: admin@example.com
