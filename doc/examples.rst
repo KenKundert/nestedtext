@@ -127,5 +127,6 @@ And finally, the code:
 .. literalinclude:: ../examples/cryptocurrency
    :language: python
 
+
 .. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _voluptuous: https://github.com/alecthomas/voluptuous
