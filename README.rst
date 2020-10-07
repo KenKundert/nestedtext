@@ -76,7 +76,7 @@ addresses::
                 # Fumiko's term is ending at the end of the year.
                 # She will be replaced by Merrill.
             phone: 1-268-555-3602
-            email: merril.eldridge@yahoo.com
+            email: merrill.eldridge@yahoo.com
 
 The format holds dictionaries (ordered collections of name/value pairs), lists 
 (ordered collections of values) and strings (text) organized hierarchically to 
@@ -116,6 +116,28 @@ referred to as applying a schema to the data. There are packages such as
 `Voluptuous <https://github.com/alecthomas/voluptuous>`_ and `Pydantic 
 <https://pydantic-docs.helpmanual.io>`_ available that make this process easy 
 and reliable.
+
+
+The Zen of *NestedText*
+-----------------------
+
+*NestedText* aspires to be a simple dumb vessel that holds peoples' structured 
+data, and to do so in a way that allows people to easily interact with that 
+data.
+
+The desire to be simple is an attempt to minimize the effort required to learn 
+and use the language. Ideally people can understand it by looking at one or two 
+examples and they can use it without without needing to remember any arcane 
+rules and without relying on any of the knowledge that programmers accumulate 
+through years of experience.  One source of simplicity is consistency.  As such, 
+*NestedText* uses a small amount of rules that it applies with few exceptions.
+
+The desire to be dumb means that it tries not to transform the data in any 
+meaningful way. It allows you to recover the structure in your data without 
+doing anything that might change the interpretation of the data. Rather, it 
+tries to make it easy for you to interpret the data by managing the structure, 
+which allows you to analyze it in small easy to interpret pieces without making 
+any changes that would get in your way.
 
 
 Alternatives
@@ -207,6 +229,7 @@ Please ask questions or report problems on `Github
 Contributing
 ------------
 
-This package contains a Python reference implementation of *NestedText*.
-Implementation in many languages is required for *NestedText* to catch on widely.
-If you like the format, please consider contributing additional implementations. 
+This package contains a Python reference implementation of *NestedText* and 
+a test suite.  Implementation in many languages is required for *NestedText* to 
+catch on widely.  If you like the format, please consider contributing 
+additional implementations. 
