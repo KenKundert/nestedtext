@@ -20,7 +20,7 @@ Releases
     - Empty dictionaries and lists are rejected by :func:`dump` and 
       :func:`dumps` if *default* argument is specified as 'strict'.
 
-    .. warn:
+    .. warning::
 
         Be aware that this version is not fully backward compatible.  
         Specifically, the previous version allowed a list or a string as the 
