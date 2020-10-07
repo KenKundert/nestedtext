@@ -965,7 +965,10 @@ def dump(obj, f, **kwargs):
             closed.
 
             The name used for the file is arbitrary but it is tradition to use a
-            .nt suffix.
+            .nt suffix.  If you also wish to further distinguish the file type
+            by giving the schema, it is recommended that you use two suffixes,
+            with the suffix that specifies the schema given first and .nt given
+            last. For example: flicker.sig.nt.
 
         kwargs:
             See :func:`dumps` for optional arguments.
