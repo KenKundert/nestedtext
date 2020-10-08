@@ -1,12 +1,19 @@
 .. include:: ../README.rst
 
 .. toctree::
+   :caption: Why NestedText?
+   :maxdepth: 1
+
+   Philosophy <philosophy>
+   alternatives
+
+.. toctree::
    :caption: Getting started
    :maxdepth: 1
 
-   releases
-   how_to_write
-   how_to_use
+   installation
+   basic_syntax
+   basic_use
    schemas
    examples
    common_mistakes
