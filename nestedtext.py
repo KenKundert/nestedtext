@@ -174,16 +174,16 @@ class NestedTextError(Error, ValueError):
 # Converts NestedText into Python data hierarchies.
 
 # constants {{{2
-# build regex use to split dict items
-colon_space = ": "
-colon_newline = ":\n"
-splitters = [
-    r'"[^"\n]*"',  # "string"
-    r"'[^'\n]*'",  # 'string'
-    colon_space,
-    colon_newline,
-]
-splitter = re.compile("(" + "|".join(f"(?:{s})" for s in splitters) + ")")
+# regular expressions used to recognize dict items
+dict_item_regex = r"""
+    (?P<quote>["']?)       # leading quote character, optional
+    (?P<key>.*?)           # key
+    (?P=quote)             # matching quote character
+    \s*                    # optional white space
+    :                      # separator
+    (?:\ (?P<value>.*))?   # value
+"""
+dict_item_recognizer = re.compile(dict_item_regex, re.VERBOSE)
 
 
 # report {{{2
@@ -259,9 +259,8 @@ class Lines:
             key = None
             value = None
 
-            # last line may not have trailing newline, which we count on
-            if line[-1:] != '\n':
-                line += '\n'
+            # all lines except possibly last have a trailing newline, remove it
+            line = line.rstrip('\n')
 
             # compute indentation
             stripped = line.lstrip()
@@ -274,32 +273,27 @@ class Lines:
                 depth = None
             elif stripped[:1] == "#":
                 kind = "comment"
-                value = line[1:-1].strip()
+                value = line[1:].strip()
                 depth = None
-            elif stripped == '-\n' or stripped.startswith('- '):
+            elif stripped == '-' or stripped.startswith('- '):
                 kind = "list item"
-                value = stripped[2:-1]
-            elif stripped == '>\n' or stripped.startswith('> '):
-                kind = "string"
-                value = line[depth+2:-1]
+                value = stripped[2:]
+            elif stripped == '>' or stripped.startswith('> '):
+                kind = "string item"
+                value = line[depth+2:]
             else:
-                components = splitter.split(line)
-                kind = "dict item"
-                if colon_space in components:
-                    split_loc = components.index(colon_space)
-                    key = dequote("".join(components[:split_loc]))
-                    value = "".join(components[split_loc + 1:])
-                elif colon_newline in components:
-                    # :\n is always second to last component and followed by ''
-                    key = dequote("".join(components[:-2]))
-                    value = "\n"
+                matches = dict_item_recognizer.fullmatch(stripped)
+                if matches:
+                    kind = "dict item"
+                    key = matches.group('key')
+                    value = matches.group('value')
+                    if value is None:
+                        value = ''
                 else:
                     kind = "unrecognized"
                     value = line
-                value = value[:-1]
 
             # bundle information about line
-            line = line[:-1]  # remove trailing newline
             the_line = self.Line(
                 text = line,
                 lineno = lineno+1,
@@ -336,7 +330,10 @@ class Lines:
     # still_within_string() {{{3
     def still_within_string(self, depth):
         if self.next_line:
-            return self.next_line.kind == "string" and self.next_line.depth == depth
+            return (
+                self.next_line.kind == "string item" and
+                self.next_line.depth == depth
+            )
 
     # depth_of_next() {{{3
     def depth_of_next(self):
@@ -367,7 +364,7 @@ def read_value(lines, depth, on_dup):
         return read_list(lines, depth, on_dup)
     if lines.type_of_next() == "dict item":
         return read_dict(lines, depth, on_dup)
-    if lines.type_of_next() == "string":
+    if lines.type_of_next() == "string item":
         return read_string(lines, depth)
     report('unrecognized line.', lines.get_next())
 
@@ -672,13 +669,19 @@ def render_key(s):
         or ': ' in s
         or s[:1] + s[-1:] in ['""', "''"]
     ):
-        if '"' in s and "'" in s:
-            raise NestedTextError(
-                s,
-                template = """keys that require quoting must not contain both " and '.""",
-                culprit = s,
-            )
-        return repr(s)
+        if "'" in s:
+            quotes = '"', "'"
+        else:
+            quotes = "'", '"'
+
+        # try extracting key using various both quote characters
+        # if extracted key matches given key, accept
+        for quote_char in quotes:
+            key = quote_char + s + quote_char
+            matches = dict_item_recognizer.fullmatch(key + ':')
+            if matches and matches.group('key') == s:
+                return key
+        raise NestedTextError(s, template = "cannot disambiguate key.", culprit = key)
     return s
 
 
@@ -901,7 +904,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     # render content
     if level == 0:
         if not is_a_dict(obj):
-            raise NestedTextError('the top-level must be a dictionary.')
+            raise NestedTextError(obj, template='the top-level must be a dictionary.')
     assert indent > 0
     error = None
     need_indented_block = is_collection(obj)

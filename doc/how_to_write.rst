@@ -25,7 +25,7 @@ Dictionaries
     is treated as a string.
 
     The key is a string and must be quoted if it contains characters that could 
-    be misinterpreted.
+    be misinterpreted.  You can quote it using either single or double quotes.
 
     A dictionary is all adjacent dictionary items at the same indentation 
     level.

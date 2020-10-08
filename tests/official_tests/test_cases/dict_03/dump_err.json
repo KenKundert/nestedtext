@@ -1,4 +1,4 @@
 {
-  "culprit": "'key \" key'",
-  "message": "keys that require quoting must not contain both \" and '."
+  "culprit": "' key-a\" : key-b' : key-c '",
+  "message": "cannot disambiguate key."
 }

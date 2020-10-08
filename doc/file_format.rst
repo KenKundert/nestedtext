@@ -64,14 +64,27 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     with their order being retained.  Each dict-item consists of a key, the 
     colon, and a value.
 
-    A key must be a string, it must not contain a newline, and it must be quoted 
-    if it starts with a line-type or string-type tag or it contains a dict-item 
-    tag or if it is delimited by matching quote characters or has leading or 
-    trailing spaces.  A key is quoted by delimiting it with matching single or 
-    double quote characters. Double quotes are used if the key contains a single 
-    quote character and a single quotes are used if the key contains a double 
-    quote character.  A key that requires quoting must not contain both single 
-    and double quote characters.  
+    A key must be a string and it must not contain a newline.  The key must be 
+    quoted if it:
+
+    1. starts with a *list-item* or *string-item* tag,
+    2. contains a *dict-item* tag
+    3. is delimited by matching quote characters, or
+    4. has leading or trailing spaces.
+
+    A key is quoted by delimiting it with matching single or double quote 
+    characters, which are discarded.  Unlike traditional programming languages, 
+    a quoted key delimited with single quote characters may contain additional 
+    single quote characters. Similarly, a quoted key delimited with double quote 
+    characters may contain additional double quote characters.  Also, backslash 
+    is not used as an escape character; backslash has no special meaning.
+
+    A key is invalid if it contains two or more instances of a quote character 
+    separated from ': ' by zero or more space characters where the quote 
+    character in one is a single quote and the quote character in another is the 
+    double quote.  In this case the key cannot be quoted with either character 
+    so that the separator from the key and value can be identified 
+    unambiguously.
 
 **Values**:
 

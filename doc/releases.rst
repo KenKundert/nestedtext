@@ -12,11 +12,14 @@ Installation
 Releases
 ========
 
-**Latest development release**:
+Latest development release
+--------------------------
+
     | Version: 1.0.3
     | Released: 2020-10-06
 
     - Top-level object must now be a dictionary.
+    - Quoted keys are now less restricted.
     - Empty dictionaries and lists are rejected by :func:`dump` and 
       :func:`dumps` if *default* argument is specified as 'strict'.
 
@@ -31,17 +34,21 @@ Releases
         a dictionary when writing code that used these functions, which would 
         result in unexpected errors when users hand-create the input data.
 
-**1.0 (2020-10-03)**:
+v1.0 (2020-10-03)
+-----------------
     - Production release.
 
-**0.6 (2020-09-26)**:
+v0.6 (2020-09-26)
+-----------------
     - Added :func:`load` and :func:`dump`.
     - Eliminated *NestedTextError.get_extended_codicil*.
 
-**0.5 (2020-09-11)**:
+v0.5 (2020-09-11)
+-----------------
     - allow user to manage duplicate keys detected by :func:`loads`.
 
-**0.4 (2020-09-07)**:
+v0.4 (2020-09-07)
+-----------------
     - Change rest-of-line strings to include all characters given, including 
       leading and trailing quotes and spaces.
     - The *NestedText* top-level is no longer restricted to only dictionaries 
@@ -51,11 +58,14 @@ Releases
       with those used by JSON package.
     - Added *NestedTextError.get_extended_codicil*.
 
-**0.3 (2020-09-03)**:
+v0.3 (2020-09-03)
+-----------------
     - Allow comments to be indented.
 
-**0.2 (2020-09-02)**:
+v0.2 (2020-09-02)
+-----------------
     - Minor enhancements and bug fixes.
 
-**0.1 (2020-08-30)**:
+v0.1 (2020-08-30)
+-----------------
     - Initial release.

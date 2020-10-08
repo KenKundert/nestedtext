@@ -1,0 +1,19 @@
+key1: value 1
+key2 : value 2
+key 3: value 3
+key 4 : value 4
+key5:
+key6 :
+' key7 ': value 7
+" key8 ": value 8
+" ' key9 ' ": value 9
+" " key10 " ": value 10
+" " key11: " ": value 11
+" " key12 : " ": value 12
+" " key13: " : value 13
+" " key14 : " : value 14
+" ' key15': " : value 15
+" ' key16' : " : value 16
+: value 17
+" ' key18"' : " : value 18
+' " key19'" : ' : value 19
