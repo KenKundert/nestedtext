@@ -120,10 +120,6 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Only spaces are allowed in the indentation. Specifically, tabs are not 
     allowed.
 
-**Top level**:
-
-    The top-level must be a dictionary.
-
 **Empty document**:
 
     A document may be empty. A document is empty if it consists only of
@@ -133,6 +129,5 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Result**:
 
     When a document is converted from *NestedText* the result is a hierarchical 
-    collection of dictionaries, lists and strings where the top-level is 
-    a dictionary and all leaf values are strings.  All dictionary keys are also 
-    strings.
+    collection of dictionaries, lists and strings where all leaf values are 
+    strings.  All dictionary keys are also strings.

@@ -35,8 +35,6 @@ Dictionaries
 
     A dictionary is all adjacent dictionary item at the same indentation level.
 
-    A dictionary is the only data type allowed at the top level.
-
 
 .. _lists:
 
@@ -57,8 +55,6 @@ Lists
     which must be further indented.
 
     A list is all adjacent list items at the same indentation level.
-
-    A list is not valid at the top level.
 
 
 .. _strings:

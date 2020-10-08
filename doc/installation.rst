@@ -18,21 +18,29 @@ Latest development release
     | Version: 1.0.3
     | Released: 2020-10-06
 
-    - Top-level object must now be a dictionary.
+    - Add ability to specify return type of :func:`load` and :func:`loads`.
     - Quoted keys are now less restricted.
     - Empty dictionaries and lists are rejected by :func:`dump` and 
       :func:`dumps` if *default* argument is specified as 'strict'.
 
     .. warning::
 
-        Be aware that this version is not fully backward compatible.  
-        Specifically, the previous version allowed a list or a string as the 
-        top-level data, but this version only allows a dictionary as the 
-        top-level.  This results in a simpler return value from :func:`load` and 
-        :func:`loads` and substantially reduces the change of coding errors.  It 
-        was noticed that it was common to simply assume that the top-level was 
-        a dictionary when writing code that used these functions, which would 
-        result in unexpected errors when users hand-create the input data.
+        Be aware that this version is not fully backward compatible.  Unlike 
+        previous versions, this version allows you to restrict the type of the 
+        return value of the :func:`load` and :func:`loads` functions, and the 
+        default is 'dict'.  The previous behavior is still supported, but you 
+        must explicitly specify top='any' as an argument.
+
+        This change results in a simpler return value from :func:`load` and 
+        :func:`loads` in most cases. This substantially reduces the chance of 
+        coding errors.  It was noticed that it was common to simply assume that 
+        the top-level was a dictionary when writing code that used these 
+        functions, which would result in unexpected errors when users 
+        hand-create the input data. This change eliminates this type of error.
+
+        There is another small change that is not backward compatible. The 
+        source argument to these functions is now a keyword only argument.
+
 
 v1.0 (2020-10-03)
 -----------------

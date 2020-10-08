@@ -434,30 +434,64 @@ def read_string(lines, depth):
 
 
 # read_all() {{{2
-def read_all(lines, source, on_dup):
+def read_all(lines, top, source, on_dup):
     if callable(on_dup):
         on_dup = dict(_callback_func=on_dup)
 
     with set_culprit(source):
         lines = Lines(lines)
 
+        if top == 'any':
+            if lines.type_of_next():
+                return read_value(lines, 0, on_dup)
+            else:
+                return None
+
         next_is = lines.type_of_next()
-        if next_is == "dict item":
-            return read_dict(lines, 0, on_dup)
-        elif next_is:
-            report('content must start with key.', lines.get_next())
-        else:
-            return {}
+
+        if top == 'dict':
+            if next_is == "dict item":
+                return read_dict(lines, 0, on_dup)
+            elif next_is:
+                report('content must start with key.', lines.get_next())
+            else:
+                return {}
+
+        if top == 'list':
+            if next_is == "list item":
+                return read_list(lines, 0, on_dup)
+            elif next_is:
+                report('content must start with dash (-).', lines.get_next())
+            else:
+                return []
+
+        if top == 'str':
+            if next_is == "string item":
+                return read_list(lines, 0, on_dup)
+            elif next_is:
+                report('content must start with greater-than sign (>).', lines.get_next())
+            else:
+                return ""
+
+        raise NotImplementedError(top)
 
 
 # loads() {{{2
-def loads(content, source=None, *, on_dup=None):
+def loads(content, top='dict', *, source=None, on_dup=None):
     r'''
     Loads *NestedText* from string.
 
     Args:
         content (str):
             String that contains encoded data.
+        top (str):
+            Top-level data type. The NestedText format allows for a dictionary,
+            a list, or a string as the top-level data container.  By specifying
+            top as 'dict', 'list', or 'str' you constrain both the type of
+            top-level container and the return value of this function. By
+            specifying 'any' you enable support for all three data types, with
+            the type of the returned value matching that of top-level container
+            in content.
         source (str or Path):
             If given, this string is attached to any error messages as the
             culprit. It is otherwise unused. Is often the name of the file that
@@ -479,7 +513,11 @@ def loads(content, source=None, *, on_dup=None):
                retained between multiple calls to this call back function.
 
     Returns:
-        The extracted data.  If content is empty, None is returned.
+        The extracted data.  The type of the return value is specified by the
+        top argument.  If top is 'any', then the return value will match that of
+        top-level data container in the input content. If content is empty, an
+        empty data value is return of the type specified by top. If top is
+        'any', None is returned.
 
     Raises:
         NestedTextError: if there is a problem in the *NextedText* content.
@@ -499,25 +537,25 @@ def loads(content, source=None, *, on_dup=None):
             ... """
 
             >>> try:
-            ...     data = nt.loads(contents)
+            ...     data = nt.loads(contents, 'dict')
             ... except nt.NestedTextError as e:
             ...     e.terminate()
 
             >>> print(data)
             {'name': 'Kristel Templeton', 'sex': 'female', 'age': '74'}
 
-        *loads()* takes an optional second argument, *culprit*. If specified,
-        it will be prepended to any error messages. It is often used to
-        designate the source of *contents*. For example, if *contents* were
-        read from a file, *culprit* would be the file name.  Here is a typical
-        example of reading *NestedText* from a file:
+        *loads()* takes an optional argument, *source*. If specified, it is
+        added to any error messages. It is often used to designate the source
+        of *contents*. For example, if *contents* were read from a file,
+        *culprit* would be the file name.  Here is a typical example of reading
+        *NestedText* from a file:
 
         .. code-block:: python
 
             >>> filename = 'examples/duplicate-keys.nt'
             >>> try:
             ...     with open(filename, encoding='utf-8') as f:
-            ...         addresses = nt.loads(f.read(), filename)
+            ...         addresses = nt.loads(f.read(), source=filename)
             ... except nt.NestedTextError as e:
             ...     print(e.render())
             ...     print(*e.get_codicil(), sep="\n")
@@ -565,11 +603,11 @@ def loads(content, source=None, *, on_dup=None):
 
     '''
 
-    return read_all(content.splitlines(True), source, on_dup)
+    return read_all(content.splitlines(True), top, source, on_dup)
 
 
 # load() {{{2
-def load(f=None, on_dup=None):
+def load(f=None, top='dict', *, on_dup=None):
     r'''
     Loads *NestedText* from file or stream.
 
@@ -587,11 +625,14 @@ def load(f=None, on_dup=None):
             object is given, it will be read and not closed; utf-8 encoding
             should be used..  If an iterator is given, it should generate full
             lines in the same manner that iterating on a file descriptor would.
+        top:
+            See :func:`loads` description of this argument.
         on_dup:
             See :func:`loads` description of this argument.
 
     Returns:
-        The extracted data.  If content is empty, None is returned.
+        The extracted data.
+        See :func:`loads` description of the return value.
 
     Raises:
         NestedTextError: if there is a problem in the *NextedText* content.
@@ -640,11 +681,11 @@ def load(f=None, on_dup=None):
 
     if isinstance(f, collections.abc.Iterator):
         source = getattr(f, 'name', None)
-        return read_all(f, source, on_dup)
+        return read_all(f, top, source, on_dup)
     else:
         source = str(f)
         with open(f, encoding='utf-8') as fp:
-            return read_all(fp, source, on_dup)
+            return read_all(fp, top, source, on_dup)
 
 
 # NestedText Writer {{{1
@@ -879,7 +920,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     # define object type identification functions
     if default == 'strict':
         is_a_dict = lambda obj: (obj or level == 0) and isinstance(obj, dict)
-        is_a_list = lambda obj: obj and isinstance(obj, list)
+        is_a_list = lambda obj: (obj or level == 0) and isinstance(obj, list)
         is_a_str = lambda obj: isinstance(obj, str)
         is_a_scalar = lambda obj: False
     else:
@@ -902,9 +943,6 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         )
 
     # render content
-    if level == 0:
-        if not is_a_dict(obj):
-            raise NestedTextError(obj, template='the top-level must be a dictionary.')
     assert indent > 0
     error = None
     need_indented_block = is_collection(obj)

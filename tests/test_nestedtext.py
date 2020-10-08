@@ -61,38 +61,38 @@ def parametrize_load_api(f):
     @param
     @write_file('load_str.nt')
     def load_str(p):
-        return lambda: nt.load(str(p)), str(p)
+        return lambda: nt.load(str(p), top='any'), str(p)
 
     @param
     @write_file('load_path.nt')
     def load_path(p):
-        return lambda: nt.load(p), str(p)
+        return lambda: nt.load(p, top='any'), str(p)
 
     @param
     @write_file('load_path_no_ext')
     def load_path_no_ext(p):
-        return lambda: nt.load(p), str(p)
+        return lambda: nt.load(p, top='any'), str(p)
 
     @param
     @write_file('load_fp.nt')
     def load_fp(p):
         def factory():
             with open(p) as f:
-                return nt.load(f)
+                return nt.load(f, top='any')
         return factory, str(p)
 
     @param
     def load_io(content, _):
         io = StringIO(content)
-        return lambda: nt.load(io), None
+        return lambda: nt.load(io, top='any'), None
 
     @param
     def loads(content, _):
-        return lambda: nt.loads(content), None
+        return lambda: nt.loads(content, top='any'), None
 
     @param
     def loads_src(content, _):
-        return lambda: nt.loads(content, 'SOURCE'), 'SOURCE'
+        return lambda: nt.loads(content, top='any', source='SOURCE'), 'SOURCE'
 
     return parametrize(args, params)(f)
 
@@ -299,7 +299,7 @@ def parametrize_via_nt(relpath):
         test_path = Path(module.__file__)
         nt_path = test_path.parent / relpath
 
-        raw_params = nt.load(nt_path)
+        raw_params = nt.load(nt_path, top='any')
         raw_args = set.union(*(set(x) for x in raw_params)) - {'id'}
 
         # Make sure there aren't any missing/extra parameters:
