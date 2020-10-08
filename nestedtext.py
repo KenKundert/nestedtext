@@ -222,19 +222,6 @@ def indentation_error(line, depth):
     report('invalid indentation.', line, colno=depth)
 
 
-# is_quoted {{{2
-def is_quoted(s):
-    return s[:1] in ['"', "'"] and s[:1] == s[-1:]
-
-
-# dequote {{{2
-def dequote(s):
-    s = s.strip()
-    if is_quoted(s):
-        return s[1:-1]
-    return s
-
-
 # Lines class {{{2
 class Lines:
     # constructor {{{3
@@ -467,7 +454,7 @@ def read_all(lines, top, source, on_dup):
 
         if top == 'str':
             if next_is == "string item":
-                return read_list(lines, 0, on_dup)
+                return read_string(lines, 0)
             elif next_is:
                 report('content must start with greater-than sign (>).', lines.get_next())
             else:

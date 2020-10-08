@@ -343,8 +343,13 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
 
     e = exc_info.value
 
-    assert (f'{source}, {lineno}:' if source else f'{lineno}:') in str(e)
-    assert message in str(e)
+    culprit = e.get_culprit()
+    if source:
+        assert source == culprit[0]
+        assert lineno == culprit[1]
+    else:
+        assert lineno == culprit[0]
+    assert message == e.get_message()
 
     assert e.line == line
     assert e.source == source
@@ -373,6 +378,64 @@ def test_load_api_errors():
 
     with pytest.raises(TypeError):
         nt.load(['path_1.nt', 'path_2.nt'])
+
+def test_load_top_str():
+    data = nt.loads('> hello', 'str')
+    assert data == 'hello'
+
+    data = nt.loads('', top='str')
+    assert data == ''
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads('- hello', 'str')
+    assert e.value.get_message() == 'content must start with greater-than sign (>).'
+
+def test_load_top_list():
+    data = nt.loads('- hello', 'list')
+    assert data == ['hello']
+
+    data = nt.loads('', top='list')
+    assert data == []
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads('> hello', 'list')
+    assert e.value.get_message() == 'content must start with dash (-).'
+
+def test_load_top_dict():
+    data = nt.loads('key: hello', 'dict')
+    assert data == {'key': 'hello'}
+
+    data = nt.loads('', top='dict')
+    assert data == {}
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads('> hello', 'dict')
+    assert e.value.get_message() == 'content must start with key.'
+
+def test_load_top_default():
+    data = nt.loads('key: hello')
+    assert data == {'key': 'hello'}
+
+    data = nt.loads('')
+    assert data == {}
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads('> hello')
+    assert e.value.get_message() == 'content must start with key.'
+
+def test_load_top_any():
+    data = nt.loads('> hello', 'any')
+    assert data == 'hello'
+
+    data = nt.loads('- hello', 'any')
+    assert data == ['hello']
+
+    data = nt.loads('key: hello', 'any')
+    assert data == {'key': 'hello'}
+
+    data = nt.loads('', 'any')
+    assert data == None
+
 
 # test_dump_success_cases {{{1
 @parametrize_dump_api

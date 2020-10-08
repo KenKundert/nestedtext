@@ -1,5 +1,5 @@
 {
-  "lineno": 3,
-  "colno": 4,
-  "message": "invalid indentation"
+  "lineno": 2,
+  "colno": 0,
+  "message": "invalid indentation."
 }
