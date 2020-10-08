@@ -20,45 +20,40 @@ Dictionaries
         name 2: value 2
         ...
 
-    A dictionary item is introduced by a key (the name) and a colon at the start 
-    of a line.  Anything that follows the space after the colon is the value and 
-    is treated as a string.
+    A dictionary item is introduced by a key followed by a colon at the start 
+    of a line.  If the key contains characters that could be misinterpreted, it 
+    must be quoted using single- or double-quotes (both have the same meaning).
 
-    The key is a string and must be quoted if it contains characters that could 
-    be misinterpreted.
+    The value of a dictionary item may be a rest-of-line string, a multi-line 
+    string, a list, or a dictionary. If it is a rest-of-line string, it 
+    contains all characters following the ":␣" that separates the key from the 
+    value.  For all other values, the rest of the line must be empty, with the 
+    value given on the next line, which must be further indented.
 
-    A dictionary is all adjacent dictionary items at the same indentation 
-    level.
-
-    The value of a dictionary item may be a simple string, a multi-line string, 
-    a list, or a dictionary. If it is a simple string, it contains all 
-    characters that follow the ': ' that separates the key from the value. For 
-    all other values, the rest of the line must be empty, with the value given 
-    on the next line, which must be further indented.
+    A dictionary is all adjacent key/value pairs at the same indentation level.
 
     A dictionary is the only data type allowed at the top level.
+
 
 .. _lists:
 
 Lists
 =====
 
-    A list is a collection of simple values::
+    A list is an ordered collection of values::
 
         - value 1
         - value 2
         ...
 
-    A list item is introduced with a dash at the start of a line.  Anything that 
-    follows the space after the dash is the value and is treated as a string.
-
+    A list item is introduced with a dash at the start of a line.  The value of 
+    a list item may be a rest-of-line string, a multi-line string, a list, or a 
+    dictionary. If it is a rest-of-line string, it contains all characters that 
+    follow the "-␣" that introduces the list item.  For all other values, the 
+    rest of the line must be empty, with the value given on the next line, 
+    which must be further indented.
+    
     A list is all adjacent list items at the same indentation level.
-
-    The value of a list item may be a simple string, a multi-line string, 
-    a list, or a dictionary. If it is a simple string, it contains all 
-    characters that follow the '- ' that introduces the list item.  For all 
-    other values, the rest of the line must be empty, with the value given on 
-    the next line, which must be further indented.
 
     A list is not valid at the top level.
 
@@ -68,23 +63,20 @@ Lists
 Strings
 =======
 
-    There are two types of strings: simple or rest-of-line strings and 
-    multi-line strings.  Rest-of-line strings are simply all the remaining 
-    characters on the line.  They can contain any character other than newline::
+    There are two types of strings: rest-of-line strings and multi-line 
+    strings.  Rest-of-line strings are simply all the remaining characters on 
+    the line.  They can contain any character other than newline::
 
         regex: [+-]?([0-9]*[.])?[0-9]+
         math: -b + sqrt(b**2 - 4*a*c)
         unicode: José and François
 
-    The other type of string is specified on a separate line. In this case, the 
-    line is preceded with a greater-than symbol.  Such lines, when adjacent, are 
-    combined to form a multi-line string.
+    Multi-line strings are specified on lines prefixed with the greater-than 
+    symbol.  The content of each line starts after the first space that follows 
+    the greater-than symbol::
 
         >     This is the first line of a multi-line string, it is indented.
         > This is the second line, it is not indented.
-
-    The content of each line starts after the first space that follows the 
-    greater-than symbol.
 
     You can include empty lines in the string simply by specifying the 
     greater-than symbol alone on a line::
