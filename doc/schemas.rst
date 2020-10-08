@@ -7,7 +7,8 @@ parses, it is meant to be paired with a tool that can both validate the data
 and convert them to the expected types.  For example, if you are expecting a 
 date for a particular field, you would want to validate that the input looks 
 like a date (e.g. ``YYYY/MM/DD``) and then convert it to a useful type (e.g.  
-:class:`arrow.Arrow`)
+:class:`arrow.Arrow`).  You can do this on an ad hoc basis, or you can apply 
+a schema.
 
 A schema is the specification of what fields are expected (e.g. "birthday"), 
 what types they should be (e.g. a date), and what values are legal (e.g. must 

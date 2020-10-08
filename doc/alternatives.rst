@@ -14,7 +14,7 @@ it consists of a hierarchical collection of dictionaries, lists, and strings,
 but also allows integers, floats, Booleans and nulls.  The fundamental problem 
 with *JSON* in this context is that its meant for serializing and exchanging 
 data between programs; it's not meant for configuration files.  Of course, it's 
-used for this purpose anyways, where it has a number of glaring shortcomings:
+used for this purpose anyways, where it has a number of glaring shortcomings.
 
 To begin, it has an excessive amount of syntactic clutter.  Dictionary keys and 
 strings both have to be quoted, commas are required between dictionary and list 
@@ -49,7 +49,7 @@ when used with simple examples, but things can quickly become complicated or
 provide unexpected results.  A reaction to this is the use of *YAML* subsets, 
 such as StrictYAML_.  However, the subsets still try to maintain compatibility 
 with *YAML* and so inherit much of its complexity. For example, both *YAML* and 
-*StrictYAML* support `nine different ways of writing multi-line strings 
+*StrictYAML* support `nine different ways of writing multiline strings 
 <http://stackoverflow.com/a/21699210/660921>`_.
 
 *YAML* avoids excessive quoting and supports comments and multiline strings, but 

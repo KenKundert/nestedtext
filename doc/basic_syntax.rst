@@ -4,9 +4,9 @@ Basic syntax
 
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
-:ref:`lists <lists>`, and :ref:`strings <strings>`.  The top-level must be 
-a dictionary and all of the leaf values must be simple text. You can find more 
-specifics :ref:`later on <nestedtext file format>`.
+:ref:`lists <lists>`, and :ref:`strings <strings>`.  All leaf values must be 
+simple text. You can find more specifics :ref:`later on <nestedtext file 
+format>`.
 
 
 .. _dictionaries:
@@ -14,26 +14,27 @@ specifics :ref:`later on <nestedtext file format>`.
 Dictionaries
 ============
 
-A dictionary is a collection of name/value pairs::
+A dictionary is an ordered collection of name/value pairs::
 
     name 1: value 1
     name 2: value 2
     ...
 
 A dictionary item is introduced by a key followed by a colon at the start 
-of a line.  If the key contains characters that could be misinterpreted, it 
-must be quoted using single- or double-quotes (both have the same meaning).
+of a line.  If the key contains characters that could be misinterpreted, it must 
+be quoted using matching single- or double-quotes (both have the same meaning).
 
 The key is a string and must be quoted if it contains characters that could 
 be misinterpreted.  You can quote it using either single or double quotes.
+Keys are the only place in *NestedText* where quoting is used to protect text.
 
-The value of a dictionary item may be a rest-of-line string, a multi-line 
-string, a list, or a dictionary. If it is a rest-of-line string, it contains 
-all characters following the ":␣" that separates the key from the value.  
-For all other values, the rest of the line must be empty, with the value 
-given on the next line, which must be further indented.
+The value of a dictionary item may be a rest-of-line string, a multiline string, 
+a list, or a dictionary. If it is a rest-of-line string, it contains all 
+characters following the ":␣" that separates the key from the value.  For all 
+other values, the rest of the line must be empty, with the value given on the 
+next line, which must be further indented.
 
-A dictionary is all adjacent dictionary item at the same indentation level.
+A dictionary is all adjacent dictionary items at the same indentation level.
 
 
 .. _lists:
@@ -48,11 +49,11 @@ A list is an ordered collection of values::
     ...
 
 A list item is introduced with a dash at the start of a line.  The value of 
-a list item may be a rest-of-line string, a multi-line string, a list, or a 
-dictionary. If it is a rest-of-line string, it contains all characters that 
-follow the "-␣" that introduces the list item.  For all other values, the 
-rest of the line must be empty, with the value given on the next line, 
-which must be further indented.
+a list item may be a rest-of-line string, a multiline string, a list, or 
+a dictionary. If it is a rest-of-line string, it contains all characters that 
+follow the "-␣" that introduces the list item.  For all other values, the rest 
+of the line must be empty, with the value given on the next line, which must be 
+further indented.
 
 A list is all adjacent list items at the same indentation level.
 
@@ -62,11 +63,12 @@ A list is all adjacent list items at the same indentation level.
 Strings
 =======
 
-There are two types of strings: rest-of-line strings and multi-line strings.  
+There are two types of strings: rest-of-line strings and multiline strings.  
 Rest-of-line strings are simply all the remaining characters on the line.  They 
 can contain any character other than newline::
 
-    regex: [+-]?([0-9]*[.])?[0-9]+
+    code: input signed [7:0] level
+    regex: [+-]?([0-9]*[.])?[0-9]+\s*\w*
     math: -b + sqrt(b**2 - 4*a*c)
     unicode: José and François
 
@@ -74,17 +76,23 @@ Multi-line strings are specified on lines prefixed with the greater-than
 symbol.  The content of each line starts after the first space that follows 
 the greater-than symbol::
 
-    >     This is the first line of a multi-line string, it is indented.
+    >     This is the first line of a multiline string, it is indented.
     > This is the second line, it is not indented.
 
 You can include empty lines in the string simply by specifying the 
 greater-than symbol alone on a line::
 
     >
-    > The future ain’t what it used to be.
+    > “The worth of a man to his society can be measured by the contribution he
+    >  makes to it — less the cost of sustaining himself and his mistakes in it.”
     >
-    >                    - Yogi Berra
-    >
+    >                                                — Erik Jonsson
+
+The multiline string is all adjacent lines that start with a greater than tag 
+with the tags removed and the lines joined together with newline characters 
+inserted between each line.  Except for the space that separates the tag from 
+the text, white space from both the beginning and the end of each line is 
+retained.
 
 
 .. _comments:
@@ -92,8 +100,8 @@ greater-than symbol alone on a line::
 Comments
 ========
 
-Lines that begin with a hash as the first non-space character, or lines that 
-are empty or consist only of spaces and tabs are comment lines and ignored.  
+Lines that begin with a hash as the first non-space character, or lines that are 
+empty or consist only of spaces and tabs are comment lines and are ignored.  
 Indentation is not significant on comment lines.
 
 ::
@@ -107,7 +115,7 @@ Nesting
 =======
 
 A value for a dictionary or list item may be a rest-of-line string or it may be 
-a nested dictionary, list or a multi-line string.  Indentation is used to 
+a nested dictionary, list or a multiline string.  Indentation is used to 
 indicate nesting.  Indentation increases to indicate the beginning of a new 
 nested object, and indentation returns to a prior level to indicate its end.  In 
 this way, data can be nested to an arbitrary depth::
@@ -147,5 +155,4 @@ indent and the number of spaces need only be consistent over the length of the
 nested object.
 
 The data can be nested arbitrarily deeply using dictionaries and lists, but the 
-top-level must be a dictionary and the leaf values, the values that are nested 
-most deeply, must all be strings.
+leaf values, the values that are nested most deeply, must all be strings.

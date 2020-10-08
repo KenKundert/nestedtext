@@ -84,9 +84,9 @@ any depth.  Indentation is used to indicate the hierarchy of the data, and
 a simple natural syntax is used to distinguish the types of data in such 
 a manner that it is not easily confused.  Specifically, lines that begin with a 
 word (or words) followed by a colon are dictionary items, lines that begin with 
-a dash are list items, and lines that begin with a greater-than sign are part 
-of a multi-line string.  Dictionaries and lists can be nested arbitrarily, and 
-the leaf values are always text, hence the name *NestedText*.
+a dash are list items, and lines that begin with a greater-than sign are part of 
+a multiline string.  Dictionaries and lists can be nested arbitrarily, and the 
+leaf values are always text, hence the name *NestedText*.
 
 *NestedText* is somewhat unique in that the leaf values are always strings. Of 
 course the values start off as strings in the input file, but alternatives like 
@@ -99,22 +99,22 @@ the software version number two point ten. By converting it to a floating point
 number it becomes two point one, which is wrong. There are many possible 
 versions of this basic issue. But there is also the inverse problem; values 
 that should be converted to particular data types but are not recognized. For 
-example, a value of $2.00 should be converted to a real number but would be a 
-string instead.  There are simply too many values types for a general purpose 
+example, a value of $2.00 should be converted to a real number but would remain 
+a string instead.  There are simply too many values types for a general purpose 
 solution that is only looking at the values themselves to be able to interpret 
 all of them.  For example, 12/10/09 is likely a date, but is it in MM/DD/YY, 
 YY/MM/DD or DD/MM/YY form?  The fact is, the value alone is often insufficient 
 to reliably determine how to convert values into internal data types.  
 *NestedText* avoids these problems by leaving the values in their original form 
 and allowing the decision to be made by the end application where more context 
-is available to help guide the conversions.  If a price is expected for a 
-value, then $2.00 would be checked and converted accordingly. Similarly, local 
+is available to help guide the conversions.  If a price is expected for a value, 
+then $2.00 would be checked and converted accordingly. Similarly, local 
 conventions along with the fact that a date is expected for a particular value 
 allows 12/10/09 to be correctly validated and converted.  This process of 
 validation and conversion is referred to as applying a schema to the data.  
-There are packages such as `Pydantic <https://pydantic-docs.helpmanual.io>`_ 
-and `Voluptuous <https://github.com/alecthomas/voluptuous>`_ available that 
-make this process easy and reliable.
+There are packages such as `Pydantic <https://pydantic-docs.helpmanual.io>`_ and 
+`Voluptuous <https://github.com/alecthomas/voluptuous>`_ available that make 
+this process easy and reliable.
 
 
 Issues

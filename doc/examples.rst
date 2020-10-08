@@ -6,8 +6,8 @@ Examples
 
 .. _pydantic example:
 
-Validate with ``pydantic``
-==========================
+Validate with *Pydantic*
+========================
 
 This example shows how to use pydantic_ to validate and parse a *NestedText* 
 file.  The file in this case specifies deployment settings for a web server:
@@ -15,7 +15,7 @@ file.  The file in this case specifies deployment settings for a web server:
 .. literalinclude:: ../examples/deploy.nt
 
 Below is the code to parse this file.  Note that basic types like integers, 
-strings, booleans, and lists are specified using standard type annotations.  
+strings, Booleans, and lists are specified using standard type annotations.  
 Dictionaries with specific keys are represented by model classes, and it is 
 possible to reference one model from within another.  Pydantic_ also has 
 built-in support for validating email addresses, which we can take advantage of 
@@ -33,11 +33,11 @@ This produces the following data structure::
      'debug': False,
      'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
      'webmaster_email': 'admin@example.com'}
-  
+
 .. _voluptuous example:
 
-Validate with ``voluptuous``
-============================
+Validate with *Voluptuous*
+==========================
 
 This example shows how to use voluptuous_ to validate and parse a *NestedText* 
 file.  The input file is the same as in the previous example, i.e. deployment 
@@ -59,7 +59,7 @@ This produces the following data structure::
                   'host': 'db.example.com',
                   'port': 3306,
                   'user': 'www'},
-     'debug': True,
+     'debug': False,
      'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
      'webmaster_email': 'admin@example.com'}
 
@@ -107,9 +107,10 @@ in ``~/.config/cc`` that in this case holds::
         - 50,000 XLM
     currency: USD
     date format: h:mm A, dddd MMMM D
+    screen width: 90
 
 This file, of course, is in *NestedText* format.  After being read by 
-:func:`loads()` it is processed by a voluptuous_ schema that does some checking 
+:func:`load()` it is processed by a voluptuous_ schema that does some checking 
 on the form of the values specified and then converts the holdings to a list of 
 `QuantiPhy <https://quantiphy.readthedocs.io>`_ quantities.  The latest prices 
 are then downloaded from `cryptocompare <https://www.cryptocompare.com>`_, the 

@@ -29,14 +29,15 @@ Latest development release
         previous versions, this version allows you to restrict the type of the 
         return value of the :func:`load` and :func:`loads` functions, and the 
         default is 'dict'.  The previous behavior is still supported, but you 
-        must explicitly specify top='any' as an argument.
+        must explicitly specify `top='any'` as an argument.
 
         This change results in a simpler return value from :func:`load` and 
         :func:`loads` in most cases. This substantially reduces the chance of 
         coding errors.  It was noticed that it was common to simply assume that 
         the top-level was a dictionary when writing code that used these 
-        functions, which would result in unexpected errors when users 
-        hand-create the input data. This change eliminates this type of error.
+        functions, which could result in unexpected errors when users 
+        hand-create the input data. Specifying the return value eliminates this 
+        type of error.
 
         There is another small change that is not backward compatible. The 
         source argument to these functions is now a keyword only argument.

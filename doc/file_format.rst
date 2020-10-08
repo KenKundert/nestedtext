@@ -17,7 +17,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Comments**:
 
-    Comments are lines that have `#` as the first non-space character on the 
+    Comments are lines that have ``#`` as the first non-space character on the 
     line.  Comments are ignored.
 
 **Blank lines**:
@@ -28,41 +28,41 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Line-type tags**:
 
     The remaining lines are identifying by which one of these ASCII characters 
-    are found in an unquoted portion of the line: dash ('-'), colon (':'), or 
-    greater-than symbol ('>') when followed immediately by a space or newline.  
-    Once the first of one of these pairs has been found in the unquoted portion 
-    of the line, any subsequent occurrences of any of the line-type tags are 
-    treated as simple text.  For example::
+    are found in an unquoted portion of the line: dash (``-``), colon (``:``), 
+    or greater-than symbol (``>``) when followed immediately by a space or 
+    newline.  Once the first of one of these pairs has been found in the 
+    unquoted portion of the line, any subsequent occurrences of any of the 
+    line-type tags are treated as simple text.  For example::
 
         - And the winner is: {winner}
 
-    In this case the leading '- ' determines the type of the line and the ': 
-    ' is simply treated as part of the remaining text on the line.
+    In this case the leading ``-␣`` determines the type of the line and the
+    ``:␣`` is simply treated as part of the remaining text on the line.
 
 **String items**:
 
     If the first non-space character on a line is a greater-than symbol followed 
-    immediately by a space ('>␣') or a newline, the line is a *string-item*.  
+    immediately by a space (``>␣``) or a newline, the line is a *string-item*.  
     Adjacent string-items with the same indentation level are combined into 
-    a multi-line string with their order being retained.  Any leading white 
-    space that follows the space that follows the greater-than symbol is 
-    retained, as is any trailing white space.
+    a multiline string with their order being retained.  Any leading white space 
+    that follows the space that follows the greater-than symbol is retained, as 
+    is any trailing white space.
 
 **List items**:
 
     If the first non-space character on a line is a dash followed immediately by 
-    a space ('-␣') or a newline, the line is a *list-item*.  Adjacent list-items 
-    with the same indentation level are combined into a list with their order 
-    being retained.  Each list-item has a single associated value.
+    a space (``-␣``) or a newline, the line is a *list-item*.  Adjacent 
+    list-items with the same indentation level are combined into a list with 
+    their order being retained.  Each list-item has a single associated value.
 
 **Dictionary items**:
 
     If the line is not a string-item or a list item and it contains a colon 
-    followed by either a space (':␣') that does not fall within a quoted key or 
-    is followed by a newline, the line is considered a *dict-item*.  Adjacent 
+    followed by either a space (``:␣``) that does not fall within a quoted key 
+    or is followed by a newline, the line is considered a *dict-item*.  Adjacent 
     dict-items with the same indentation level are combined into a dictionary 
-    with their order being retained.  Each dict-item consists of a key, the 
-    colon, and a value.
+    with their order being retained.  Each dict-item consists of a key, the tag 
+    (colon), and a value.
 
     A key must be a string and it must not contain a newline.  The key must be 
     quoted if it:
@@ -77,10 +77,11 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     a quoted key delimited with single quote characters may contain additional 
     single quote characters. Similarly, a quoted key delimited with double quote 
     characters may contain additional double quote characters.  Also, backslash 
-    is not used as an escape character; backslash has no special meaning.
+    is not used as an escape character; backslash has no special meaning 
+    anywhere in *NestedText*.
 
     A key is invalid if it contains two or more instances of a quote character 
-    separated from ': ' by zero or more space characters where the quote 
+    separated from ``:␣`` by zero or more space characters where the quote 
     character in one is a single quote and the quote character in another is the 
     double quote.  In this case the key cannot be quoted with either character 
     so that the separator from the key and value can be identified 
@@ -95,7 +96,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     If there is no further text on the line and the next line has greater 
     indentation, then the next line holds the value, which may be a list, 
-    a dictionary, or a multi-line string.
+    a dictionary, or a multiline string.
 
     Otherwise the value is empty; it is taken to be an empty string.
 
@@ -123,8 +124,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Empty document**:
 
     A document may be empty. A document is empty if it consists only of
-    comments and blank lines.  An empty document is equivalent to an empty 
-    dictionary.
+    comments and blank lines.  An empty document corresponds to an empty value 
+    of unknown type.
 
 **Result**:
 

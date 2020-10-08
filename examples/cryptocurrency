@@ -8,7 +8,6 @@ import arrow
 import requests
 from quantiphy import Quantity
 from pathlib import Path
-from shutil import get_terminal_size
 
 # configure preferences
 Quantity.set_prefs(prec=2, ignore_sf = True)
@@ -32,10 +31,12 @@ try:
         Required('holdings'): All(coerce(Quantity), Length(min=1)),
         'currency': str,
         'date format': str,
+        'screen width': coerce(int)
     })
-    settings = settings_schema(nt.load(settings_file))
+    settings = settings_schema(nt.load(settings_file, top='dict'))
     currency = settings.get('currency', 'USD')
     currency_symbol = currency_symbols.get(currency, currency)
+    screen_width = settings.get('screen width', 80)
 
     # download latest asset prices from cryptocompare.com
     params = dict(
@@ -61,7 +62,6 @@ try:
     # display holdings
     now = arrow.now().format(settings.get('date format', 'h:mm A, dddd MMMM D, YYYY'))
     print(f'Holdings as of {now}.')
-    screen_width = get_terminal_size().columns
     bar_width = screen_width - 37
     for coin in settings['holdings']:
         price = prices[coin.units]

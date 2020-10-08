@@ -11,7 +11,7 @@ and use the language. Ideally people can understand it by looking at one or two
 examples and they can use it without without needing to remember any arcane 
 rules and without relying on any of the knowledge that programmers accumulate 
 through years of experience.  One source of simplicity is consistency.  As such, 
-*NestedText* uses a small amount of rules that it applies with few exceptions.
+*NestedText* uses a small number of rules that it applies with few exceptions.
 
 The desire to be dumb means that *NestedText* tries not to transform the data 
 in any meaningful way.  It parses the structure of the data without doing 

@@ -4,7 +4,7 @@
 Basic use
 *********
 
-The *NestedText* Python API is patterned after that of JSON.
+The *NestedText* Python API is similar to that of *JSON*, *YAML*, *TOML*, etc.
 
 NestedText Reader
 -----------------
@@ -23,7 +23,7 @@ a :exc:`NestedTextError` exception is raised.
     ... """
 
     >>> try:
-    ...     data = nt.loads(content)
+    ...     data = nt.loads(content, 'dict')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
 
@@ -38,7 +38,7 @@ function.
     >>> from inform import fatal, os_error
 
     >>> try:
-    ...     groceries = nt.load('examples/groceries.nt')
+    ...     groceries = nt.load('examples/groceries.nt', 'dict')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
     ... except OSError as e:
@@ -46,6 +46,10 @@ function.
 
     >>> print(groceries)
     {'groceries': ['Bread', 'Peanut butter', 'Jam']}
+
+Notice that the type of the return value is specified to be 'dict'. This is the 
+default. You can also specify 'list', 'str', or 'any'.  All but 'any' constrain 
+the data type of the top-level of the *NestedText* content.
 
 
 NestedText Writer
