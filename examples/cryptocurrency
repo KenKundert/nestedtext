@@ -2,8 +2,8 @@
 
 from appdirs import user_config_dir
 import nestedtext as nt
-from voluptuous import Schema, Required, All, Length, Invalid
-from inform import display, fatal, is_collection, os_error, render_bar
+from voluptuous import Schema, Required, All, Length, Invalid, Coerce
+from inform import display, fatal, is_collection, os_error, render_bar, full_stop
 import arrow
 import requests
 from quantiphy import Quantity
@@ -13,25 +13,14 @@ from pathlib import Path
 Quantity.set_prefs(prec=2, ignore_sf = True)
 currency_symbols = dict(USD='$', EUR='€', JPY='¥', GBP='£')
 
-# utility functions
-def coerce(type):
-    def f(value):
-        try:
-            if is_collection(value):
-                return [type(each) for each in value]
-            return type(value)
-        except ValueError:
-            raise Invalid(f'expected {type.__name__}, found {v.__class__.__name__}')
-    return f
-
 try:
     # read settings
     settings_file = Path(user_config_dir('cc'), 'settings')
     settings_schema = Schema({
-        Required('holdings'): All(coerce(Quantity), Length(min=1)),
+        Required('holdings'): All([Coerce(Quantity)], Length(min=1)),
         'currency': str,
         'date format': str,
-        'screen width': coerce(int)
+        'screen width': Coerce(int)
     })
     settings = settings_schema(nt.load(settings_file, top='dict'))
     currency = settings.get('currency', 'USD')
@@ -74,7 +63,7 @@ try:
 except nt.NestedTextError as e:
     e.terminate()
 except Invalid as e:
-    fatal(e)
+    fatal(full_stop(e.msg), culprit=e.path)
 except OSError as e:
     fatal(os_error(e))
 except KeyboardInterrupt:
