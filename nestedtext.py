@@ -221,22 +221,27 @@ def report(message, line, *args, colno=None, **kwargs):
 # indentation_error {{{2
 def indentation_error(line, depth):
     assert line.depth != depth
+    prev_line = line.prev_line
     if not line.prev_line and depth == 0:
         msg = 'top-level content must start in column 1.'
     elif (
-        line.prev_line and
-        line.prev_line.value and
-        line.prev_line.depth < line.depth and
-        line.prev_line.kind in ['list item', 'dict item']
+        prev_line and
+        prev_line.value and
+        prev_line.depth < line.depth and
+        prev_line.kind in ['list item', 'dict item']
     ):
+        if prev_line.value.strip() == '':
+            obs = ', which in this case consists only of whitespace'
+        else:
+            obs = ''
         msg = ' '.join([
             'invalid indentation.',
             'An indent may only follow a dictionary or list item that does',
-            'not have its own value.'
+            f'not already have a value{obs}.'
         ])
     elif (
-        line.prev_line and
-        line.prev_line.depth > line.depth
+        prev_line and
+        prev_line.depth > line.depth
     ):
         msg = 'invalid indentation, partial dedent'
     else:

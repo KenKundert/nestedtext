@@ -1,5 +1,5 @@
 {
   "lineno": 2,
   "colno": 0,
-  "message": "invalid indentation. An indent may only follow a dictionary or list\nitem that does not have its own value."
+  "message": "invalid indentation. An indent may only follow a dictionary or list\nitem that does not already have a value."
 }
