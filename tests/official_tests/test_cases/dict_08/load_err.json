@@ -1,5 +1,5 @@
 {
-  "lineno": 3,
-  "colno": 4,
-  "message": "invalid character in indentation: '\\t'."
+  "lineno": 2,
+  "colno": 0,
+  "message": "expected dictionary item."
 }

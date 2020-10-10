@@ -1,12 +1,3 @@
-- :
-- ~!@#$%^&*()_+-1234567890{}[]|\:;<>?,./
-- - value 3
-- ' : value 4:'
-- > value 5
-- #value 6
-- key 7' : : value 7
-- " value 8 "
-- ' value 9 '
--
-  > value '" 10
-- And Fred said 'yabba dabba doo!' to Barney.
+# this is an error because indentation is a tab
+- 
+	- red chilies

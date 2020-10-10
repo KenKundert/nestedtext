@@ -1,3 +1,4 @@
-key 1: value 1
-        key2: value 1.1
+# invalid indentation, tab in indentation
+key 1:
+    	    key 1.1: value 1.1
 

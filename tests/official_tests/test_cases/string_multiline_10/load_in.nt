@@ -1,0 +1,5 @@
+# this is an error because the indentation contains a unicode space
+ingredients:
+        > green chilies
+        > red chilies
+#   ↑ this is a non-breaking space

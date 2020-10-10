@@ -336,7 +336,16 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     load, source = load_factory(content, tmp_path)
     lines = content.splitlines()
     line = lines[lineno-1]
-    prev_line = lines[lineno-2:lineno-1]
+    prev_lines = lines[:lineno-1]
+    prev_lines.reverse()
+    prev_line = None
+    prev_lineno = lineno
+    for l in prev_lines:
+        prev_lineno -= 1
+        if l.partition('#')[0].strip() != '':
+            # it is not blank and it a comments, so its our prev_line
+            prev_line = l
+            break
 
     with pytest.raises(nt.NestedTextError) as exc_info:
         load()
@@ -345,17 +354,15 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
 
     culprit = e.get_culprit()
     if source:
-        assert source == culprit[0]
-        assert lineno == culprit[1]
+        assert culprit[0] == source
+        assert culprit[1] == lineno
     else:
-        assert lineno == culprit[0]
+        assert culprit[0] == lineno
     assert message == e.get_message()
-
     assert e.line == line
     assert e.source == source
     assert e.lineno == lineno
     assert e.colno == colno
-    assert e.culprit == (source, lineno) if source else (lineno,)
     if lineno is None:
         assert e.codicil == (f'«{line}»',)
     else:
@@ -363,7 +370,7 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
             assert e.codicil == (f'{lineno:>4} «{line}»',)
         else:
             assert e.codicil == (
-                (f'{lineno-1:>4} «{prev_line[0]}»\n' if prev_line else '') +
+                (f'{prev_lineno:>4} «{prev_line}»\n' if prev_line else '') +
                 f'{lineno:>4} «{line}»' +
                 (f'\n      {" "*colno}▲' if colno is not None else ''),
             )

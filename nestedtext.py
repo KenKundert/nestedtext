@@ -197,7 +197,7 @@ def report(message, line, *args, colno=None, **kwargs):
         if colno is not None:
             # build codicil that shows both the line and the preceding line
             if line.prev_line is not None:
-                codicil = [f'{line.lineno-1:>4} «{line.prev_line}»']
+                codicil = [f'{line.prev_line.lineno:>4} «{line.prev_line.text}»']
             else:
                 codicil = []
             codicil += [
@@ -210,7 +210,8 @@ def report(message, line, *args, colno=None, **kwargs):
             kwargs['codicil'] = f'{line.lineno:>4} «{line.text}»'
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
-        kwargs['prev_line'] = line.prev_line
+        if line.prev_line:
+            kwargs['prev_line'] = line.prev_line.text
     else:
         kwargs['culprit'] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
@@ -219,6 +220,8 @@ def report(message, line, *args, colno=None, **kwargs):
 # indentation_error {{{2
 def indentation_error(line, depth):
     assert line.depth != depth
+    if not line.prev_line and depth == 0:
+        report('top-level content must start in column 1.', line, colno=depth)
     report('invalid indentation.', line, colno=depth)
 
 
@@ -290,7 +293,8 @@ class Lines:
                 value = value,
                 prev_line = prev_line,
             )
-            prev_line = line
+            if kind.endswith(' item'):
+                prev_line = the_line
 
             # check the indent for non-spaces
             if depth:
@@ -319,7 +323,7 @@ class Lines:
         if self.next_line:
             return (
                 self.next_line.kind == "string item" and
-                self.next_line.depth == depth
+                self.next_line.depth >= depth
             )
 
     # depth_of_next() {{{3
@@ -417,6 +421,8 @@ def read_string(lines, depth):
     while lines.still_within_string(depth):
         line = lines.get_next()
         data.append(line.value)
+        if line.depth != depth:
+            indentation_error(line, depth)
     return "\n".join(data)
 
 
