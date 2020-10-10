@@ -15,7 +15,7 @@ Releases
 Latest development release
 --------------------------
 
-    | Version: 1.0.7
+    | Version: 1.0.8
     | Released: 2020-10-10
 
     - Add ability to specify return type of :func:`load` and :func:`loads`.
