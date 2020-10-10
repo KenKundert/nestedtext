@@ -15,8 +15,8 @@ Releases
 Latest development release
 --------------------------
 
-    | Version: 1.0.5
-    | Released: 2020-10-08
+    | Version: 1.0.6
+    | Released: 2020-10-10
 
     - Add ability to specify return type of :func:`load` and :func:`loads`.
     - Quoted keys are now less restricted.
