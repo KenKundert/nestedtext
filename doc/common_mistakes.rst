@@ -29,7 +29,8 @@ the following example:
     ... except nt.NestedTextError as e:
     ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
-    invalid indentation.
+    invalid indentation. An indent may only follow a dictionary or list
+    item that does not have its own value.
        4 «    address: Home»
        5 «        > 3636 Buffalo Ave»
               ▲
@@ -58,7 +59,8 @@ A more subtle version of this same error follows:
     ... except nt.NestedTextError as e:
     ...     print(e.get_message())
     ...     print(e.get_codicil()[0])
-    invalid indentation.
+    invalid indentation. An indent may only follow a dictionary or list
+    item that does not have its own value.
        4 «    address:  »
        5 «        > 3636 Buffalo Ave»
               ▲

@@ -35,6 +35,7 @@ from inform import (
     Error,
     Info,
 )
+import textwrap
 import collections.abc
 import re
 
@@ -221,8 +222,26 @@ def report(message, line, *args, colno=None, **kwargs):
 def indentation_error(line, depth):
     assert line.depth != depth
     if not line.prev_line and depth == 0:
-        report('top-level content must start in column 1.', line, colno=depth)
-    report('invalid indentation.', line, colno=depth)
+        msg = 'top-level content must start in column 1.'
+    elif (
+        line.prev_line and
+        line.prev_line.value and
+        line.prev_line.depth < line.depth and
+        line.prev_line.kind in ['list item', 'dict item']
+    ):
+        msg = ' '.join([
+            'invalid indentation.',
+            'An indent may only follow a dictionary or list item that does',
+            'not have its own value.'
+        ])
+    elif (
+        line.prev_line and
+        line.prev_line.depth > line.depth
+    ):
+        msg = 'invalid indentation, partial dedent'
+    else:
+        msg = 'invalid indentation.'
+    report(textwrap.fill(msg), line, colno=depth)
 
 
 # Lines class {{{2
