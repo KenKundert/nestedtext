@@ -18,10 +18,15 @@ Latest development release
     | Version: 1.0.8
     | Released: 2020-10-10
 
+
+v1.1 (2020-10-13)
+-----------------
+
     - Add ability to specify return type of :func:`load` and :func:`loads`.
     - Quoted keys are now less restricted.
     - Empty dictionaries and lists are rejected by :func:`dump` and 
-      :func:`dumps` if *default* argument is specified as 'strict'.
+      :func:`dumps` except as top-level object if *default* argument is 
+      specified as 'strict'.
 
     .. warning::
 
