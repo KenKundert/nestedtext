@@ -17,8 +17,9 @@ NestedText: A Human Friendly Data Format
 | Authors: Ken & Kale Kundert
 | Version: 1.1.0
 | Released: 2020-10-11
+| Documentation: `nestedtext.org <https://nestedtext.org>`_.
 | Please post all questions, suggestions, and bug reports to
-  `NestedText Github <https://github.com/KenKundert/nestedtext/issues>`_.
+  `Github <https://github.com/KenKundert/nestedtext/issues>`_.
 |
 
 
@@ -117,17 +118,10 @@ There are packages such as `Pydantic <https://pydantic-docs.helpmanual.io>`_ and
 this process easy and reliable.
 
 
-Issues
-------
-
-Please ask questions or report problems on `Github 
-<https://github.com/KenKundert/nestedtext/issues>`_.
-
-
 Contributing
 ------------
 
 This package contains a Python reference implementation of *NestedText* and 
 a test suite.  Implementation in many languages is required for *NestedText* to 
 catch on widely.  If you like the format, please consider contributing 
-additional implementations. 
+additional implementations.
