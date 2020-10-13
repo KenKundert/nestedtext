@@ -165,6 +165,13 @@ a list, and the members could use a leading ``~`` to signify a home directory.
 Applying *to_paths* in the schema converts whatever is specified to a list and 
 converts each member to a pathlib_ path with the ``~`` properly expanded.
 
+Notice that the schema is defined in a different manner that the above examples.  
+In those, you simply state which type you are expecting for the value and you 
+use the *Coerce* function to indicate that the value should be cast to that type 
+if needed. In this example, simple functions are passed in that perform 
+validation and coercion as needed.  This is a more flexible approach and allows 
+better control of the error messages.
+
 Here are the processed settings::
 
     {'my gpg ids': ['odin@norse-gods.com'],
