@@ -20,6 +20,3 @@ make it easy for you to interpret the data yourself.  After all, you understand
 what the data is supposed to mean, so you are in the best position to interpret 
 it.  There are also many powerful tools available to help with :doc:`this exact 
 task <schemas>`.
-
-
-

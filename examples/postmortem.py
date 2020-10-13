@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import nestedtext as nt
 from pathlib import Path
-from voluptuous import Schema, Invalid, Extra, REMOVE_EXTRA
+from voluptuous import Schema, Invalid, Extra, Required, REMOVE_EXTRA
 from pprint import pprint
 
 # Settings schema
@@ -24,7 +24,7 @@ def to_list(arg):
         raise Invalid('expected list.')
     return arg
 
-def to_list_of_paths(arg):
+def to_paths(arg):
     return [Path(p).expanduser() for p in to_list(arg)]
 
 def to_email(arg):
@@ -32,6 +32,9 @@ def to_email(arg):
     if '.' in host:
         return arg
     raise Invalid('expected email address.')
+
+def to_emails(arg):
+    return [to_email(e) for e in to_list(arg)]
 
 def to_gpg_id(arg):
     try:
@@ -49,17 +52,17 @@ def to_gpg_ids(arg):
 # define the schema for the settings file
 schema = Schema(
     {
-        'my gpg ids': to_gpg_ids,
+        Required('my gpg ids'): to_gpg_ids,
         'sign with': to_gpg_id,
         'avendesora gpg passphrase account': to_str,
         'avendesora gpg passphrase field': to_str,
         'name template': to_str,
-        'recipients': {
+        Required('recipients'): {
             Extra: {
-                'category': to_ident,
-                'email': to_email,
+                Required('category'): to_ident,
+                Required('email'): to_emails,
                 'gpg id': to_gpg_id,
-                'attach': to_list_of_paths,
+                'attach': to_paths,
                 'networth': to_ident,
             }
         },
@@ -102,4 +105,4 @@ try:
 except nt.NestedTextError as e:
     e.report()
 except Invalid as e:
-    print(f"ERROR: {', '.join(e.path)}: e.msg")
+    print(f"ERROR: {', '.join(str(p) for p in e.path)}: {e.msg}")
