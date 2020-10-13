@@ -92,10 +92,11 @@ to *JSON*.  It demonstrates the use of :func:`load()` and
 .. literalinclude:: ../examples/nestedtext-to-json
    :language: python
 
+
 .. _cryptocurrency example:
 
 Cryptocurrency holdings
-========================
+=======================
 
 This example implements a command-line utility that displays the current value 
 of cryptocurrency holdings.  The program starts by reading a settings file held 
@@ -129,5 +130,65 @@ And finally, the code:
    :language: python
 
 
-.. _pydantic: https://pydantic-docs.helpmanual.io/
+.. _postmortem example:
+
+PostMortem
+==========
+
+This example illustrates how one can implement references in *NestedText*.  
+A reference allow you to define some content once and insert that content 
+multiple places in the document.
+
+PostMortem_ is a program that generates a packet of information that is securely 
+shared with your dependents in case of your death.  Only the settings processing 
+part of the package is shown here.  Here is a configuration file that Odin might 
+use to generate packets for his wife and kids:
+
+.. literalinclude:: ../examples/postmortem.nt
+
+Notice that *estate docs* is defined at the top level. It is not a *PostMortem* 
+setting; it simply defines a value that will be interpolated into a setting 
+later. The interpolation is done by adding ``@`` to the name of the value. So 
+for example, in *recipients* *attach* is specified as ``@ estate docs``.  This 
+causes the list of estate documents to be used as attachments.  The same thing 
+is done in *sign with*, which interpolates *my gpg ids*.
+
+Here is the code for validating and transforming the *PostMortem* settings:
+
+.. literalinclude:: ../examples/postmortem.py
+   :language: python
+
+This code uses *expand_settings* to implement references, and it uses the 
+*Voluptuous* schema to clean and validate the settings and convert them to 
+convenient forms. For example, the user could specify *attach* as a string or 
+a list, and the members could use a leading ``~`` to signify a home directory.  
+The use of *to_list_of_paths* converts whatever is specified to a list and 
+converts each member to a pathlib_ path with the ``~`` properly expanded.
+
+Here are the processed settings::
+
+    {'my gpg ids': ['odin@norse-gods.com'],
+    'name template': '{name}-{now:YYMMDD}',
+    'recipients': {'frigg': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                       PosixPath('/home/ken/home/estate/will.pdf'),
+                                       PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                            'category': 'wife',
+                            'email': 'frigg@norse-gods.com',
+                            'networth': 'odin'},
+                    'loki': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                       PosixPath('/home/ken/home/estate/will.pdf'),
+                                       PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                            'category': 'kids',
+                            'email': 'loki@norse-gods.com'},
+                    'thor': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                       PosixPath('/home/ken/home/estate/will.pdf'),
+                                       PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                            'category': 'kids',
+                            'email': 'thor@norse-gods.com'}},
+    'sign with': 'odin@norse-gods.com'}
+
+
+.. _pydantic: https://pydantic-docs.helpmanual.io
 .. _voluptuous: https://github.com/alecthomas/voluptuous
+.. _PostMortem: https://github.com/kenkundert/postmortem
+.. _pathlib: https://docs.python.org/3/library/pathlib.html
