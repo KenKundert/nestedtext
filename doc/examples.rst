@@ -162,7 +162,7 @@ This code uses *expand_settings* to implement references, and it uses the
 *Voluptuous* schema to clean and validate the settings and convert them to 
 convenient forms. For example, the user could specify *attach* as a string or 
 a list, and the members could use a leading ``~`` to signify a home directory.  
-The use of *to_list_of_paths* converts whatever is specified to a list and 
+Applying *to_paths* in the schema converts whatever is specified to a list and 
 converts each member to a pathlib_ path with the ``~`` properly expanded.
 
 Here are the processed settings::
