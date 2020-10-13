@@ -15,5 +15,6 @@ jobs:
     - python: 3.9-dev
     - python: nightly
   allow_failures:
+    - python: 3.10-dev
     - python: nightly
   fast_finish: true
