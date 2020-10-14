@@ -3,8 +3,8 @@ Alternatives
 ************
 
 There are no shortage of well established alternatives to *NestedText* for 
-storing configuration data in a human-readable text file.  The features and 
-shortcomings of some of these alternatives are discussed below:
+storing data in a human-readable text file.  The features and shortcomings of 
+some of these alternatives are discussed below:
 
 JSON
 ====

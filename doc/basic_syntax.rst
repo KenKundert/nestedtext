@@ -20,13 +20,11 @@ A dictionary is an ordered collection of name/value pairs::
     name 2: value 2
     ...
 
-A dictionary item is introduced by a key followed by a colon at the start 
-of a line.  If the key contains characters that could be misinterpreted, it must 
-be quoted using matching single- or double-quotes (both have the same meaning).
-
-The key is a string and must be quoted if it contains characters that could 
-be misinterpreted.  You can quote it using either single or double quotes.
-Keys are the only place in *NestedText* where quoting is used to protect text.
+A dictionary item is introduced by a key followed by a colon at the start of 
+a line.  The key is a string and must be quoted if it contains characters that 
+could be misinterpreted.  You quote it using either single or double quotes 
+(both have the same meaning).  Keys are the only place in *NestedText* where 
+quoting is used to protect text.
 
 The value of a dictionary item may be a rest-of-line string, a multiline string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
@@ -64,12 +62,13 @@ Strings
 =======
 
 There are two types of strings: rest-of-line strings and multiline strings.  
-Rest-of-line strings are simply all the remaining characters on the line.  They 
-can contain any character other than newline::
+Rest-of-line strings are simply all the remaining characters on the line, 
+including any leading or trailing white space.  They can contain any character 
+other than newline::
 
-    code: input signed [7:0] level
-    regex: [+-]?([0-9]*[.])?[0-9]+\s*\w*
-    math: -b + sqrt(b**2 - 4*a*c)
+    code   : input signed [7:0] level
+    regex  : [+-]?([0-9]*[.])?[0-9]+\s*\w*
+    math   : -b + sqrt(b**2 - 4*a*c)
     unicode: José and François
 
 Multi-line strings are specified on lines prefixed with the greater-than 

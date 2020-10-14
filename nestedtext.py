@@ -76,7 +76,8 @@ class NestedTextError(Error, ValueError):
 
     prev_line:
 
-        The text of the line immediately before where the problem was found.
+        The text of the meaningful line immediately before where the problem was
+        found.  This would not be a comment or blank line.
 
     template:
 
@@ -534,7 +535,7 @@ def loads(content, top='dict', *, source=None, on_dup=None):
         top argument.  If top is 'any', then the return value will match that of
         top-level data container in the input content. If content is empty, an
         empty data value is return of the type specified by top. If top is
-        'any', None is returned.
+        'any' None is returned.
 
     Raises:
         NestedTextError: if there is a problem in the *NextedText* content.
@@ -564,7 +565,7 @@ def loads(content, top='dict', *, source=None, on_dup=None):
         *loads()* takes an optional argument, *source*. If specified, it is
         added to any error messages. It is often used to designate the source
         of *contents*. For example, if *contents* were read from a file,
-        *culprit* would be the file name.  Here is a typical example of reading
+        *source* would be the file name.  Here is a typical example of reading
         *NestedText* from a file:
 
         .. code-block:: python
@@ -642,10 +643,9 @@ def load(f=None, top='dict', *, on_dup=None):
             object is given, it will be read and not closed; utf-8 encoding
             should be used..  If an iterator is given, it should generate full
             lines in the same manner that iterating on a file descriptor would.
-        top:
-            See :func:`loads` description of this argument.
-        on_dup:
-            See :func:`loads` description of this argument.
+
+        kwargs:
+            See :func:`loads` for optional arguments.
 
     Returns:
         The extracted data.
@@ -783,7 +783,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             functions (functions that take an object and convert it to a string).
             These will be used to convert values to strings during the
             conversion.
-        default (str or func):
+        default (func or 'strict'):
             The default renderer. Use to render otherwise unrecognized objects
             to strings. If not provided an error will be raised for unsupported
             data types. Typical values are *repr* or *str*. If 'strict' is
