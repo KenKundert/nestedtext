@@ -14,13 +14,11 @@ NestedText: A Human Friendly Data Format
     :target: https://pypi.python.org/pypi/nestedtext
 
 
-| Authors: Ken & Kale Kundert
-| Version: 1.1.0
-| Released: 2020-10-11
-| Documentation: `nestedtext.org <https://nestedtext.org>`_.
-| Please post all questions, suggestions, and bug reports to
-  `Github <https://github.com/KenKundert/nestedtext/issues>`_.
-|
+:Authors: Ken & Kale Kundert
+:Version: 1.1.0
+:Released: 2020-10-11
+:Documentation: `nestedtext.org <https://nestedtext.org>`_.
+:Please post all questions, suggestions, and bug reports to: `Github <https://github.com/KenKundert/nestedtext/issues>`_.
 
 
 *NestedText* is a file format for holding data that is to be entered, edited, or 
