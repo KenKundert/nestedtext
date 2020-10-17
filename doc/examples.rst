@@ -136,8 +136,10 @@ PostMortem
 ==========
 
 This example illustrates how one can implement references in *NestedText*.  
-A reference allow you to define some content once and insert that content 
-multiple places in the document.
+A reference allows you to define some content once and insert that content 
+multiple places in the document.  The example also demonstrates a slightly 
+different way to implement validation and conversion on a per field basis with 
+voluptuous_.
 
 PostMortem_ is a program that generates a packet of information that is securely 
 shared with your dependents in case of your death.  Only the settings processing 
@@ -148,10 +150,11 @@ use to generate packets for his wife and kids:
 
 Notice that *estate docs* is defined at the top level. It is not a *PostMortem* 
 setting; it simply defines a value that will be interpolated into a setting 
-later. The interpolation is done by adding ``@`` to the name of the value. So 
-for example, in *recipients* *attach* is specified as ``@ estate docs``.  This 
-causes the list of estate documents to be used as attachments.  The same thing 
-is done in *sign with*, which interpolates *my gpg ids*.
+later. The interpolation is done by specifying ``@`` along with the name of the 
+reference as a value.  So for example, in *recipients* *attach* is specified as 
+``@ estate docs``.  This causes the list of estate documents to be used as 
+attachments.  The same thing is done in *sign with*, which interpolates *my gpg 
+ids*.
 
 Here is the code for validating and transforming the *PostMortem* settings:
 

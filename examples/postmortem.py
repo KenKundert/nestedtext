@@ -38,12 +38,13 @@ def to_emails(arg):
 
 def to_gpg_id(arg):
     try:
-        return to_email(arg)
+        return to_email(arg)      # gpg ID may be an email address
     except Invalid:
         try:
-            int(arg, base=16)
+            int(arg, base=16)     # if not an email, it must be a hex key
+            assert len(arg) >= 8  # at least 8 characters long
             return arg
-        except ValueError:
+        except (ValueError, AssertionError):
             raise Invalid('expected GPG id.')
 
 def to_gpg_ids(arg):
@@ -71,7 +72,7 @@ schema = Schema(
 )
 
 # this function implements references
-def expand_setting(value):
+def expand_settings(value):
     # allows macro values to be defined as a top-level setting.
     # allows macro reference to be found anywhere.
     if isinstance(value, str):
@@ -80,9 +81,9 @@ def expand_setting(value):
             value = settings[value[1:].strip()]
         return value
     if isinstance(value, dict):
-        return {k:expand_setting(v) for k, v in value.items()}
+        return {k:expand_settings(v) for k, v in value.items()}
     if isinstance(value, list):
-        return [expand_setting(v) for v in value]
+        return [expand_settings(v) for v in value]
     raise NotImplementedError(value)
 
 try:
@@ -94,7 +95,7 @@ try:
         settings = nt.load(config_filepath)
 
         # expand references
-        settings = expand_setting(settings)
+        settings = expand_settings(settings)
 
         # check settings and transform to desired types
         settings = schema(settings)
