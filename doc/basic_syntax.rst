@@ -14,11 +14,12 @@ format>`.
 Dictionaries
 ============
 
-A dictionary is an ordered collection of name/value pairs::
+A dictionary is an ordered collection of name/value pairs:
+
+.. code-block:: nestedtext
 
     name 1: value 1
     name 2: value 2
-    ...
 
 A dictionary item is introduced by a key followed by a colon at the start of 
 a line.  The key is a string and must be quoted if it contains characters that 
@@ -40,11 +41,12 @@ A dictionary is all adjacent dictionary items at the same indentation level.
 Lists
 =====
 
-A list is an ordered collection of values::
+A list is an ordered collection of values:
+
+.. code-block:: nestedtext
 
     - value 1
     - value 2
-    ...
 
 A list item is introduced with a dash at the start of a line.  The value of 
 a list item may be a rest-of-line string, a multiline string, a list, or 
@@ -64,7 +66,9 @@ Strings
 There are two types of strings: rest-of-line strings and multiline strings.  
 Rest-of-line strings are simply all the remaining characters on the line, 
 including any leading or trailing white space.  They can contain any character 
-other than newline::
+other than newline:
+
+.. code-block:: nestedtext
 
     code   : input signed [7:0] level
     regex  : [+-]?([0-9]*[.])?[0-9]+\s*\w*
@@ -72,14 +76,18 @@ other than newline::
     unicode: José and François
 
 Multi-line strings are specified on lines prefixed with the greater-than 
-symbol.  The content of each line starts after the first space that follows 
-the greater-than symbol::
+symbol.  The content of each line starts after the first space that follows the 
+greater-than symbol:
+
+.. code-block:: nestedtext
 
     >     This is the first line of a multiline string, it is indented.
     > This is the second line, it is not indented.
 
-You can include empty lines in the string simply by specifying the 
-greater-than symbol alone on a line::
+You can include empty lines in the string simply by specifying the greater-than 
+symbol alone on a line:
+
+.. code-block:: nestedtext
 
     >
     > “The worth of a man to his society can be measured by the contribution he
@@ -103,7 +111,7 @@ Lines that begin with a hash as the first non-space character, or lines that are
 empty or consist only of spaces and tabs are comment lines and are ignored.  
 Indentation is not significant on comment lines.
 
-::
+.. code-block:: nestedtext
 
     # this line is ignored
 
@@ -117,7 +125,9 @@ A value for a dictionary or list item may be a rest-of-line string or it may be
 a nested dictionary, list or a multiline string.  Indentation is used to 
 indicate nesting.  Indentation increases to indicate the beginning of a new 
 nested object, and indentation returns to a prior level to indicate its end.  In 
-this way, data can be nested to an arbitrary depth::
+this way, data can be nested to an arbitrary depth:
+
+.. code-block:: nestedtext
 
     # Contact information for our officers
 

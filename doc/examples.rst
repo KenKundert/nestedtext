@@ -13,6 +13,7 @@ This example shows how to use pydantic_ to validate and parse a *NestedText*
 file.  The file in this case specifies deployment settings for a web server:
 
 .. literalinclude:: ../examples/deploy.nt
+   :language: nestedtext
 
 Below is the code to parse this file.  Note that basic types like integers, 
 strings, Booleans, and lists are specified using standard type annotations.  
@@ -22,8 +23,11 @@ built-in support for validating email addresses, which we can take advantage of
 here:
 
 .. literalinclude:: ../examples/deploy_pydantic.py
+   :language: python
 
-This produces the following data structure::
+This produces the following data structure:
+
+.. code-block:: python
 
     {'allowed_hosts': ['www.example.com'],
      'database': {'engine': 'django.db.backends.mysql',
@@ -44,6 +48,7 @@ file.  The input file is the same as in the previous example, i.e. deployment
 settings for a web server:
 
 .. literalinclude:: ../examples/deploy.nt
+   :language: nestedtext
 
 Below is the code to parse this file.  Note how the structure of the data is 
 specified using basic Python objects.  The :func:`Coerce()` function is 
@@ -51,8 +56,11 @@ necessary to have voluptuous convert string input to the given type; otherwise
 it would simply check that the input matches the given type:
 
 .. literalinclude:: ../examples/deploy_voluptuous.py
+   :language: python
 
-This produces the following data structure::
+This produces the following data structure:
+
+.. code-block:: python
 
     {'allowed_hosts': ['www.example.com'],
      'database': {'engine': 'django.db.backends.mysql',
@@ -100,7 +108,9 @@ Cryptocurrency holdings
 
 This example implements a command-line utility that displays the current value 
 of cryptocurrency holdings.  The program starts by reading a settings file held 
-in ``~/.config/cc`` that in this case holds::
+in ``~/.config/cc`` that in this case holds:
+
+.. code-block:: nestedtext
 
     holdings:
         - 5 BTC
@@ -147,6 +157,7 @@ part of the package is shown here.  Here is a configuration file that Odin might
 use to generate packets for his wife and kids:
 
 .. literalinclude:: ../examples/postmortem.nt
+    :language: nestedtext
 
 Notice that *estate docs* is defined at the top level. It is not a *PostMortem* 
 setting; it simply defines a value that will be interpolated into a setting 
@@ -175,7 +186,9 @@ if needed. In this example, simple functions are passed in that perform
 validation and coercion as needed.  This is a more flexible approach and allows 
 better control of the error messages.
 
-Here are the processed settings::
+Here are the processed settings:
+
+.. code-block:: python
 
     {'my gpg ids': ['odin@norse-gods.com'],
     'name template': '{name}-{now:YYMMDD}',

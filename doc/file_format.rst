@@ -32,7 +32,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     or greater-than symbol (``>``) when followed immediately by a space or 
     newline.  Once the first of one of these pairs has been found in the 
     unquoted portion of the line, any subsequent occurrences of any of the 
-    line-type tags are treated as simple text.  For example::
+    line-type tags are treated as simple text.  For example:
+
+    .. code-block:: nestedtext
 
         - And the winner is: {winner}
 

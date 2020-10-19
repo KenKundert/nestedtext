@@ -33,7 +33,9 @@ easily understood and used by both programmers and non-programmers.
 
 *NestedText* is convenient for configuration files, address books, account 
 information and the like.  Here is an example of a file that contains a few 
-addresses::
+addresses:
+
+.. code-block:: nestedtext
 
     # Contact information for our officers
 
