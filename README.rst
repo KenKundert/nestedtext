@@ -117,6 +117,13 @@ There are packages such as `Pydantic <https://pydantic-docs.helpmanual.io>`_ and
 this process easy and reliable.
 
 
+Related Projects
+----------------
+
+`vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_
+    vim syntax files for *NestedText*.
+
+
 Contributing
 ------------
 
