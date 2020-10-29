@@ -386,6 +386,83 @@ def test_load_api_errors():
     with pytest.raises(TypeError):
         nt.load(['path_1.nt', 'path_2.nt'])
 
+# test_load_top {{{1
+def test_load_top():
+    content = ''
+    data = nt.loads(content, top='dict')
+    assert data == {}
+    data = nt.loads(content, top=dict)
+    assert data == {}
+    data = nt.loads(content, top='list')
+    assert data == []
+    data = nt.loads(content, top=list)
+    assert data == []
+    data = nt.loads(content, top='str')
+    assert data == ''
+    data = nt.loads(content, top=str)
+    assert data == ''
+    data = nt.loads(content, top='any')
+    assert data == None
+    data = nt.loads(content, top=any)
+    assert data == None
+
+    content = 'key1: value1\nkey2: value2'
+    expected = {'key1': 'value1', 'key2': 'value2'}
+    data = nt.loads(content, top='dict')
+    assert data == expected
+    data = nt.loads(content, top=dict)
+    assert data == expected
+    data = nt.loads(content, top='any')
+    assert data == expected
+    data = nt.loads(content, top=any)
+    assert data == expected
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='list')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=list)
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='str')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=str)
+
+    content = '- value1\n- value2'
+    expected = ['value1', 'value2']
+    data = nt.loads(content, top='list')
+    assert data == expected
+    data = nt.loads(content, top=list)
+    assert data == expected
+    data = nt.loads(content, top='any')
+    assert data == expected
+    data = nt.loads(content, top=any)
+    assert data == expected
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='dict')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=dict)
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='str')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=str)
+
+    content = '> this is a test\n> this is only a test'
+    expected = 'this is a test\nthis is only a test'
+    data = nt.loads(content, top='str')
+    assert data == expected
+    data = nt.loads(content, top=str)
+    assert data == expected
+    data = nt.loads(content, top='any')
+    assert data == expected
+    data = nt.loads(content, top=any)
+    assert data == expected
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='dict')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=dict)
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='list')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=list)
+
 def test_load_top_str():
     data = nt.loads('> hello', 'str')
     assert data == 'hello'

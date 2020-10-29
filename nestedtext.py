@@ -459,7 +459,7 @@ def read_all(lines, top, source, on_dup):
     with set_culprit(source):
         lines = Lines(lines)
 
-        if top == 'any':
+        if top in ['any', any]:
             if lines.type_of_next():
                 return read_value(lines, 0, on_dup)
             else:
@@ -467,7 +467,7 @@ def read_all(lines, top, source, on_dup):
 
         next_is = lines.type_of_next()
 
-        if top == 'dict':
+        if top in ['dict', dict]:
             if next_is == "dict item":
                 return read_dict(lines, 0, on_dup)
             elif next_is:
@@ -475,7 +475,7 @@ def read_all(lines, top, source, on_dup):
             else:
                 return {}
 
-        if top == 'list':
+        if top in ['list', list]:
             if next_is == "list item":
                 return read_list(lines, 0, on_dup)
             elif next_is:
@@ -483,7 +483,7 @@ def read_all(lines, top, source, on_dup):
             else:
                 return []
 
-        if top == 'str':
+        if top in ['str', str]:
             if next_is == "string item":
                 return read_string(lines, 0)
             elif next_is:
@@ -509,7 +509,9 @@ def loads(content, top='dict', *, source=None, on_dup=None):
             top-level container and the return value of this function. By
             specifying 'any' you enable support for all three data types, with
             the type of the returned value matching that of top-level container
-            in content.
+            in content. As a short-hand, you may specify the *dict*, *list*,
+            *str*, and *any* built-ins rather than specifying *top* with a
+            string.
         source (str or Path):
             If given, this string is attached to any error messages as the
             culprit. It is otherwise unused. Is often the name of the file that
