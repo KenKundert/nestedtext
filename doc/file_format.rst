@@ -9,6 +9,13 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     A *NestedText* document encoded in UTF-8.
 
+**Line breaks**:
+
+    A *NestedText* document is partitioned into lines where the lines are split 
+    by CR LF, CR, or LF where CR and LF are the ASCII carriage return and line 
+    feed characters.  A single document may employ any or all of these ways of 
+    splitting lines.
+
 **Line types**:
 
     Each line in a *NestedText* document is assigned one of the following types: 

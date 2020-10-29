@@ -273,8 +273,6 @@ class Lines:
             depth = None
             key = None
             value = None
-
-            # all lines except possibly last have a trailing newline, remove it
             line = line.rstrip('\n')
 
             # compute indentation
@@ -623,7 +621,8 @@ def loads(content, top='dict', *, source=None, on_dup=None):
 
     '''
 
-    return read_all(content.splitlines(True), top, source, on_dup)
+    lines = content.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+    return read_all(lines, top, source, on_dup)
 
 
 # load() {{{2
@@ -983,11 +982,12 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             for v in obj
         )
     elif is_a_str(obj):
-        if "\n" in obj:
-            content = add_leader(obj, '> ')
+        text = obj.replace('\r\n', '\n').replace('\r', '\n')
+        if "\n" in text or level == 0:
+            content = add_leader(text, '> ')
             need_indented_block = True
         else:
-            content = obj
+            content = text
     elif is_a_scalar(obj):
         if obj is None:
             content = ''
