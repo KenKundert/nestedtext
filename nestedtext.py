@@ -723,11 +723,10 @@ def render_key(s):
         )
     if (
         len(stripped) < len(s)
-        or s[:1] == "#"
+        or s[:1] in ["#", "'", '"']
         or s.startswith("- ")
         or s.startswith("> ")
         or ': ' in s
-        or s[:1] + s[-1:] in ['""', "''"]
     ):
         if "'" in s:
             quotes = '"', "'"
