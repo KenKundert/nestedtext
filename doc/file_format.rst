@@ -72,7 +72,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     1. starts with a *list-item* or *string-item* tag,
     2. contains a *dict-item* tag
     3. is delimited by matching quote characters, or
-    4. has leading or trailing spaces.
+    4. has leading or trailing spaces or tabs.
 
     A key is quoted by delimiting it with matching single or double quote 
     characters, which are discarded.  Unlike traditional programming languages, 
