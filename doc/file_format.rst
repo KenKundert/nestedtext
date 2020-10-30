@@ -77,8 +77,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     quoted if it:
 
     1. starts with a *list-item* or *string-item* tag,
-    2. contains a *dict-item* tag
-    3. is delimited by matching quote characters, or
+    2. contains a *dict-item* tag,
+    3. starts with a quote character, or
     4. has leading or trailing spaces or tabs.
 
     A key is quoted by delimiting it with matching single or double quote 
@@ -89,6 +89,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     is not used as an escape character; backslash has no special meaning 
     anywhere in *NestedText*.
 
+    A quoted key starts with the leading quote character and ends when the 
+    matching quote character is found along with a trailing colon (there may be 
+    white space between the closing quote and the colon).
     A key is invalid if it contains two or more instances of a quote character 
     separated from ``:␣`` by zero or more space characters where the quote 
     character in one is a single quote and the quote character in another is the 
