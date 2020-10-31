@@ -15,8 +15,8 @@ Releases
 Latest development release
 --------------------------
 
-    | Version: 1.1.0
-    | Released: 2020-10-11
+    | Version: 1.1.1
+    | Released: 2020-10-31
 
     - Treat CR LF, CR, or LF as a line break.
     - Always quote keys that start with a quote
