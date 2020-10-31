@@ -18,8 +18,13 @@ Latest development release
     | Version: 1.1.1
     | Released: 2020-10-31
 
+
+v1.2 (2020-10-31)
+-----------------
+
     - Treat CR LF, CR, or LF as a line break.
     - Always quote keys that start with a quote
+
 
 v1.1 (2020-10-13)
 -----------------
@@ -54,14 +59,17 @@ v1.0 (2020-10-03)
 -----------------
     - Production release.
 
+
 v0.6 (2020-09-26)
 -----------------
     - Added :func:`load` and :func:`dump`.
     - Eliminated *NestedTextError.get_extended_codicil*.
 
+
 v0.5 (2020-09-11)
 -----------------
     - allow user to manage duplicate keys detected by :func:`loads`.
+
 
 v0.4 (2020-09-07)
 -----------------
@@ -74,13 +82,16 @@ v0.4 (2020-09-07)
       with those used by JSON package.
     - Added *NestedTextError.get_extended_codicil*.
 
+
 v0.3 (2020-09-03)
 -----------------
     - Allow comments to be indented.
 
+
 v0.2 (2020-09-02)
 -----------------
     - Minor enhancements and bug fixes.
+
 
 v0.1 (2020-08-30)
 -----------------
