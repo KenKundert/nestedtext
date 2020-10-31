@@ -18,6 +18,20 @@ Latest development release
     | Version: 1.2.0
     | Released: 2020-10-31
 
+    - Move the test cases to a submodule.
+
+    .. note::
+
+        When cloning the *NestedText* repository you should use the --recursive 
+        flag to get the *official_tests* submodule::
+
+            git clone --recursive https://github.com/KenKundert/nestedtext.git
+
+        When updating a existing respository, you need to initialize the 
+        submodule after doing a pull::
+
+           git submodule update --init --remote tests/official_tests
+
 
 v1.2 (2020-10-31)
 -----------------
