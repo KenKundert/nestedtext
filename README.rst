@@ -122,6 +122,9 @@ this process easy and reliable.
 Related Projects
 ----------------
 
+`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
+    official *NestedText* test suite.
+
 `vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_
     vim syntax files for *NestedText*.
 

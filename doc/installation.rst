@@ -23,7 +23,7 @@ v1.2 (2020-10-31)
 -----------------
 
     - Treat CR LF, CR, or LF as a line break.
-    - Always quote keys that start with a quote
+    - Always quote keys that start with a quote.
 
 
 v1.1 (2020-10-13)
