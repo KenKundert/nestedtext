@@ -1,4 +1,0 @@
-# invalid indentation, tab in indentation
-key 1:
-    	    key 1.1: value 1.1
-

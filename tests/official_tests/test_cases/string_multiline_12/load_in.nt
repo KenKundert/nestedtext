@@ -1,16 +1,0 @@
->
-> the BS character \	Backslash (\)
-> the SQ character '	Single quote (')
-> the DQ character "	Double quote (")
-> the AB character 	ASCII Bell (BEL)
-> the BS character 	ASCII Backspace (BS)
-> the FF character 	ASCII Formfeed (FF)
-> the LF character 
-> 	ASCII Linefeed (LF)
-> the CR character 
-> 	ASCII Carriage Return (CR)
-> the HT character 		ASCII Horizontal Tab (TAB)
-> the VT character 	ASCII Vertical Tab (VT)
-> the ES character 	ASCII escape character as octal value
-> the ES character 	ASCII escape character as hex value
->

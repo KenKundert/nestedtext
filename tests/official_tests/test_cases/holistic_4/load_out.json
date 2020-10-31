@@ -1,8 +1,0 @@
-{
-    "output current": "out",
-    "description": "Output current",
-    "range": "V(gnda) + 0.5V < V < V(vdda) - 0.5V; -500μA <= I <= 500μA",
-    "behavior": "current:\n    I = On*Iout;\n    Vout=V;\n    IoutMeas=I with prail=vdda; nrail=gnda",
-    "nominal": "V=1.25V+1Ω*I"
-}
-

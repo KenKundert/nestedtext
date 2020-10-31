@@ -1,5 +1,0 @@
-key 1:  
-        # notice the extra space at the end of the above line
-
-        # that, combined with the indent in the line below is an error
-        key2: value 1.1
