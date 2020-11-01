@@ -27,10 +27,12 @@ Latest development release
 
             git clone --recursive https://github.com/KenKundert/nestedtext.git
 
-        When updating a existing respository, you need to initialize the 
+        When updating an existing repository, you need to initialize the 
         submodule after doing a pull::
 
            git submodule update --init --remote tests/official_tests
+
+        This only need be done once.
 
 
 v1.2 (2020-10-31)

@@ -4,7 +4,7 @@ Alternatives
 
 There are no shortage of well established alternatives to *NestedText* for 
 storing data in a human-readable text file.  The features and shortcomings of 
-some of these alternatives are discussed below:
+some of these alternatives are discussed next.
 
 JSON
 ====
