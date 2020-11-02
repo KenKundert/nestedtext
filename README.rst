@@ -122,11 +122,15 @@ this process easy and reliable.
 Related Projects
 ----------------
 
-`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
-    official *NestedText* test suite.
+`nestedtext <https://github.com/kenkundert/nestedtext>`_:
+    Language specification and Python implementation.
 
-`vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_
-    vim syntax files for *NestedText*.
+`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_:
+    Official *NestedText* test suite.  Also included as submodule in
+    `nestedtext <https://github.com/kenkundert/nestedtext>`_.
+
+`vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_:
+    Vim syntax files for *NestedText*.
 
 
 Contributing
