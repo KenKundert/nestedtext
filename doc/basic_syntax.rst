@@ -165,3 +165,18 @@ nested object.
 
 The data can be nested arbitrarily deeply using dictionaries and lists, but the 
 leaf values, the values that are nested most deeply, must all be strings.
+
+
+.. _nestedtext_files:
+
+NestedText Files
+================
+
+*NestedText* files should be encoded with `UTF-8 
+<https://en.wikipedia.org/wiki/UTF-8>`_.
+
+The name used for the file is arbitrary but it is tradition to use a
+.nt suffix.  If you also wish to further distinguish the file type
+by giving the schema, it is recommended that you use two suffixes,
+with the suffix that specifies the schema given first and .nt given
+last. For example: officers.addr.nt.
