@@ -15,8 +15,8 @@ Releases
 Latest development release
 --------------------------
 
-    | Version: 1.2.1
-    | Released: 2020-10-31
+    | Version: 1.2.2
+    | Released: 2020-11-21
 
     - Move the test cases to a submodule.
 
