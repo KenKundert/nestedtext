@@ -14,7 +14,7 @@ is written to stdout.
 """
 
 from docopt import docopt
-from inform import fatal, os_error
+from inform import fatal, full_stop, os_error
 from pathlib import Path
 import json
 import nestedtext as nt
