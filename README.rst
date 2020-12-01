@@ -86,9 +86,10 @@ any depth.  Indentation is used to indicate the hierarchy of the data, and
 a simple natural syntax is used to distinguish the types of data in such 
 a manner that it is not easily confused.  Specifically, lines that begin with a 
 word (or words) followed by a colon are dictionary items, lines that begin with 
-a dash are list items, and lines that begin with a greater-than sign are part of 
-a multiline string.  Dictionaries and lists can be nested arbitrarily, and the 
-leaf values are always text, hence the name *NestedText*.
+a dash are list items, lines that begin with a greater-than sign are part of 
+a multiline string, and lines that begin with a hash are comments and are 
+ignored.  Dictionaries and lists can be nested arbitrarily, and the leaf values 
+are always text, hence the name *NestedText*.
 
 *NestedText* is somewhat unique in that the leaf values are always strings. Of 
 course the values start off as strings in the input file, but alternatives like 
