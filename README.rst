@@ -123,6 +123,9 @@ this process easy and reliable.
 Related Projects
 ----------------
 
+`nestedtext <https://nestedtext.org>`_:
+    *NestedText* documentation.
+
 `nestedtext <https://github.com/kenkundert/nestedtext>`_:
     Language specification and Python implementation.
 
@@ -132,6 +135,9 @@ Related Projects
 
 `vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_:
     Vim syntax files for *NestedText*.
+
+`NestedText in Visual Studio <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`:
+    Syntax files for *Visual Studio*.
 
 
 Contributing
