@@ -136,7 +136,7 @@ Related Projects
 `vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_:
     Vim syntax files for *NestedText*.
 
-`NestedText in Visual Studio <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`:
+`visual studio <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_:
     Syntax files for *Visual Studio*.
 
 
