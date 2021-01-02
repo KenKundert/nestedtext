@@ -123,10 +123,10 @@ this process easy and reliable.
 Related Projects
 ----------------
 
-`nestedtext <https://nestedtext.org>`_:
+`nestedtext docs <https://nestedtext.org>`_:
     *NestedText* documentation.
 
-`nestedtext <https://github.com/kenkundert/nestedtext>`_:
+`nestedtext spec <https://github.com/kenkundert/nestedtext>`_:
     Language specification and Python implementation.
 
 `nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_:
