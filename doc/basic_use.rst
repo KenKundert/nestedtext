@@ -75,7 +75,7 @@ The :func:`dump` function writes *NestedText* to a file or stream.
 .. code-block:: python
 
     >>> try:
-    ...     content = nt.dump(data, 'examples/access.nt')
+    ...     nt.dump(data, 'examples/access.nt')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
     ... except OSError as e:
