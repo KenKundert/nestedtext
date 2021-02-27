@@ -139,6 +139,9 @@ Related Projects
 `visual studio <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_:
     Syntax files for *Visual Studio*.
 
+`zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_:
+    `Zig <https://ziglang.org>`_ implementation of *NestedText*.
+
 
 Contributing
 ------------
