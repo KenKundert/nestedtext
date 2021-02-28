@@ -123,25 +123,31 @@ this process easy and reliable.
 Related Projects
 ----------------
 
-**`nestedtext docs <https://nestedtext.org>`_**
+`nestedtext docs <https://nestedtext.org>`_
+"""""""""""""""""""""""""""""""""""""""""""
 *NestedText* documentation.
 
-**`nestedtext spec <https://github.com/kenkundert/nestedtext>`_**
+`nestedtext spec <https://github.com/kenkundert/nestedtext>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Language specification and Python implementation.
 
-**`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_**
+`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Official *NestedText* test suite.  Also included as submodule in
 `nestedtext <https://github.com/kenkundert/nestedtext>`_.
 
-**`vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_**
+`vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Vim syntax files for *NestedText*.
 
-**`visual studio 
-<https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_**
+`visual studio <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Syntax files for *Visual Studio*.
 
-**`zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_**
-`Zig <https://ziglang.org>`_ implementation of *NestedText*.
+.. coming soon:
+    `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    `Zig <https://ziglang.org>`_ implementation of *NestedText*.
 
 
 Contributing
