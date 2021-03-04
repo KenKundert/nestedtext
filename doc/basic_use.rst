@@ -6,6 +6,15 @@ Basic use
 
 The *NestedText* Python API is similar to that of *JSON*, *YAML*, *TOML*, etc.
 
+
+Installation
+------------
+
+::
+
+   pip3 install --user nestedtext
+
+
 NestedText Reader
 -----------------
 

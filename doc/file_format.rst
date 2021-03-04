@@ -1,8 +1,9 @@
 .. _nestedtext file format:
 
-***********
-File format
-***********
+******************
+Language reference
+******************
+
 The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Encoding**:

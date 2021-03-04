@@ -1,30 +1,22 @@
 .. include:: ../README.rst
 
 .. toctree::
-   :caption: Why NestedText?
+   :caption: Language
    :maxdepth: 1
 
    Philosophy <philosophy>
    alternatives
+   basic_syntax
+   file_format
+   changelog
 
 .. toctree::
-   :caption: Getting started
+   :caption: Python Implementation
    :maxdepth: 1
 
-   installation
-   basic_syntax
    basic_use
    schemas
    examples
    common_mistakes
-
-.. toctree::
-   :caption: Reference
-   :maxdepth: 1
-
-   file_format
    python_api
-
-
-
-*  :ref:`genindex`
+   releases
