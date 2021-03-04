@@ -8,8 +8,8 @@ Releases
 Latest development version
 --------------------------
 
-    | Version: 1.3.0
-    | Released: 2021-01-02
+    | Version: 1.3.1
+    | Released: 2021-03-03
 
     - Restructure documentation.
 
