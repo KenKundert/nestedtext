@@ -27,6 +27,10 @@ could be misinterpreted.  You quote it using either single or double quotes
 (both have the same meaning).  Keys are the only place in *NestedText* where 
 quoting is used to protect text.
 
+.. warning::
+
+    Quoting of keys will soon be deprecated.
+
 The value of a dictionary item may be a rest-of-line string, a multiline string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
 characters following the ":␣" that separates the key from the value.  For all 

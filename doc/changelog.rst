@@ -4,12 +4,17 @@ Language changes
 
 .. currentmodule:: nestedtext
 
+Currently the language and the Python implementation share version numbers.  
+Since the language is more stable than the implementation, you will see versions 
+that include no changes to the language.
 
 Latest development version
 --------------------------
 
     | Version: 1.3.1
     | Released: 2021-03-03
+
+    - quoting dictionary keys will soon be deprecated.
 
 
 v1.3 (2021-01-02)

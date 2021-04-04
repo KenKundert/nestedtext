@@ -100,6 +100,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     so that the separator from the key and value can be identified 
     unambiguously.
 
+    .. warning::
+
+        Quoting of keys will soon be deprecated.
+
 **Values**:
 
     The value associated with a list and dict item may take one of three forms.  
