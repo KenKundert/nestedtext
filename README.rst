@@ -119,6 +119,12 @@ There are packages such as `Pydantic <https://pydantic-docs.helpmanual.io>`_ and
 `Voluptuous <https://github.com/alecthomas/voluptuous>`_ available that make 
 this process easy and reliable.
 
+The strings in *NestedText* can hold any printing character or character 
+sequence without the need for quoting or escaping.  This makes *NestedText* 
+particularly convenient for holding code snippets.  The code can be included 
+without modification, and without the complexity and visual clutter the comes 
+with the need to quote or escape special characters.
+
 
 Related Projects
 ----------------
