@@ -14,7 +14,7 @@ is written to stdout.
 """
 
 from docopt import docopt
-from inform import fatal, full_stop, os_error
+from inform import done, fatal, full_stop, os_error
 from pathlib import Path
 import json
 import nestedtext as nt
@@ -51,10 +51,13 @@ try:
         output_path.write_text(nestedtext_content, encoding='utf-8')
     else:
         sys.stdout.write(nestedtext_content)
+
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
     e.terminate(culprit=input_filename)
+except KeyboardInterrupt:
+    done()
 except json.JSONDecodeError as e:
     # create a nice error message with surrounding context
     msg = e.msg

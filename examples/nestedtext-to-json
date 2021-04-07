@@ -14,7 +14,7 @@ is written to stdout.
 """
 
 from docopt import docopt
-from inform import fatal, os_error
+from inform import done, fatal, os_error
 from pathlib import Path
 import json
 import nestedtext as nt
@@ -38,7 +38,7 @@ try:
     if input_filename:
         input_path = Path(input_filename)
         data = nt.load(input_path, top='any', on_dup=de_dup)
-        json_content = json.dumps(data, indent=4)
+        json_content = json.dumps(data, indent=4, ensure_ascii=False)
         output_path = input_path.with_suffix('.json')
         if output_path.exists():
             if not cmdline['--force']:
@@ -46,9 +46,11 @@ try:
         output_path.write_text(json_content, encoding='utf-8')
     else:
         data = nt.load(sys.stdin, top='any', on_dup=de_dup)
-        json_content = json.dumps(data, indent=4)
+        json_content = json.dumps(data, indent=4, ensure_ascii=False)
         sys.stdout.write(json_content)
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
     e.terminate()
+except KeyboardInterrupt:
+    done()
