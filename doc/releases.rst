@@ -12,6 +12,15 @@ Latest development version
     | Released: 2021-03-03
 
     - Restructure documentation.
+    - Deprecate quoted keys.
+    - Add multi-line keys to replace quoted keys.
+
+    .. warning::
+
+        Be aware that this version is not backward compatible because it no 
+        longer supports quoted dictionary keys and no longer allows one to 
+        specify *level* in :func:`dump` and :func:`dumps`.
+
 
 v1.3 (2021-01-02)
 -----------------

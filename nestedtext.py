@@ -4,7 +4,7 @@ NestedText: A Human Readable and Writable Data Format
 """
 
 # MIT License {{{1
-# Copyright (c) 2020 Kenneth S. Kundert and Kale Kundert
+# Copyright (c) 2020-21 Kenneth S. Kundert and Kale Kundert
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ NestedText: A Human Readable and Writable Data Format
 
 # Imports {{{1
 from inform import (
+    conjoin,
     full_stop,
     set_culprit,
     get_culprit,
@@ -35,6 +36,7 @@ from inform import (
     Error,
     Info,
 )
+from parsy import generate, string, regex, ParseError
 import textwrap
 import collections.abc
 import re
@@ -178,9 +180,7 @@ class NestedTextError(Error, ValueError):
 # constants {{{2
 # regular expressions used to recognize dict items
 dict_item_regex = r"""
-    (?P<quote>["']?)       # leading quote character, optional
     (?P<key>.*?)           # key
-    (?P=quote)             # matching quote character
     \s*                    # optional white space
     :                      # separator
     (?:\ (?P<value>.*))?   # value
@@ -270,7 +270,6 @@ class Lines:
     def read_lines(self):
         prev_line = None
         for lineno, line in enumerate(self.lines):
-            depth = None
             key = None
             value = None
             line = line.rstrip('\n')
@@ -294,6 +293,12 @@ class Lines:
             elif stripped == '>' or stripped.startswith('> '):
                 kind = "string item"
                 value = line[depth+2:]
+            elif stripped == ':' or stripped.startswith(': '):
+                kind = "key item"
+                value = line[depth+2:]
+            elif stripped[0:1] in ['[', '{']:
+                kind = "inline"
+                value = line[depth:]
             else:
                 matches = dict_item_recognizer.fullmatch(stripped)
                 if matches:
@@ -349,6 +354,14 @@ class Lines:
                 self.next_line.depth >= depth
             )
 
+    # still_within_key() {{{3
+    def still_within_key(self, depth):
+        if self.next_line:
+            return (
+                self.next_line.kind == "key item" and
+                self.next_line.depth == depth
+            )
+
     # depth_of_next() {{{3
     def depth_of_next(self):
         if self.next_line:
@@ -376,10 +389,12 @@ class Lines:
 def read_value(lines, depth, on_dup):
     if lines.type_of_next() == "list item":
         return read_list(lines, depth, on_dup)
-    if lines.type_of_next() == "dict item":
+    if lines.type_of_next() in ["dict item", "key item"]:
         return read_dict(lines, depth, on_dup)
     if lines.type_of_next() == "string item":
         return read_string(lines, depth)
+    if lines.type_of_next() == "inline":
+        return read_inline(lines)
     report('unrecognized line.', lines.get_next())
 
 
@@ -391,7 +406,7 @@ def read_list(lines, depth, on_dup):
         if line.depth != depth:
             indentation_error(line, depth)
         if line.kind != "list item":
-            report("expected list item", line, colno=depth)
+            report("expected list item.", line, colno=depth)
         if line.value:
             data.append(line.value)
         else:
@@ -413,16 +428,24 @@ def read_dict(lines, depth, on_dup):
         line = lines.get_next()
         if line.depth != depth:
             indentation_error(line, depth)
-        if line.kind != "dict item":
-            report("expected dictionary item", line, colno=depth)
-        key = line.key
-        value = line.value
+        if line.kind not in ["dict item", "key item"]:
+            report("expected dictionary item.", line, colno=depth)
+        if line.kind == "key item":
+            # multi-line key
+            key = read_key(lines, line, depth)
+            value = None
+        else:
+            # inline key
+            key = line.key
+            value = line.value
+
         if not value:
             depth_of_next = lines.depth_of_next()
             if depth_of_next > depth:
                 value = read_value(lines, depth_of_next, on_dup)
             else:
                 value = ''
+
         if line.key in data:
             # found duplicate key
             if on_dup is None:
@@ -442,6 +465,17 @@ def read_dict(lines, depth, on_dup):
 def read_string(lines, depth):
     data = []
     while lines.still_within_string(depth):
+        line = lines.get_next()
+        data.append(line.value)
+        if line.depth != depth:
+            indentation_error(line, depth)
+    return "\n".join(data)
+
+
+# read_key() {{{2
+def read_key(lines, line, depth):
+    data = [line.value]
+    while lines.still_within_key(depth):
         line = lines.get_next()
         data.append(line.value)
         if line.depth != depth:
@@ -490,6 +524,70 @@ def read_all(lines, top, source, on_dup):
                 return ""
 
         raise NotImplementedError(top)
+
+
+# read_inline() {{{2
+def read_inline(lines):
+    line = lines.get_next()
+    value = line.value
+    try:
+        return (inline_list | inline_dict).parse(value)
+    except ParseError as e:
+        expected = sorted(lexer_aliases.get(x, repr(x)) for x in e.expected)
+        msg = f'expected {conjoin(expected, conj=", or ")}.'
+        msg = msg.replace('{', r'{{').replace('}', r'}}')
+        report(msg, line, colno=e.index + line.depth)
+
+
+# inline_list() {{{3
+@generate
+def inline_list():
+    yield list_open
+    items = yield list_value.sep_by(sep)
+    trailing_sep = yield sep.optional()
+    yield list_close
+
+    if not trailing_sep and items[-1] == '':
+        items.pop()
+
+    return items
+
+
+# inline_dict() {{{3
+@generate
+def inline_dict():
+    yield dict_open
+    items = yield dict_item.sep_by(sep)
+    yield sep.optional()
+    yield dict_close
+    return dict(items)
+
+
+# dict_item() {{{3
+@generate
+def dict_item():
+    key = yield dict_key
+    yield dict_key_sep
+    value = yield dict_value
+    return key, value
+
+
+# strip() {{{3
+def strip(x):
+    return x.strip()
+
+
+# parsing rules() {{{3
+list_open = string('[')
+list_close = string(']')
+list_value = inline_list | inline_dict | regex(r'[^{}[\],]*').map(strip)
+dict_open = string('{')
+dict_close = string('}')
+dict_key = regex(r'[^{}[\],:]*').map(strip).desc('key')
+dict_key_sep = regex(r':\s*').desc(':')
+dict_value = inline_list | inline_dict | dict_key
+sep = regex(r'\s*,\s*').desc(',')
+lexer_aliases = dict(EOF='end of line', key='key')
 
 
 # loads() {{{2
@@ -709,38 +807,82 @@ def load(f=None, top='dict', *, on_dup=None):
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
 
-# render_key {{{2
-def render_key(s):
-    if not is_str(s):
-        raise NestedTextError(template='keys must be strings.', culprit=s)
-    stripped = s.strip(' ')
-    if '\n' in s:
-        raise NestedTextError(
-            s,
-            template='keys must not contain newlines.',
-            culprit=repr(s)
-        )
-    if (
-        len(stripped) < len(s)
-        or s[:1] in ["#", "'", '"']
-        or s.startswith("- ")
-        or s.startswith("> ")
-        or ': ' in s
-    ):
-        if "'" in s:
-            quotes = '"', "'"
+# render_dict_item {{{2
+def render_dict_item(key, dictionary, indent, rdumps):
+    if not is_str(key):
+        raise NestedTextError(template='keys must be strings.', culprit=key)
+    multiline_key = (
+        not key
+        or '\n' in key
+        or key.strip(' ') != key
+        or key[:1] == "#"
+        or key[:2] in ["- ", "> ", ": "]
+        or ': ' in key
+    )
+    if multiline_key:
+        value = dictionary[key]
+        key = "\n".join(": "+l if l else ":" for l in key.split('\n'))
+        if is_str(value):
+            # force use of multi-line value with multi-line keys
+            return key + "\n" + add_leader(value, indent*' ' + '> ')
         else:
-            quotes = "'", '"'
+            return key + rdumps(value)
+    else:
+        return add_prefix(key + ":", rdumps(dictionary[key]))
 
-        # try extracting key using various both quote characters
-        # if extracted key matches given key, accept
-        for quote_char in quotes:
-            key = quote_char + s + quote_char
-            matches = dict_item_recognizer.fullmatch(key + ':')
-            if matches and matches.group('key') == s:
-                return key
-        raise NestedTextError(s, template = "cannot disambiguate key.", culprit = key)
-    return s
+
+# render_inline_dict {{{2
+def render_inline_dict(obj):
+    def is_problematic(text):
+        if set('\n[]{}:,') & set(text):
+            return True
+        if text.strip(' ') != text:
+            return True
+
+    items = []
+    for k, v in obj.items():
+        try:
+            v = render_inline_value(v)
+        except ValueError:
+            k = str(k)
+            v = str(v)
+            if is_problematic(k):
+                raise ValueError(k)
+            if is_problematic(v):
+                raise ValueError(v)
+        items.append(f'{k}: {v}')
+
+    return '{' + ', '.join(items) + '}'
+
+
+# render_inline_list {{{2
+def render_inline_list(obj):
+    def is_problematic(text):
+        if set('\n[]{},') & set(text):
+            return True
+        if text.strip(' ') != text:
+            return True
+
+    items = []
+    for v in obj:
+        try:
+            v = render_inline_value(v)
+        except ValueError:
+            v = str(v)
+            if is_problematic(v):
+                raise ValueError(v)
+        items.append(v)
+    endcap = ', ]' if len(items) and items[-1] == '' else ']'
+    return '[' + ', '.join(items) + endcap
+
+
+# render_inline_value {{{2
+def render_inline_value(obj):
+    if is_mapping(obj):
+        return render_inline_dict(obj)
+    if is_collection(obj):
+        return render_inline_list(obj)
+    raise ValueError()
 
 
 # add_leader {{{2
@@ -766,12 +908,15 @@ def add_prefix(prefix, suffix):
 
 
 # dumps {{{2
-def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level=0):
+def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=None, _level=0):
     """Recursively convert object to *NestedText* string.
 
     Args:
         obj:
             The object to convert to *NestedText*.
+        width (int):
+            Enables compact lists and dictionaries if greater than zero and if
+            resulting line would be less than or equal to given width.
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is true.
             If a function is passed in, it is used as the key function.
@@ -793,11 +938,10 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
             *None*, *bool*, *int*, *float*, and *list*- and *dict*-like objects.
             In this case Booleans is rendered as 'True' and 'False' and None and
             empty lists and dictionaries are rendered as empty strings.
-        level (int):
+        _level (int):
             The number of indentation levels.  When dumps is invoked recursively
-            this is used to increment the level and so the indent.  Generally
-            not specified by the user, but can be useful in unusual situations
-            to specify an initial indent.
+            this is used to increment the level and so the indent.  Should not
+            be specified by the user.
 
     Returns:
         The *NestedText* content.
@@ -936,8 +1080,8 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
 
     # define object type identification functions
     if default == 'strict':
-        is_a_dict = lambda obj: (obj or level == 0) and isinstance(obj, dict)
-        is_a_list = lambda obj: (obj or level == 0) and isinstance(obj, list)
+        is_a_dict = lambda obj: isinstance(obj, dict)
+        is_a_list = lambda obj: isinstance(obj, list)
         is_a_str = lambda obj: isinstance(obj, str)
         is_a_scalar = lambda obj: False
     else:
@@ -952,11 +1096,12 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     def rdumps(v):
         return dumps(
             v,
+            width = width - indent,
             sort_keys = sort_keys,
             indent = indent,
             renderers = renderers,
             default = default,
-            level = level + 1
+            _level = _level + 1
         )
 
     # render content
@@ -972,18 +1117,32 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
         if "\n" in content or ('"' in content and "'" in content):
             need_indented_block = True
     elif is_a_dict(obj):
-        content = "\n".join(
-            add_prefix(render_key(k) + ":", rdumps(obj[k]))
-            for k in sort(obj)
-        )
+        try:
+            if obj and not (width > 0 and len(obj) <= width/6 and _level):
+                raise ValueError
+            content = render_inline_dict(obj)
+            if obj and len(content) > width:
+                raise ValueError
+        except ValueError:
+            content = "\n".join(
+                render_dict_item(k, obj, indent, rdumps)
+                for k in sort(obj)
+            )
     elif is_a_list(obj):
-        content = "\n".join(
-            add_prefix("-", rdumps(v))
-            for v in obj
-        )
+        try:
+            if obj and not (width > 0 and len(obj) <= width/6 and _level):
+                raise ValueError
+            content = render_inline_list(obj)
+            if obj and len(content) > width:
+                raise ValueError
+        except ValueError:
+            content = "\n".join(
+                add_prefix("-", rdumps(v))
+                for v in obj
+            )
     elif is_a_str(obj):
         text = obj.replace('\r\n', '\n').replace('\r', '\n')
-        if "\n" in text or level == 0:
+        if "\n" in text or _level == 0:
             content = add_leader(text, '> ')
             need_indented_block = True
         else:
@@ -998,7 +1157,7 @@ def dumps(obj, *, sort_keys=False, indent=4, renderers=None, default=None, level
     else:
         error = "unsupported type."
 
-    if need_indented_block and content and level:
+    if need_indented_block and content and _level:
         content = "\n" + add_leader(content, indent*' ')
 
     if error:

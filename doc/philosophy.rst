@@ -7,7 +7,7 @@ data, and does so in a way that allows people to easily interact with that
 data.
 
 The desire to be simple is an attempt to minimize the effort required to learn 
-and use the language. Ideally people can understand it by looking at one or two 
+and use the language. Ideally people can understand it by looking at a few 
 examples and they can use it without without needing to remember any arcane 
 rules and without relying on any of the knowledge that programmers accumulate 
 through years of experience.  One source of simplicity is consistency.  As such, 

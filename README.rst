@@ -125,6 +125,29 @@ particularly convenient for holding code snippets.  The code can be included
 without modification, and without the complexity and visual clutter the comes 
 with the need to quote or escape special characters.
 
+.. note::
+
+    This version contains some significant changes from version 1.3.0.  It 
+    should be considered an trial version, meaning that the changes it contains 
+    may be abandoned or modified before the next stable release.  Some of these 
+    changes are not backward compabitle. Feel free to comment on changes in 
+    `GitHub Issues <https://github.com/KenKundert/nestedtext/issues>`_.
+
+    Language changes:
+
+        - Removal of quoted keys
+        - Addition of multi-line keys
+        - Addition of single-line lists and dictionaries
+
+    Python implementation changes:
+
+        - Removal of *level* parameter to *dump* and *dumps* functions.
+        - Addition of *width* parameter to *dump* and *dumps* functions.
+
+    This initial check-in only partially documents the changes. Specifically, 
+    the single-line lists and dictionaries are not described. That would be 
+    fixed shortly.
+
 
 Related Projects
 ----------------

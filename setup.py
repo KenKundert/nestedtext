@@ -16,7 +16,7 @@ setup(
     license = 'GPLv3+',
     zip_safe = False,
     py_modules = 'nestedtext'.split(),
-    install_requires = 'inform>=1.23'.split(),
+    install_requires = 'inform>=1.23 parsy>=1.3'.split(),
     python_requires = '>=3.6',
     keywords = 'data'.split(),
     classifiers = [

@@ -8,13 +8,16 @@ usage:
 options:
     -f, --force            force overwrite of output file
     -i <n>, --indent <n>   number of spaces per indent [default: 4]
+    -w <n>, --width <n>    desired maximum line width; specifying enables
+                           use of single-line lists and dictionaries as long
+                           as the fit in given width [default: 0]
 
 If <filename> is not given, json input is taken from stdin and NestedText output 
 is written to stdout.
 """
 
 from docopt import docopt
-from inform import done, fatal, full_stop, os_error
+from inform import done, fatal, full_stop, os_error, warn
 from pathlib import Path
 import json
 import nestedtext as nt
@@ -27,8 +30,13 @@ input_filename = cmdline['<filename>']
 try:
     indent = int(cmdline['--indent'])
 except Exception:
-    warn('indent garbled.', culprit=cmdline['--indent'])
+    warn('expected positive integer for indent.', culprit=cmdline['--indent'])
     indent = 4
+try:
+    width = int(cmdline['--width'])
+except Exception:
+    warn('expected non-negative integer for width.', culprit=cmdline['--width'])
+    width = 0
 
 try:
     # read JSON content; from file or from stdin
@@ -40,7 +48,7 @@ try:
     data = json.loads(json_content)
 
     # convert to NestedText
-    nestedtext_content = nt.dumps(data, indent=indent) + "\n"
+    nestedtext_content = nt.dumps(data, indent=indent, width=width) + "\n"
 
     # output NestedText content; to file or to stdout
     if input_filename:

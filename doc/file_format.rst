@@ -8,7 +8,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Encoding**:
 
-    A *NestedText* document encoded in UTF-8.
+    A *NestedText* document is encoded in UTF-8.
+
 
 **Line breaks**:
 
@@ -17,30 +18,38 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     feed characters.  A single document may employ any or all of these ways of 
     splitting lines.
 
+
 **Line types**:
 
     Each line in a *NestedText* document is assigned one of the following types: 
-    *comment*, *blank*, *list-item*, *dict-item*, and *string-item*.  Any line 
-    that does not fit one of these types is an error.
+    *comment*, *blank*, *list item*, *dict item*, *string item* or *key item*.  
+    Any line that does not fit one of these types is an error.
+
 
 **Comments**:
 
     Comments are lines that have ``#`` as the first non-space character on the 
     line.  Comments are ignored.
 
+
 **Blank lines**:
 
     Blank lines are lines that are empty or consist only of white space 
     characters (spaces or tabs).  Blank lines are also ignored.
 
+
 **Line-type tags**:
 
-    The remaining lines are identifying by which one of these ASCII characters 
-    are found in an unquoted portion of the line: dash (``-``), colon (``:``), 
-    or greater-than symbol (``>``) when followed immediately by a space or 
-    newline.  Once the first of one of these pairs has been found in the 
-    unquoted portion of the line, any subsequent occurrences of any of the 
-    line-type tags are treated as simple text.  For example:
+    The remaining lines are identifying by the presence of tags, where a tag is
+    the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
+    a line when followed immediately by a space or line break.
+
+    Dashes and greater-than symbols only introduce tags when they are the first 
+    non-space character on a line, but colon tags need not start the line.
+
+    The first (left-most) tag on a line determines the line type.  Once the 
+    first tag has been found on the line, any subsequent occurrences of any of 
+    the line-type tags are treated as simple text.  For example:
 
     .. code-block:: nestedtext
 
@@ -49,81 +58,104 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     In this case the leading ``-␣`` determines the type of the line and the
     ``:␣`` is simply treated as part of the remaining text on the line.
 
+
 **String items**:
 
     If the first non-space character on a line is a greater-than symbol followed 
-    immediately by a space (``>␣``) or a newline, the line is a *string-item*.  
-    Adjacent string-items with the same indentation level are combined into 
-    a multiline string with their order being retained.  Any leading white space 
-    that follows the space that follows the greater-than symbol is retained, as 
-    is any trailing white space.
+    immediately by a space (``>␣``) or a line break, the line is a *string 
+    item*.  After comments and blank lines have been removed, adjacent string 
+    items with the same indentation level are combined in order into 
+    a multi-line string.  The string value is the multi-line string with the 
+    tags removed. Any leading white space that follows the tag is retained, as 
+    is any trailing white space and all newlines except the last.
+
+    String values may contain any printing UTF-8 character.
+
 
 **List items**:
 
     If the first non-space character on a line is a dash followed immediately by 
-    a space (``-␣``) or a newline, the line is a *list-item*.  Adjacent 
-    list-items with the same indentation level are combined into a list with 
-    their order being retained.  Each list-item has a single associated value.
+    a space (``-␣``) or a line break, the line is a *list item*.  Adjacent list 
+    items with the same indentation level are combined in order into a list 
+    value.  Each list item has a tag and a value.  The tag is only used to 
+    determine the type of the line and is discarded leaving the value.  The 
+    value takes one of three forms.
+
+    1. If the line contains further text (characters after the dash-space), then 
+       the value is that text.  The text ends at the line break and may contain 
+       any other printing UTF-8 character.
+
+    2. If there is no further text on the line and the next line has greater 
+       indentation, then the next line holds the value, which may be a list, 
+       a dictionary, or a multi-line string.
+
+    3. Otherwise the value is empty; it is taken to be an empty string.
+
+
+**Key items**:
+
+    If the first non-space character on a line is a colon followed immediately 
+    by a space (``:␣``) or a line break, the line is a *key item*.  After 
+    comments and blank lines have been removed, adjacent key items with the same 
+    indentation level are combined in order into a multi-line key.  The key 
+    value is the multi-line string with the tags removed. Any leading white 
+    space that follows the tag is retained, as is any trailing white space and 
+    all newlines except the last.
+
+    Key values may contain any printing UTF-8 character.
+
+    An indented value must follow a multi-line key.  The indented value may be 
+    either a multi-line string, a list or a dictionary.  The combination of the 
+    key item and its value forms a *dict item*.
+
 
 **Dictionary items**:
 
-    If the line is not a string-item or a list item and it contains a colon 
-    followed by either a space (``:␣``) that does not fall within a quoted key 
-    or is followed by a newline, the line is considered a *dict-item*.  Adjacent 
-    dict-items with the same indentation level are combined into a dictionary 
-    with their order being retained.  Each dict-item consists of a key, the tag 
-    (colon), and a value.
+    Dictionary items take two possible forms.
 
-    A key must be a string and it must not contain a newline.  The key must be 
-    quoted if it:
+    The first is a *dict item with inline key*.  In this case the line does not 
+    start with a tag, but instead contains an interior dict tag: a colon 
+    followed by either a space (``:␣``) or a line break where the colon is not 
+    the first non-space character on the line.  The dict item consists of a key, 
+    the tag, and a value.  Any space between the key and the tag is ignored.
 
-    1. starts with a *list-item* or *string-item* tag,
-    2. contains a *dict-item* tag,
-    3. starts with a quote character, or
-    4. has leading or trailing spaces or tabs.
+    The inline key precedes the tag. It must be a string and must not:
 
-    A key is quoted by delimiting it with matching single or double quote 
-    characters, which are discarded.  Unlike traditional programming languages, 
-    a quoted key delimited with single quote characters may contain additional 
-    single quote characters. Similarly, a quoted key delimited with double quote 
-    characters may contain additional double quote characters.  Also, backslash 
-    is not used as an escape character; backslash has no special meaning 
-    anywhere in *NestedText*.
+    1. contain a line break character.
+    2. start with a list item, string item or key item tag,
+    3. contain a dict item tag, or
+    4. contain leading or trailing spaces (any spaces that follow the key are 
+       ignored).
 
-    A quoted key starts with the leading quote character and ends when the 
-    matching quote character is found along with a trailing colon (there may be 
-    white space between the closing quote and the colon).
-    A key is invalid if it contains two or more instances of a quote character 
-    separated from ``:␣`` by zero or more space characters where the quote 
-    character in one is a single quote and the quote character in another is the 
-    double quote.  In this case the key cannot be quoted with either character 
-    so that the separator from the key and value can be identified 
-    unambiguously.
+    The tag is only used to determine the type of the line and is discarded 
+    leaving the value, which follows the tag.  The value takes one of three 
+    forms.
 
-    .. warning::
+    1. If the line contains further text (characters after the colon-space), 
+       then the value is that text.  The text ends at the line break and may 
+       contain any other printing UTF-8 character.
 
-        Quoting of keys will soon be deprecated.
+    2. If there is no further text on the line and the next line has greater 
+       indentation, then the next line holds the value, which may be a list, 
+       a dictionary, or a multi-line string.
 
-**Values**:
+    3. Otherwise the value is empty; it is taken to be an empty string.
 
-    The value associated with a list and dict item may take one of three forms.  
+    The second form of *dict item* is the *dict item with multi-line key*.  It 
+    consists of a multi-line key value followed by an indented multi-line 
+    string, list, or dictionary.
 
-    If the line contains further text (characters after the dash-space or 
-    colon-space), then the value is that text.
+    Adjacent dict items of either form with the same indentation level are 
+    combined in order into a dictionary value.
 
-    If there is no further text on the line and the next line has greater 
-    indentation, then the next line holds the value, which may be a list, 
-    a dictionary, or a multiline string.
-
-    Otherwise the value is empty; it is taken to be an empty string.
-
-    String values may contain any printing UTF-8 character.
 
 **Indentation**:
 
     An increase in the number of spaces in the indentation signifies the start 
     of a nested object.  Indentation must return to a prior level when the 
     nested object ends.
+
+    A nested object is either a multi-line string, a list, or a dictionary.
 
     Each level of indentation need not employ the same number of additional 
     spaces, though it is recommended that you choose either 2 or 4 spaces to 
@@ -132,11 +164,19 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     spaces in the indentation represents an indent and a decrease to return to 
     a prior indentation represents a dedent.
 
-    An indent may only follow a list-item or dict-item that does not have 
-    a value on the same line.
+    An indented value may only follow a list item or dict item that does not 
+    have a value on the same line.  An indented value must follow a key item.
 
-    Only spaces are allowed in the indentation. Specifically, tabs are not 
-    allowed.
+    Only ASCII spaces are allowed in the indentation. Specifically, tabs and the 
+    various Unicode spaces are not allowed.
+
+
+**Escaping and Quoting**:
+
+    There is no escaping or quoting in *NestedText*. Once the line has been 
+    identified by its tag, and the tag is removed, the remaining text is taken 
+    literally.
+
 
 **Empty document**:
 
