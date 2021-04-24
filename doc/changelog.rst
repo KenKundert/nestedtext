@@ -11,8 +11,8 @@ that include no changes to the language.
 Latest development version
 --------------------------
 
-    | Version: 1.3.1
-    | Released: 2021-03-03
+    | Version: 1.3.2
+    | Released: 2021-04-24
 
     - Deprecate quoted dictionary keys.
     - Add multi-line dictionary keys to replace quoted keys.
