@@ -556,7 +556,9 @@ def test_dump_default(dump, tmp_path):
             true: True
             false: False
             empty_dict:
+                {}
             empty_list:
+                []
     ''').strip()
 
 # test_dump_sort_keys {{{1
