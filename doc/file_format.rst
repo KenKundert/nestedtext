@@ -6,6 +6,7 @@ Language reference
 
 The *NestedText* format follows a small number of simple rules. Here they are.
 
+
 **Encoding**:
 
     A *NestedText* document is encoded in UTF-8.
@@ -28,8 +29,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Comments**:
 
-    Comments are lines that have ``#`` as the first non-space character on the 
-    line.  Comments are ignored.
+    Comments are lines that have ``#`` as the first non-white-space character on 
+    the line.  Comments are ignored.
 
 
 **Blank lines**:
@@ -148,11 +149,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Adjacent dict items of either form with the same indentation level are 
     combined in order into a dictionary value.
 
+
 **Inline Objects**:
 
     If the first character on a line is either a left bracket (``[``) or a left 
     brace (``{``) the line is an *inline object*.  A bracket introduces an 
-    inline list and a brace introduces an inline dictionary.
+    *inline list* and a brace introduces an *inline dictionary*.
 
     An inline list starts with an open bracket (``[``), ends with a matching 
     closed bracket (``]``), contains inline values separated by commas (``,``), 
@@ -170,7 +172,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.
 
-    Inline strings are the string values specified in inline dictionaries and 
+    *Inline strings* are the string values specified in inline dictionaries and 
     lists.  They are somewhat constrained in the characters that they may 
     contain; nothing that might be confused with syntax characters used by the 
     inline list or dictionary that contains it.  Specifically, inline strings 
@@ -179,13 +181,18 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     inline dictionaries may not contain ``:``.  Leading and trailing white space 
     are ignored with inline strings.
 
+    Empty inline strings must be followed by a comma to be recognized.  For 
+    example, ``[]`` is an empty list and ``[,]`` is a list that contains 
+    a single empty string.
+
+
 **Indentation**:
+
+    There is no indentation on the top-level object.
 
     An increase in the number of spaces in the indentation signifies the start 
     of a nested object.  Indentation must return to a prior level when the 
     nested object ends.
-
-    A nested object is either a multi-line string, a list, or a dictionary.
 
     Each level of indentation need not employ the same number of additional 
     spaces, though it is recommended that you choose either 2 or 4 spaces to 
@@ -214,8 +221,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     comments and blank lines.  An empty document corresponds to an empty value 
     of unknown type.
 
+
 **Result**:
 
     When a document is converted from *NestedText* the result is a hierarchical 
-    collection of dictionaries, lists and strings where all leaf values are 
-    strings.  All dictionary keys are also strings.
+    collection of dictionaries, lists and strings.  All dictionary keys are 
+    strings.
