@@ -5,8 +5,8 @@ Introduction to syntax
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
 :ref:`lists <lists>`, and :ref:`strings <strings>`.  All leaf values must be 
-simple text. You can find more specifics :ref:`later on <nestedtext file 
-format>`.
+simple text or an empty dictionary or list. You can find more specifics 
+:ref:`later on <nestedtext file format>`.
 
 
 .. _dictionaries:
@@ -19,21 +19,33 @@ A dictionary is an ordered collection of key/value pairs:
 .. code-block:: nestedtext
 
     key 1: value 1
-    key 2:
-        - value 2a
-        - value 2b
+    key 2: value 2
+    key 3: value 3
+
+A dictionary item is a single key value pair.  The key and value are separated 
+with ``:␣``.  All adjacent dictionary items form the dictionary.
 
 In this form, a dictionary item is introduced by a key followed by a colon.
 The key must be a string and must not contain newline characters, leading or 
-trailing spaces, or character sequences such as ``:␣`` that could cause it to be 
-be misinterpreted.  There may be spaces between the key and the colon, but they 
-are ignored.
+trailing spaces, or the ``:␣`` character sequence.  Any spaces between the key 
+and the colon are ignored.
 
 The value of a dictionary item may be a rest-of-line string, a multi-line 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
 characters following the tag that separates the key from the value (``:␣``).  
 For all other values, the rest of the line must be empty, with the value given 
 on the next line, which must be further indented.
+
+
+.. code-block:: nestedtext
+
+    key 1: value 1
+    key 2:
+        - value 2a
+        - value 2b
+    key 3:
+        key 3a: value 3a
+        key 3b: value 3b
 
 A second less common form of a dictionary item employs multi-line keys.  In this 
 case there are no limitations on the key other than it be a string.  Each line 
@@ -57,6 +69,25 @@ a multi-line string value instead:
 A dictionary value is all adjacent dictionary items of either form at the same 
 indentation level.
 
+The final form of a dictionary is the inline dictionary.  In this case all the 
+dictionary items are given on the same line.  There is a bit of syntax that 
+defines inline dictionaries, so the keys and values are constrained to avoid 
+ambiguities in the syntax.  An inline dictionary starts with an open brace 
+(``{``), ends with a matching closed brace (``}``), and contains inline 
+dictionary items separated by commas (``,``). An inline dictionary item is a key 
+and value separated by a colon (``:``).  A space need not follow the colon and 
+any spaces that do follow the colon are ignored. The keys are inline strings and 
+the values may be inline strings, inline lists, and inline dictionaries.  For 
+example:
+
+.. code-block:: nestedtext
+
+    {key 1: value 1, key 2: value 2, key 3: value 3}
+
+.. code-block:: nestedtext
+
+    {key 1: value 1, key 2: [value 2a, value 2b], key 3: {key 3a: value 3a, key 3b: value 3b}}
+
 
 .. _lists:
 
@@ -68,18 +99,41 @@ A list is an ordered collection of values:
 .. code-block:: nestedtext
 
     - value 1
+    - value 2
+    - value 3
+
+A list item is introduced with a dash at the start of a line and all adjacent 
+list items form the list.
+
+The value of a list item may be a rest-of-line string, a multi-line string, 
+a list, or a dictionary. If it is a rest-of-line string, it contains all 
+characters that follow the "-␣" that introduces the list item.  For all other 
+values, the rest of the line must be empty, with the value given on the next 
+line, which must be further indented.
+
+.. code-block:: nestedtext
+
+    - value 1
     -
         key 2a: value 2a
         key 2b: value 2b
 
-A list item is introduced with a dash at the start of a line.  The value of 
-a list item may be a rest-of-line string, a multi-line string, a list, or 
-a dictionary. If it is a rest-of-line string, it contains all characters that 
-follow the "-␣" that introduces the list item.  For all other values, the rest 
-of the line must be empty, with the value given on the next line, which must be 
-further indented.
-
 A list value is all adjacent list items at the same indentation level.
+
+Another form of a list is the inline list.  In this case all the list items are 
+given on the same line.  There is a bit of syntax that defines the list, so the 
+values are constrained to avoid ambiguities in the syntax.  An inline list 
+starts with an open bracket (``[``), ends with a matching closed bracket 
+(``]``), and contains inline values separated by commas.  The values may be 
+inline strings, inline lists, and inline dictionaries.  For example:
+
+.. code-block:: nestedtext
+
+    [value 1, value 2, value 3]
+
+.. code-block:: nestedtext
+
+    [value 1, [value 2a, value 2b], {key 3a: value 3a, key 3b: value 3b}]
 
 
 .. _strings:
@@ -87,10 +141,10 @@ A list value is all adjacent list items at the same indentation level.
 Strings
 =======
 
-There are two types of strings: rest-of-line strings and multi-line strings.  
-Rest-of-line strings are simply all the remaining characters on the line, 
-including any leading or trailing white space.  They can contain any character 
-other than newline:
+There are three types of strings: rest-of-line strings, multi-line strings, and 
+inline strings.  Rest-of-line strings are simply all the remaining characters on 
+the line, including any leading or trailing white space.  They can contain any 
+character other than newline:
 
 .. code-block:: nestedtext
 
@@ -125,6 +179,15 @@ with the tags removed and the lines joined together with newline characters
 inserted between each line.  Except for the space that separates the tag from 
 the text, white space from both the beginning and the end of each line is 
 retained, along with all newlines except the last.
+
+Inline strings are the string values specified in inline dictionaries and lists.  
+They are somewhat constrained in the characters that they may contain; nothing 
+that might be confused with syntax characters used by the inline list or 
+dictionary that contains it.  Specifically, inline strings may not contain 
+newlines or any of the following characters: ``[``, ``]``, ``{``, ``}``, or 
+``,``.  In addition, inline strings that are contained in inline dictionaries 
+may not contain ``:``.  Leading and trailing white space are ignored with inline 
+strings.
 
 
 .. _comments:

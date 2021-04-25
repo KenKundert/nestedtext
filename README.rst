@@ -130,7 +130,7 @@ with the need to quote or escape special characters.
     This version contains some significant changes from version 1.3.0.  It 
     should be considered an trial version, meaning that the changes it contains 
     may be abandoned or modified before the next stable release.  Some of these 
-    changes are not backward compabitle. Feel free to comment on changes in 
+    changes are not backward compatible. Feel free to comment on changes in 
     `GitHub Issues <https://github.com/KenKundert/nestedtext/issues>`_.
 
     Language changes:
@@ -143,10 +143,6 @@ with the need to quote or escape special characters.
 
         - Removal of *level* parameter to *dump* and *dumps* functions.
         - Addition of *width* parameter to *dump* and *dumps* functions.
-
-    This initial check-in only partially documents the changes. Specifically, 
-    the single-line lists and dictionaries are not described. That would be 
-    fixed shortly.
 
 
 Related Projects

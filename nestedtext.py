@@ -1118,7 +1118,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             need_indented_block = True
     elif is_a_dict(obj):
         try:
-            if obj and not (width > 0 and len(obj) <= width/6 and _level):
+            if obj and not (width > 0 and len(obj) <= width/6):
                 raise ValueError
             content = render_inline_dict(obj)
             if obj and len(content) > width:
@@ -1130,7 +1130,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             )
     elif is_a_list(obj):
         try:
-            if obj and not (width > 0 and len(obj) <= width/6 and _level):
+            if obj and not (width > 0 and len(obj) <= width/6):
                 raise ValueError
             content = render_inline_list(obj)
             if obj and len(content) > width:

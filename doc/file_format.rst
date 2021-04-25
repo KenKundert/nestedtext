@@ -22,8 +22,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Line types**:
 
     Each line in a *NestedText* document is assigned one of the following types: 
-    *comment*, *blank*, *list item*, *dict item*, *string item* or *key item*.  
-    Any line that does not fit one of these types is an error.
+    *comment*, *blank*, *list item*, *dict item*, *string item*, *key item* or 
+    *inline*.  Any line that does not fit one of these types is an error.
 
 
 **Comments**:
@@ -40,7 +40,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Line-type tags**:
 
-    The remaining lines are identifying by the presence of tags, where a tag is
+    Most remaining lines are identifying by the presence of tags, where a tag is
     the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
     a line when followed immediately by a space or line break.
 
@@ -148,6 +148,36 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Adjacent dict items of either form with the same indentation level are 
     combined in order into a dictionary value.
 
+**Inline Objects**:
+
+    If the first character on a line is either a left bracket (``[``) or a left 
+    brace (``{``) the line is an *inline object*.  A bracket introduces an 
+    inline list and a brace introduces an inline dictionary.
+
+    An inline list starts with an open bracket (``[``), ends with a matching 
+    closed bracket (``]``), contains inline values separated by commas (``,``), 
+    and is contained on a single line.  The values may be inline strings, inline 
+    lists, and inline dictionaries.
+
+    An inline dictionary starts with an open brace (``{``), ends with a matching 
+    closed brace (``}``), contains inline dictionary items separated by commas 
+    (``,``), and is contained on a single line.  An inline dictionary item is 
+    a key and value separated by a colon (``:``).  A space need not follow the 
+    colon and any spaces that do follow the colon are ignored. The keys are 
+    inline strings and the values may be inline strings, inline lists, and 
+    inline dictionaries.
+
+    Both inline lists and dictionaries may be empty, and represent the only way 
+    to represent empty lists or empty dictionaries in *NestedText*.
+
+    Inline strings are the string values specified in inline dictionaries and 
+    lists.  They are somewhat constrained in the characters that they may 
+    contain; nothing that might be confused with syntax characters used by the 
+    inline list or dictionary that contains it.  Specifically, inline strings 
+    may not contain newlines or any of the following characters: ``[``, ``]``, 
+    ``{``, ``}``, or ``,``.  In addition, inline strings that are contained in 
+    inline dictionaries may not contain ``:``.  Leading and trailing white space 
+    are ignored with inline strings.
 
 **Indentation**:
 
