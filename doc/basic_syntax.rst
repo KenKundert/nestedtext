@@ -1,6 +1,6 @@
-**************************
-Introduction to the syntax
-**************************
+****************************
+Introduction to the language
+****************************
 
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
