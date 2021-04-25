@@ -1,6 +1,6 @@
-**********************
-Introduction to syntax
-**********************
+**************************
+Introduction to the syntax
+**************************
 
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
@@ -59,10 +59,9 @@ a multi-line string value instead:
 .. code-block:: nestedtext
 
     : key 1
-    : the first key
+    :     the first key
         > value 1
-    : key 2
-    : the second key
+    : key 2: the second key
         - value 2a
         - value 2b
 
@@ -203,7 +202,7 @@ Indentation is not significant on comment lines.
 
     # this line is ignored
 
-    # this lien is also ignore, as is the blank line above.
+    # this line is also ignored, as is the blank line above.
 
 
 .. _nesting:
@@ -228,6 +227,7 @@ this way, data can be nested to an arbitrary depth:
             > Topeka, Kansas 20697
         phone:
             cell: 1-210-555-5297
+            work: 1-210-555-3423
             home: 1-210-555-8470
                 # Katheryn prefers that we always call her on her cell phone.
         email: KateMcD@aol.com
@@ -238,14 +238,13 @@ this way, data can be nested to an arbitrary depth:
     vice president:
         name: Margaret Hodge
         address:
-            > 2586 Marigold Land
+            > 2586 Marigold Lane
             > Topeka, Kansas 20697
-        phone: 1-470-555-0398
+        phone:
+            {cell: 1-470-555-0398, home: 1-470-555-7570}
         email: margaret.hodge@ku.edu
         kids:
-            - Arnie
-            - Zach
-            - Maggie
+            [Arnie, Zach, Maggie]
 
 It is recommended that each level of indentation be represented by a consistent 
 number of spaces (with the suggested number being 2 or 4). However, it is not 
