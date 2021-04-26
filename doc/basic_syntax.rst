@@ -211,10 +211,10 @@ Nesting
 =======
 
 A value for a dictionary or list item may be a rest-of-line string or it may be 
-a nested dictionary, list or a multi-line string.  Indentation is used to 
-indicate nesting.  Indentation increases to indicate the beginning of a new 
-nested object, and indentation returns to a prior level to indicate its end.  In 
-this way, data can be nested to an arbitrary depth:
+a nested dictionary, list, multi-line string, or inline dictionary or list.  
+Indentation is used to indicate nesting.  Indentation increases to indicate the 
+beginning of a new nested object, and indentation returns to a prior level to 
+indicate its end.  In this way, data can be nested to an arbitrary depth:
 
 .. code-block:: nestedtext
 

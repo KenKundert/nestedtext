@@ -578,11 +578,11 @@ def strip(x):
 
 
 # parsing rules() {{{3
-list_open = string('[')
-list_close = string(']')
+list_open = regex(r'\[\s*').desc('[')
+list_close = regex(r']\s*').desc(']')
 list_value = inline_list | inline_dict | regex(r'[^{}[\],]*').map(strip)
-dict_open = string('{')
-dict_close = string('}')
+dict_open = regex(r'{\s*').desc('{')
+dict_close = regex(r'}\s*').desc('}')
 dict_key = regex(r'[^{}[\],:]*').map(strip).desc('key')
 dict_key_sep = regex(r':\s*').desc(':')
 dict_value = inline_list | inline_dict | dict_key
