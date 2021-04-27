@@ -584,6 +584,10 @@ def test_dump_sort_keys(dump, tmp_path):
             aaa: 1
     ''').strip()
 
+    assert dump(data, tmp_path, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}'
+    assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}'
+    assert dump(data, tmp_path, sort_keys=len, width=80) == '{b: 2, cc: 3, aaa: 1}'
+
 # test_dump_indent {{{1
 @parametrize_dump_api
 def test_dump_indent(dump, tmp_path):
@@ -603,26 +607,35 @@ def test_dump_renderers(dump, tmp_path):
     x = {'int': 1, 'float': 1.0, 'str': 'A'}
 
     assert dump(x, tmp_path, default=str) == dedent('''\
-            int: 1
-            float: 1.0
-            str: A
+        int: 1
+        float: 1.0
+        str: A
     ''').strip()
 
     renderers = {str: lambda x: x.lower()}
     assert dump(x, tmp_path, default=str, renderers=renderers) == dedent('''\
-            int: 1
-            float: 1.0
-            str: a
+        int: 1
+        float: 1.0
+        str: a
     ''').strip()
+    assert dump(x, tmp_path, default=str, renderers=renderers, width=80) == '{int: 1, float: 1.0, str: a}'
 
     y = {'info': Info(val=42)}
     renderers = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
     assert dump(y, tmp_path, renderers=renderers) == dedent('''\
-            info:
-                Info(
-                    val=42
-                )
+        info:
+            Info(
+                val=42
+            )
     ''').strip()
+    assert dump(y, tmp_path, renderers=renderers, width=80) == dedent('''\
+        info:
+            Info(
+                val=42
+            )
+    ''').strip()
+    renderers = {Info: lambda v: f'Info(val={v.val})'}
+    assert dump(y, tmp_path, renderers=renderers, width=80) == '{info: Info(val=42)}'
 
 # test_dump_renderers_err {{{1
 @parametrize_dump_api
@@ -632,6 +645,10 @@ def test_dump_renderers(dump, tmp_path):
             ({'key': 42.0}, 42.0, dict(default='strict')),
             ({'key': True}, True, dict(default='strict')),
             ({'key': 42},   42,   dict(default=str, renderers={int: False})),
+            ({'key': 42},   42,   dict(default='strict', width=80)),
+            ({'key': 42.0}, 42.0, dict(default='strict', width=80)),
+            ({'key': True}, True, dict(default='strict', width=80)),
+            ({'key': 42},   42,   dict(default=str, renderers={int: False}, width=80)),
         ]
 )
 def test_dump_renderers_err(dump, tmp_path, data, culprit, kwargs):
@@ -647,4 +664,121 @@ def test_dump_renderers_err(dump, tmp_path, data, culprit, kwargs):
     assert isinstance(exc.value, Error)
     assert isinstance(exc.value, ValueError)
 
+# test_dump_width {{{1
+@parametrize_dump_api
+@parametrize(
+        'given, expected, kwargs', [
+            (['a[b'], '- a[b', dict(width=80)),
+            (['a]b'], '- a]b', dict(width=80)),
+            (['a{b'], '- a{b', dict(width=80)),
+            (['a}b'], '- a}b', dict(width=80)),
+            ({'a,b'}, '- a,b', dict(width=80)),
+            ({'a[b': 0}, 'a[b: 0', dict(width=80)),
+            ({'a]b': 0}, 'a]b: 0', dict(width=80)),
+            ({'a{b': 0}, 'a{b: 0', dict(width=80)),
+            ({'a}b': 0}, 'a}b: 0', dict(width=80)),
+            ({'a,b': 0}, 'a,b: 0', dict(width=80)),
+            ({'a:b': 0}, 'a:b: 0', dict(width=80)),
+            ({0: 'a[b'}, '0: a[b', dict(width=80)),
+            ({0: 'a]b'}, '0: a]b', dict(width=80)),
+            ({0: 'a{b'}, '0: a{b', dict(width=80)),
+            ({0: 'a}b'}, '0: a}b', dict(width=80)),
+            ({0: 'a,b'}, '0: a,b', dict(width=80)),
+            ({0: 'a:b'}, '0: a:b', dict(width=80)),
+            ([' ab'], '-  ab', dict(width=80)),
+            ({'ab '}, '- ab ', dict(width=80)),
+            ({0: ' ab'}, '0:  ab', dict(width=80)),
+            ({0: 'ab '}, '0: ab ', dict(width=80)),
+            ({0: 'ab '}, '0: ab ', dict(width=80)),
+
+            ([], '[]', dict(width=80)),
+            ([''], '[, ]', dict(width=80)),
+            (['a'], '[a]', dict(width=80)),
+            ([':'], '[:]', dict(width=80)),
+            ([[]], '[[]]', dict(width=80)),
+            ([['a']], '[[a]]', dict(width=80)),
+            ([{}], '[{}]', dict(width=80)),
+            ([{'a': '0'}], '[{a: 0}]', dict(width=80)),
+            (['a', 'b'], '[a, b]', dict(width=80)),
+            (['', ''], '[, , ]', dict(width=80)),
+            ([[], []], '[[], []]', dict(width=80)),
+            ([['a', 'b'], ['c', 'd']], '[[a, b], [c, d]]', dict(width=80)),
+            ([{}, {}], '[{}, {}]', dict(width=80)),
+            ([{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}], '[{a: 0, b: 1}, {c: 2, d: 3}]', dict(width=80)),
+            (['a', []], '[a, []]', dict(width=80)),
+            ([[], {}], '[[], {}]', dict(width=80)),
+            ([{}, 'b'], '[{}, b]', dict(width=80)),
+            (['a', 'b'], '[a, b]', dict(width=80)),
+            (['a', 'b', ''], '[a, b, , ]', dict(width=80)),
+            ([['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']], '[[11, 12, 13], [21, 22, 23], [31, 32, 33]]', dict(width=80)),
+            ({}, '{}', dict(width=80)),
+            ({'': ''}, '{: }', dict(width=80)),
+            ({'a': '0'}, '{a: 0}', dict(width=80)),
+            ({'a': 'k'}, '{a: k}', dict(width=80)),
+            ({'a': []}, '{a: []}', dict(width=80)),
+            ({'a': ['b']}, '{a: [b]}', dict(width=80)),
+            ({'a': {}}, '{a: {}}', dict(width=80)),
+            ({'a': {'b': '1'}}, '{a: {b: 1}}', dict(width=80)),
+            ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
+            ({'a': {'A': '0'}, 'b': {'B': '1'}}, '{a: {A: 0}, b: {B: 1}}', dict(width=80)),
+            ({'a': ['1', '2', '3'], 'b': ['4', '5', '6']}, '{a: [1, 2, 3], b: [4, 5, 6]}', dict(width=80)),
+            ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
+            ({'a': [], 'b': []}, '{a: [], b: []}', dict(width=80)),
+            ({'a': ['0', '1'], 'b': ['2', '3']}, '{a: [0, 1], b: [2, 3]}', dict(width=80)),
+            ({'a': {}, 'b': {}}, '{a: {}, b: {}}', dict(width=80)),
+            ({'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}}, '{a: {b: 0, c: 1}, d: {e: 2, f: 3}}', dict(width=80)),
+            ({'a': '0', 'b': []}, '{a: 0, b: []}', dict(width=80)),
+            ({'a': [], 'b': {}}, '{a: [], b: {}}', dict(width=80)),
+            ({'a': {}, 'b': '0'}, '{a: {}, b: 0}', dict(width=80)),
+
+            (
+                [['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']],
+                dedent("""
+                    -
+                        - 11
+                        - 12
+                        - 13
+                    -
+                        - 21
+                        - 22
+                        - 23
+                    -
+                        - 31
+                        - 32
+                        - 33
+                """).strip(),
+                dict(width=20)
+            ),
+            (
+                {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
+                dedent("""
+                    a:
+                        {b: 0, c: 1}
+                    d:
+                        {e: 2, f: 3}
+                """).strip(),
+                dict(width=20)
+            ),
+            (
+                {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
+                dedent("""
+                    a:
+                        b: 0
+                        c: 1
+                    d:
+                        e: 2
+                        f: 3
+                """).strip(),
+                dict(width=5)
+            ),
+
+            ([None], '[, ]', dict(width=80)),
+            ([Info(arg='a'), Info(arg='b')], "[Info(arg='a'), Info(arg='b')]", dict(width=80, default=repr)),
+            ({'a': Info(arg=0), 'b': Info(arg=1)}, "{a: Info(arg=0), b: Info(arg=1)}", dict(width=80, default=repr)),
+        ]
+)
+def test_dump_width(dump, tmp_path, given, expected, kwargs):
+    assert dump(given, tmp_path, **kwargs) == expected
+
 # vim: fdm=marker
+

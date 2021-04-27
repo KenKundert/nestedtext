@@ -36,7 +36,7 @@ from inform import (
     Error,
     Info,
 )
-from parsy import generate, string, regex, ParseError
+from parsy import generate, regex, ParseError
 import textwrap
 import collections.abc
 import re
@@ -478,8 +478,6 @@ def read_key(lines, line, depth):
     while lines.still_within_key(depth):
         line = lines.get_next()
         data.append(line.value)
-        if line.depth != depth:
-            indentation_error(line, depth)
     return "\n".join(data)
 
 
@@ -533,7 +531,7 @@ def read_inline(lines):
     try:
         return (inline_list | inline_dict).parse(value)
     except ParseError as e:
-        expected = sorted(lexer_aliases.get(x, repr(x)) for x in e.expected)
+        expected = sorted(lexer_aliases.get(x, x) for x in e.expected)
         msg = f'expected {conjoin(expected, conj=", or ")}.'
         msg = msg.replace('{', r'{{').replace('}', r'}}')
         report(msg, line, colno=e.index + line.depth)
@@ -578,16 +576,17 @@ def strip(x):
 
 
 # parsing rules() {{{3
-list_open = regex(r'\[\s*').desc('[')
-list_close = regex(r']\s*').desc(']')
+padded_literal = lambda x: regex(rf'{re.escape(x)}\s*').desc(repr(x))
+list_open = padded_literal('[')
+list_close = padded_literal(']')
 list_value = inline_list | inline_dict | regex(r'[^{}[\],]*').map(strip)
-dict_open = regex(r'{\s*').desc('{')
-dict_close = regex(r'}\s*').desc('}')
+dict_open = padded_literal('{')
+dict_close = padded_literal('}')
 dict_key = regex(r'[^{}[\],:]*').map(strip).desc('key')
-dict_key_sep = regex(r':\s*').desc(':')
+dict_key_sep = padded_literal(':')
 dict_value = inline_list | inline_dict | dict_key
-sep = regex(r'\s*,\s*').desc(',')
-lexer_aliases = dict(EOF='end of line', key='key')
+sep = padded_literal(',')
+lexer_aliases = dict(EOF='end of line')
 
 
 # loads() {{{2
@@ -807,84 +806,6 @@ def load(f=None, top='dict', *, on_dup=None):
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
 
-# render_dict_item {{{2
-def render_dict_item(key, dictionary, indent, rdumps):
-    if not is_str(key):
-        raise NestedTextError(template='keys must be strings.', culprit=key)
-    multiline_key = (
-        not key
-        or '\n' in key
-        or key.strip(' ') != key
-        or key[:1] == "#"
-        or key[:2] in ["- ", "> ", ": "]
-        or ': ' in key
-    )
-    if multiline_key:
-        value = dictionary[key]
-        key = "\n".join(": "+l if l else ":" for l in key.split('\n'))
-        if is_str(value):
-            # force use of multi-line value with multi-line keys
-            return key + "\n" + add_leader(value, indent*' ' + '> ')
-        else:
-            return key + rdumps(value)
-    else:
-        return add_prefix(key + ":", rdumps(dictionary[key]))
-
-
-# render_inline_dict {{{2
-def render_inline_dict(obj):
-    def is_problematic(text):
-        if set('\n[]{}:,') & set(text):
-            return True
-        if text.strip(' ') != text:
-            return True
-
-    items = []
-    for k, v in obj.items():
-        try:
-            v = render_inline_value(v)
-        except ValueError:
-            k = str(k)
-            v = str(v)
-            if is_problematic(k):
-                raise ValueError(k)
-            if is_problematic(v):
-                raise ValueError(v)
-        items.append(f'{k}: {v}')
-
-    return '{' + ', '.join(items) + '}'
-
-
-# render_inline_list {{{2
-def render_inline_list(obj):
-    def is_problematic(text):
-        if set('\n[]{},') & set(text):
-            return True
-        if text.strip(' ') != text:
-            return True
-
-    items = []
-    for v in obj:
-        try:
-            v = render_inline_value(v)
-        except ValueError:
-            v = str(v)
-            if is_problematic(v):
-                raise ValueError(v)
-        items.append(v)
-    endcap = ', ]' if len(items) and items[-1] == '' else ']'
-    return '[' + ', '.join(items) + endcap
-
-
-# render_inline_value {{{2
-def render_inline_value(obj):
-    if is_mapping(obj):
-        return render_inline_dict(obj)
-    if is_collection(obj):
-        return render_inline_list(obj)
-    raise ValueError()
-
-
 # add_leader {{{2
 def add_leader(s, leader):
     # split into separate lines
@@ -1070,7 +991,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         specified as *default*, it is always applied as a last resort.
     """
 
-    # define sort function
+    # define sort function {{{3
     if sort_keys:
         def sort(keys):
             return sorted(keys, key=sort_keys if callable(sort_keys) else None)
@@ -1078,7 +999,83 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         def sort(keys):
             return keys
 
-    # define object type identification functions
+    # render_dict_item {{{3
+    def render_dict_item(key, dictionary, indent, rdumps):
+        value = dictionary[key]
+        if is_a_scalar(key):
+            key = str(key)
+        if not is_a_str(key):
+            raise NestedTextError(template='keys must be strings.', culprit=key)
+        multiline_key_required = (
+            not key
+            or '\n' in key
+            or key.strip(' ') != key
+            or key[:1] == "#"
+            or key[:2] in ["- ", "> ", ": "]
+            or ': ' in key
+        )
+        if multiline_key_required:
+            key = "\n".join(": "+l if l else ":" for l in key.split('\n'))
+            if is_str(value):
+                # force use of multi-line value with multi-line keys
+                return key + "\n" + add_leader(value, indent*' ' + '> ')
+            else:
+                return key + rdumps(value)
+        else:
+            return add_prefix(key + ":", rdumps(value))
+
+    # render_inline_dict {{{3
+    def render_inline_dict(obj):
+        exclude = set('\n[]{}:,')
+        items = []
+        for k in sort(obj):
+            v = render_inline_value(obj[k], exclude=exclude)
+            k = render_inline_scalar(k, exclude=exclude)
+            items.append(f'{k}: {v}')
+        return '{' + ', '.join(items) + '}'
+
+    # render_inline_list {{{3
+    def render_inline_list(obj):
+        items = []
+        for v in obj:
+            v = render_inline_value(v, exclude=set('\n[]{},'))
+            items.append(v)
+        endcap = ', ]' if len(items) and items[-1] == '' else ']'
+        return '[' + ', '.join(items) + endcap
+
+    # render_inline_value {{{3
+    def render_inline_value(obj, exclude):
+        if is_a_dict(obj):
+            return render_inline_dict(obj)
+        if is_a_list(obj):
+            return render_inline_list(obj)
+        return render_inline_scalar(obj, exclude)
+
+    # render_inline_scalar {{{3
+    def render_inline_scalar(obj, exclude):
+        render = renderers.get(type(obj)) if renderers else None
+        if render is False:
+            raise ValueError()
+        elif render:
+            value = render(obj)
+            if "\n" in value:
+                raise ValueError()
+        elif is_a_str(obj):
+            value = obj
+        elif is_a_scalar(obj):
+            value = '' if obj is None else str(obj)
+        elif default and callable(default):
+            value = default(obj)
+        else:
+            raise ValueError()
+
+        if exclude & set(value):
+            raise ValueError()
+        if value.strip(' ') != value:
+            raise ValueError()
+        return value
+
+    # define object type identification functions {{{3
     if default == 'strict':
         is_a_dict = lambda obj: isinstance(obj, dict)
         is_a_list = lambda obj: isinstance(obj, list)
@@ -1092,7 +1089,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         if is_str(default):
             raise NotImplementedError(default)
 
-    # define dumps function for recursion
+    # define dumps function for recursion {{{3
     def rdumps(v):
         return dumps(
             v,
@@ -1104,7 +1101,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             _level = _level + 1
         )
 
-    # render content
+    # render content {{{3
     assert indent > 0
     error = None
     need_indented_block = is_collection(obj)
@@ -1114,7 +1111,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         error = "unsupported type."
     elif render:
         content = render(obj)
-        if "\n" in content or ('"' in content and "'" in content):
+        if "\n" in content:
             need_indented_block = True
     elif is_a_dict(obj):
         try:
@@ -1155,7 +1152,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
     elif default and callable(default):
         content = default(obj)
     else:
-        error = "unsupported type."
+        error = 'unsupported type.'
 
     if need_indented_block and content and _level:
         content = "\n" + add_leader(content, indent*' ')
