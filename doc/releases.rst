@@ -8,8 +8,8 @@ Releases
 Latest development version
 --------------------------
 
-    | Version: 1.3.2
-    | Released: 2021-04-24
+    | Version: 1.3.3
+    | Released: 2021-04-26
 
     - Restructure documentation.
     - Deprecate quoted keys.
