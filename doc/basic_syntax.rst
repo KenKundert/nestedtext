@@ -23,7 +23,8 @@ A dictionary is an ordered collection of key/value pairs:
     key 3: value 3
 
 A dictionary item is a single key value pair.  The key and value are separated 
-with ``:␣``.  All adjacent dictionary items form the dictionary.
+with a colon (``:``) followed by either a space or a newline.  All adjacent 
+dictionary items at the same level of indentation form the dictionary.
 
 In this form, a dictionary item is introduced by a key followed by a colon.
 The key must be a string and must not contain newline characters, leading or 
@@ -49,9 +50,10 @@ on the next line, which must be further indented.
 
 A second less common form of a dictionary item employs multi-line keys.  In this 
 case there are no limitations on the key other than it be a string.  Each line 
-of a multi-line key is introduced with ``:␣``.  The key is all adjacent lines at 
-the same level that start with a colon tag with the tags removed but leading and 
-trailing white space retained, including all newlines except the last.
+of a multi-line key is introduced with a colon (``:``) followed by a space or 
+newline.  The key is all adjacent lines at the same level that start with 
+a colon tag with the tags removed but leading and trailing white space retained, 
+including all newlines except the last.
 
 This form of dictionary does not allow rest-of-line string values; you would use 
 a multi-line string value instead:
@@ -65,14 +67,14 @@ a multi-line string value instead:
         - value 2a
         - value 2b
 
-A dictionary value is all adjacent dictionary items of either form at the same 
-indentation level.
+A dictionary is all adjacent dictionary items of either form in which the keys 
+all begin at the same level of indentation.
 
-The final form of a dictionary is the inline dictionary.  In this case all the 
-dictionary items are given on the same line.  There is a bit of syntax that 
-defines inline dictionaries, so the keys and values are constrained to avoid 
-ambiguities in the syntax.  An inline dictionary starts with an open brace 
-(``{``), ends with a matching closed brace (``}``), and contains inline 
+The final form of a dictionary is the inline dictionary.  This is a compact form 
+where all the dictionary items are given on the same line.  There is a bit of 
+syntax that defines inline dictionaries, so the keys and values are constrained 
+to avoid ambiguities in the syntax.  An inline dictionary starts with an open 
+brace (``{``), ends with a matching closed brace (``}``), and contains inline 
 dictionary items separated by commas (``,``). An inline dictionary item is a key 
 and value separated by a colon (``:``).  A space need not follow the colon and 
 any spaces that do follow the colon are ignored. The keys are inline strings and 
@@ -101,8 +103,9 @@ A list is an ordered collection of values:
     - value 2
     - value 3
 
-A list item is introduced with a dash at the start of a line and all adjacent 
-list items form the list.
+A list item is introduced with a dash followed by a space or a newline at the 
+start of a line.  All adjacent list items at the same level of indentation form 
+the list.
 
 The value of a list item may be a rest-of-line string, a multi-line string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
@@ -117,14 +120,13 @@ line, which must be further indented.
         key 2a: value 2a
         key 2b: value 2b
 
-A list value is all adjacent list items at the same indentation level.
-
-Another form of a list is the inline list.  In this case all the list items are 
-given on the same line.  There is a bit of syntax that defines the list, so the 
-values are constrained to avoid ambiguities in the syntax.  An inline list 
-starts with an open bracket (``[``), ends with a matching closed bracket 
-(``]``), and contains inline values separated by commas.  The values may be 
-inline strings, inline lists, and inline dictionaries.  For example:
+Another form of a list is the inline list.  This is a compact form where  all 
+the list items are given on the same line.  There is a bit of syntax that 
+defines the list, so the values are constrained to avoid ambiguities in the 
+syntax.  An inline list starts with an open bracket (``[``), ends with 
+a matching closed bracket (``]``), and contains inline values separated by 
+commas.  The values may be inline strings, inline lists, and inline 
+dictionaries.  For example:
 
 .. code-block:: nestedtext
 
@@ -149,12 +151,12 @@ character other than newline:
 
     code   : input signed [7:0] level
     regex  : [+-]?([0-9]*[.])?[0-9]+\s*\w*
-    math   : -b + sqrt(b**2 - 4*a*c)
+    math   : $x = \frac{{-b \pm \sqrt {b^2 - 4ac}}}{2a}$
     unicode: José and François
 
-Multi-line strings are specified on lines prefixed with the greater-than 
-symbol.  The content of each line starts after the first space that follows the 
-greater-than symbol:
+Multi-line strings are specified on lines prefixed with the greater-than symbol 
+followed by a space or a newline.  The content of each line starts after the 
+first space that follows the greater-than symbol:
 
 .. code-block:: nestedtext
 
@@ -194,8 +196,8 @@ strings.
 Comments
 ========
 
-Lines that begin with a hash as the first non-space character, or lines that are 
-empty or consist only of spaces and tabs are comment lines and are ignored.  
+Lines that begin with a hash as the first non-white-space character, or lines 
+that are empty or consist only of white space are comment lines and are ignored.  
 Indentation is not significant on comment lines.
 
 .. code-block:: nestedtext
@@ -252,8 +254,7 @@ required. Any increase in the number of spaces in the indentation represents an
 indent and the number of spaces need only be consistent over the length of the 
 nested object.
 
-The data can be nested arbitrarily deeply using dictionaries and lists, but the 
-leaf values, the values that are nested most deeply, must all be strings.
+The data can be nested arbitrarily.
 
 
 .. _nestedtext_files:
