@@ -254,7 +254,7 @@ required. Any increase in the number of spaces in the indentation represents an
 indent and the number of spaces need only be consistent over the length of the 
 nested object.
 
-The data can be nested arbitrarily.
+The data can be nested arbitrarily deeply.
 
 
 .. _nestedtext_files:
