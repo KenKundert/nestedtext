@@ -31,7 +31,7 @@ The key must be a string and must not contain newline characters, leading or
 trailing spaces, or the ``:␣`` character sequence.  Any spaces between the key 
 and the colon are ignored.
 
-The value of a dictionary item may be a rest-of-line string, a multi-line 
+The value of a dictionary item may be a rest-of-line string, a multiline 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
 characters following the tag that separates the key from the value (``:␣``).  
 For all other values, the rest of the line must be empty, with the value given 
@@ -48,15 +48,15 @@ on the next line, which must be further indented.
         key 3a: value 3a
         key 3b: value 3b
 
-A second less common form of a dictionary item employs multi-line keys.  In this 
+A second less common form of a dictionary item employs multiline keys.  In this 
 case there are no limitations on the key other than it be a string.  Each line 
-of a multi-line key is introduced with a colon (``:``) followed by a space or 
+of a multiline key is introduced with a colon (``:``) followed by a space or 
 newline.  The key is all adjacent lines at the same level that start with 
 a colon tag with the tags removed but leading and trailing white space retained, 
 including all newlines except the last.
 
 This form of dictionary does not allow rest-of-line string values; you would use 
-a multi-line string value instead:
+a multiline string value instead:
 
 .. code-block:: nestedtext
 
@@ -107,7 +107,7 @@ A list item is introduced with a dash followed by a space or a newline at the
 start of a line.  All adjacent list items at the same level of indentation form 
 the list.
 
-The value of a list item may be a rest-of-line string, a multi-line string, 
+The value of a list item may be a rest-of-line string, a multiline string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
 characters that follow the "-␣" that introduces the list item.  For all other 
 values, the rest of the line must be empty, with the value given on the next 
@@ -142,7 +142,7 @@ dictionaries.  For example:
 Strings
 =======
 
-There are three types of strings: rest-of-line strings, multi-line strings, and 
+There are three types of strings: rest-of-line strings, multiline strings, and 
 inline strings.  Rest-of-line strings are simply all the remaining characters on 
 the line, including any leading or trailing white space.  They can contain any 
 character other than newline:
@@ -160,7 +160,7 @@ first space that follows the greater-than symbol:
 
 .. code-block:: nestedtext
 
-    >     This is the first line of a multi-line string, it is indented.
+    >     This is the first line of a multiline string, it is indented.
     > This is the second line, it is not indented.
 
 You can include empty lines in the string simply by specifying the greater-than 
@@ -175,7 +175,7 @@ symbol alone on a line:
     >                                                — Erik Jonsson
     >
 
-The multi-line string is all adjacent lines that start with a greater than tag 
+The multiline string is all adjacent lines that start with a greater than tag 
 with the tags removed and the lines joined together with newline characters 
 inserted between each line.  Except for the space that separates the tag from 
 the text, white space from both the beginning and the end of each line is 
@@ -213,7 +213,7 @@ Nesting
 =======
 
 A value for a dictionary or list item may be a rest-of-line string or it may be 
-a nested dictionary, list, multi-line string, or inline dictionary or list.  
+a nested dictionary, list, multiline string, or inline dictionary or list.  
 Indentation is used to indicate nesting.  Indentation increases to indicate the 
 beginning of a new nested object, and indentation returns to a prior level to 
 indicate its end.  In this way, data can be nested to an arbitrary depth:

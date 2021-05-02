@@ -15,7 +15,7 @@ Latest development version
     | Released: 2021-04-26
 
     - Deprecate quoted dictionary keys.
-    - Add multi-line dictionary keys to replace quoted keys.
+    - Add multiline dictionary keys to replace quoted keys.
     - Add single-line lists and dictionaries.
 
     .. warning::

@@ -13,7 +13,7 @@ Latest development version
 
     - Restructure documentation.
     - Deprecate quoted keys.
-    - Add multi-line keys to replace quoted keys.
+    - Add multiline keys to replace quoted keys.
 
     .. warning::
 

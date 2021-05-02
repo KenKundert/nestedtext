@@ -136,8 +136,8 @@ with the need to quote or escape special characters.
     Language changes:
 
         - Removal of quoted keys
-        - Addition of multi-line keys
-        - Addition of single-line lists and dictionaries
+        - Addition of multiline keys
+        - Addition of single line lists and dictionaries
 
     Python implementation changes:
 

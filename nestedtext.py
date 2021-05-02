@@ -431,7 +431,7 @@ def read_dict(lines, depth, on_dup):
         if line.kind not in ["dict item", "key item"]:
             report("expected dictionary item.", line, colno=depth)
         if line.kind == "key item":
-            # multi-line key
+            # multiline key
             key = read_key(lines, line, depth)
             value = None
         else:
@@ -1017,7 +1017,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         if multiline_key_required:
             key = "\n".join(": "+l if l else ":" for l in key.split('\n'))
             if is_str(value):
-                # force use of multi-line value with multi-line keys
+                # force use of multiline value with multiline keys
                 return key + "\n" + add_leader(value, indent*' ' + '> ')
             else:
                 return key + rdumps(value)

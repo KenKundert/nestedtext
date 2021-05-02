@@ -66,7 +66,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     immediately by a space (``>␣``) or a line break, the line is a *string 
     item*.  After comments and blank lines have been removed, adjacent string 
     items with the same indentation level are combined in order into 
-    a multi-line string.  The string value is the multi-line string with the 
+    a multiline string.  The string value is the multiline string with the 
     tags removed. Any leading white space that follows the tag is retained, as 
     is any trailing white space and all newlines except the last.
 
@@ -88,7 +88,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     2. If there is no further text on the line and the next line has greater 
        indentation, then the next line holds the value, which may be a list, 
-       a dictionary, or a multi-line string.
+       a dictionary, or a multiline string.
 
     3. Otherwise the value is empty; it is taken to be an empty string.
 
@@ -98,15 +98,15 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     If the first non-space character on a line is a colon followed immediately 
     by a space (``:␣``) or a line break, the line is a *key item*.  After 
     comments and blank lines have been removed, adjacent key items with the same 
-    indentation level are combined in order into a multi-line key.  The key 
-    value is the multi-line string with the tags removed. Any leading white 
+    indentation level are combined in order into a multiline key.  The key 
+    value is the multiline string with the tags removed. Any leading white 
     space that follows the tag is retained, as is any trailing white space and 
     all newlines except the last.
 
     Key values may contain any printing UTF-8 character.
 
-    An indented value must follow a multi-line key.  The indented value may be 
-    either a multi-line string, a list or a dictionary.  The combination of the 
+    An indented value must follow a multiline key.  The indented value may be 
+    either a multiline string, a list or a dictionary.  The combination of the 
     key item and its value forms a *dict item*.
 
 
@@ -138,12 +138,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     2. If there is no further text on the line and the next line has greater 
        indentation, then the next line holds the value, which may be a list, 
-       a dictionary, or a multi-line string.
+       a dictionary, or a multiline string.
 
     3. Otherwise the value is empty; it is taken to be an empty string.
 
-    The second form of *dict item* is the *dict item with multi-line key*.  It 
-    consists of a multi-line key value followed by an indented multi-line 
+    The second form of *dict item* is the *dict item with multiline key*.  It 
+    consists of a multiline key value followed by an indented multiline 
     string, list, or dictionary.
 
     Adjacent dict items of either form with the same indentation level are 

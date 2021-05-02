@@ -20,7 +20,7 @@ To begin, it has an excessive amount of syntactic clutter.  Dictionary keys and
 strings both have to be quoted, commas are required between dictionary and list 
 items (but forbidden after the last item), braces are required around 
 dictionaries, etc.  Features that would improve clarity are also lacking.  
-Comments are not allowed, multi-line strings are not supported, and whitespace 
+Comments are not allowed, multiline strings are not supported, and whitespace 
 is insignificant (leading to the possibility that the appearance of the data may 
 not match its true structure).  More conceptually, it is the responsibility of 
 the user to provide data of the correct type (e.g. ``32`` vs. ``32.0`` vs.  
@@ -34,7 +34,7 @@ and writable data file format:
 - text does not require quotes
 - data is left in its original form
 - comments
-- multi-line strings
+- multiline strings
 - special characters without escaping them
 - commas are not used to separate dictionary and list items
 
@@ -50,10 +50,10 @@ when used with simple examples, but things can quickly become complicated or
 provide unexpected results.  A reaction to this is the use of *YAML* subsets, 
 such as StrictYAML_.  However, the subsets still try to maintain compatibility 
 with *YAML* and so inherit much of its complexity. For example, both *YAML* and 
-*StrictYAML* support `nine different ways of writing multi-line strings 
+*StrictYAML* support `nine different ways of writing multiline strings 
 <http://stackoverflow.com/a/21699210/660921>`_.
 
-*YAML* avoids excessive quoting and supports comments and multi-line strings, 
+*YAML* avoids excessive quoting and supports comments and multiline strings, 
 but like *JSON* it converts data to the underlying data types as appropriate, 
 but unlike with *JSON*, the lack of quoting makes the format ambiguous, which 
 means it has to guess at times, and small seemingly insignificant details can 
