@@ -498,7 +498,7 @@ def read_all(lines, top, source, on_dup):
         next_is = lines.type_of_next()
 
         if top in ['dict', dict]:
-            if next_is == "dict item":
+            if next_is in ["dict item", "key item"]:
                 return read_dict(lines, 0, on_dup)
             elif next_is:
                 report('content must start with key.', lines.get_next())
