@@ -150,10 +150,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     combined in order into a dictionary value.
 
 
-**Inline Objects**:
+**Inline Lists and Dictionaries**:
 
     If the first character on a line is either a left bracket (``[``) or a left 
-    brace (``{``) the line is an *inline object*.  A bracket introduces an 
+    brace (``{``) the line is an *inline structure*.  A bracket introduces an 
     *inline list* and a brace introduces an *inline dictionary*.
 
     An inline list starts with an open bracket (``[``), ends with a matching 
