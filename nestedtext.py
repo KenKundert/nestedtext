@@ -43,7 +43,7 @@ import re
 
 
 # Globals {{{1
-__version__ = "1.3.4"
+__version__ = "1.3.5"
 __released__ = "2021-05-02"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 
