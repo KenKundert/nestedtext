@@ -443,8 +443,10 @@ def read_dict(lines, depth, on_dup):
             depth_of_next = lines.depth_of_next()
             if depth_of_next > depth:
                 value = read_value(lines, depth_of_next, on_dup)
-            else:
+            elif line.kind == "dict item":
                 value = ''
+            else:
+                report('multiline key requires a value.', line, None, colno=depth)
 
         if line.key in data:
             # found duplicate key

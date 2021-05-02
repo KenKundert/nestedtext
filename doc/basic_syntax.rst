@@ -14,7 +14,7 @@ simple text or an empty dictionary or list. You can find more specifics
 Dictionaries
 ============
 
-A dictionary is an ordered collection of key/value pairs:
+A dictionary is an ordered collection of key value pairs:
 
 .. code-block:: nestedtext
 
@@ -22,16 +22,15 @@ A dictionary is an ordered collection of key/value pairs:
     key 2: value 2
     key 3: value 3
 
-A dictionary item is a single key value pair.  The key and value are separated 
-with a colon (``:``) followed by either a space or a newline.  All adjacent 
-dictionary items at the same level of indentation form the dictionary.
+A dictionary item is a single key value pair.  A dictionary is all adjacent 
+dictionary items in which the keys all begin at the same level of indentation.
 
-In this form, a dictionary item is introduced by a key followed by a colon.
-The key must be a string and must not contain newline characters, leading or 
-trailing spaces, or the ``:␣`` character sequence.  Any spaces between the key 
-and the colon are ignored.
+In the first form, the key and value are separated with a colon (``:``) followed 
+by either a space or a newline.  The key must be a string and must not contain 
+newline characters, leading or trailing spaces, or the ``:␣`` character 
+sequence.  Any spaces between the key and the colon are ignored.
 
-The value of a dictionary item may be a rest-of-line string, a multiline 
+The value of this dictionary item may be a rest-of-line string, a multiline 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
 characters following the tag that separates the key from the value (``:␣``).  
 For all other values, the rest of the line must be empty, with the value given 
@@ -67,8 +66,7 @@ a multiline string value instead:
         - value 2a
         - value 2b
 
-A dictionary is all adjacent dictionary items of either form in which the keys 
-all begin at the same level of indentation.
+A dictionary may consist of dictionary items of either form.
 
 The final form of a dictionary is the inline dictionary.  This is a compact form 
 where all the dictionary items are given on the same line.  There is a bit of 
