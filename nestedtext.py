@@ -1012,7 +1012,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             not key
             or '\n' in key
             or key.strip(' ') != key
-            or key[:1] == "#"
+            or key[:1] in "#[{"
             or key[:2] in ["- ", "> ", ": "]
             or ': ' in key
         )
