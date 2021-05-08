@@ -27,26 +27,22 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     *inline*.  Any line that does not fit one of these types is an error.
 
 
-**Comments**:
-
-    Comments are lines that have ``#`` as the first non-white-space character on 
-    the line.  Comments are ignored.
-
-
 **Blank lines**:
 
     Blank lines are lines that are empty or consist only of white space 
-    characters (spaces or tabs).  Blank lines are also ignored.
+    characters (spaces or tabs).  Blank lines are ignored.
 
 
 **Line-type tags**:
 
     Most remaining lines are identifying by the presence of tags, where a tag is
     the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
-    a line when followed immediately by a space or line break.
+    a line when followed immediately by a space or line break, or a number sign 
+    {``#``), left bracket (``[``), or left brace (``{``) as the first no-white 
+    space character on a line.
 
-    Dashes and greater-than symbols only introduce tags when they are the first 
-    non-space character on a line, but colon tags need not start the line.
+    Most of these symbols only introduce tags when they are the first non-space 
+    character on a line, but colon tags need not start the line.
 
     The first (left-most) tag on a line determines the line type.  Once the 
     first tag has been found on the line, any subsequent occurrences of any of 
@@ -58,6 +54,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     In this case the leading ``-␣`` determines the type of the line and the
     ``:␣`` is simply treated as part of the remaining text on the line.
+
+
+**Comments**:
+
+    Comments are lines that have ``#`` as the first non-white-space character on 
+    the line.  Comments are ignored.
 
 
 **String items**:
