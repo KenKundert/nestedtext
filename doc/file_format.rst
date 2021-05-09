@@ -37,7 +37,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     Most remaining lines are identifying by the presence of tags, where a tag is
     the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
-    a line when followed immediately by a space or line break, or a number sign 
+    a line when followed immediately by a space or line break, or a hash 
     {``#``), left bracket (``[``), or left brace (``{``) as the first no-white 
     space character on a line.
 
