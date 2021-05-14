@@ -48,7 +48,8 @@ __released__ = "2021-05-08"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 
 
-# Exception {{{1
+# Exceptions {{{1
+# NestedTextError {{{2
 class NestedTextError(Error, ValueError):
     r'''
     The *load* and *dump* functions all raise *NestedTextError* when they
@@ -174,6 +175,12 @@ class NestedTextError(Error, ValueError):
     '''
 
 
+# NotSuitableForInline {{{2
+# this is only intended for internal use
+class NotSuitableForInline(Exception):
+    pass
+
+
 # NestedText Reader {{{1
 # Converts NestedText into Python data hierarchies.
 
@@ -244,7 +251,7 @@ def indentation_error(line, depth):
         prev_line and
         prev_line.depth > line.depth
     ):
-        msg = 'invalid indentation, partial dedent'
+        msg = 'invalid indentation, partial dedent.'
     else:
         msg = 'invalid indentation.'
     report(textwrap.fill(msg), line, colno=depth)
@@ -593,6 +600,7 @@ lexer_aliases = dict(EOF='end of line')
 
 # loads() {{{2
 def loads(content, top='dict', *, source=None, on_dup=None):
+    # description {{{3
     r'''
     Loads *NestedText* from string.
 
@@ -720,12 +728,14 @@ def loads(content, top='dict', *, source=None, on_dup=None):
 
     '''
 
+    # code {{{3
     lines = content.replace('\r\n', '\n').replace('\r', '\n').split('\n')
     return read_all(lines, top, source, on_dup)
 
 
 # load() {{{2
 def load(f=None, top='dict', *, on_dup=None):
+    # description {{{3
     r'''
     Loads *NestedText* from file or stream.
 
@@ -791,6 +801,7 @@ def load(f=None, top='dict', *, on_dup=None):
 
     '''
 
+    # code {{{3
     # Do not invoke the read method as that would read in the entire contents of
     # the file, possibly consuming a lot of memory. Instead pass the file
     # pointer into read_all(), it will iterate through the lines, discarding
@@ -831,7 +842,17 @@ def add_prefix(prefix, suffix):
 
 
 # dumps {{{2
-def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=None, _level=0):
+def dumps(
+    obj,
+    *,
+    width = 0,
+    sort_keys = False,
+    indent = 4,
+    converters = None,
+    default = None,
+    _level = 0
+):
+    # description {{{3
     """Recursively convert object to *NestedText* string.
 
     Args:
@@ -846,21 +867,30 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         indent (int):
             The number of spaces to use to represent a single level of
             indentation.  Must be one or greater.
-        renderers (dict):
-            A dictionary where the keys are types and the values are render
-            functions (functions that take an object and convert it to a string).
-            These will be used to convert values to strings during the
-            conversion.
+        converters (dict):
+            A dictionary where the keys are types and the values are converter
+            functions (functions that take an object and convert it into a form
+            that can be processed by NestedText).  If a value is False, an
+            unsupported type error is raised.
+
+            An object may provide its own converter by defining the
+            ``__nestedtext_converter__`` attribute.  It may be False, or it may
+            be a method that converts the object to a supported data type for
+            NestedText.  Converters specified in the argument dominate over the
+            ``__nestedtext_converter__`` attribute.
         default (func or 'strict'):
-            The default renderer. Use to render otherwise unrecognized objects
-            to strings. If not provided an error will be raised for unsupported
-            data types. Typical values are *repr* or *str*. If 'strict' is
-            specified then only dictionaries, lists, strings, and those types
-            specified in *renderers* are allowed. If *default* is not specified
-            then a broader collection of value types are supported, including
-            *None*, *bool*, *int*, *float*, and *list*- and *dict*-like objects.
-            In this case Booleans is rendered as 'True' and 'False' and None and
-            empty lists and dictionaries are rendered as empty strings.
+            The default converter. Use to convert otherwise unrecognized objects
+            to a form that can be processed. If not provided an error will be
+            raised for unsupported data types. Typical values are *repr* or
+            *str*. If 'strict' is specified then only dictionaries, lists,
+            strings, and those types specified in *converters* are allowed. If
+            *default* is not specified then a broader collection of value types
+            are supported, including *None*, *bool*, *int*, *float*, and *list*-
+            and *dict*-like objects.  In this case Booleans are rendered as
+            'True' and 'False' and None is rendered as an empty string.  If
+            *default* is a function, it acts as the default converter.  If
+            converter raises a TypeError, the value is reported as an
+            unsupported type.
         _level (int):
             The number of indentation levels.  When dumps is invoked recursively
             this is used to increment the level and so the indent.  Should not
@@ -892,17 +922,16 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             sex: female
             age: 74
 
-        The *NestedText* format only supports dictionaries, lists, and strings
-        and all leaf values must be strings.  By default, *dumps* is configured
-        to be rather forgiving, so it will render many of the base Python data
-        types, such as *None*, *bool*, *int*, *float* and list-like types such
-        as *tuple* and *set* by converting them to the types supported by the
-        format.  This implies that a round trip through *dumps* and *loads*
-        could result in the types of values being transformed. You can restrict
-        *dumps* to only supporting the native types of *NestedText* by passing
-        `default='strict'` to *dumps*.  Doing so means that values that are not
-        dictionaries, lists, or strings generate exceptions; as do empty
-        dictionaries and lists.
+        The *NestedText* format only supports dictionaries, lists, and strings.
+        By default, *dumps* is configured to be rather forgiving, so it will
+        render many of the base Python data types, such as *None*, *bool*,
+        *int*, *float* and list-like types such as *tuple* and *set* by
+        converting them to the types supported by the format.  This implies that
+        a round trip through *dumps* and *loads* could result in the types of
+        values being transformed. You can restrict *dumps* to only supporting
+        the native types of *NestedText* by passing `default='strict'` to
+        *dumps*.  Doing so means that values that are not dictionaries, lists,
+        or strings generate exceptions; as do empty dictionaries and lists.
 
         .. code-block:: python
 
@@ -949,46 +978,57 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             valid: True
             house: red
 
-        You can also specify a dictionary of renderers. The dictionary maps the
-        object type to a render function.
+        You can also specify a dictionary of converters. The dictionary maps the
+        object type to a converter function.
 
         .. code-block:: python
 
-            >>> renderers = {
+            >>> class Info:
+            ...     def __init__(self, **kwargs):
+            ...         self.__dict__ = kwargs
+
+            >>> converters = {
             ...     bool: lambda b: 'yes' if b else 'no',
             ...     int: hex,
             ...     float: lambda f: f'{f:0.3}',
             ...     Color: lambda c: c.color,
+            ...     Info: lambda i: i.__dict__,
             ... }
 
+            >>> data['attributes'] = Info(readable=True, writable=False)
+
             >>> try:
-            ...    print(nt.dumps(data, renderers=renderers))
+            ...    print(nt.dumps(data, converters=converters))
             ... except nt.NestedTextError as e:
             ...     print(str(e))
             key: 0x2a
             value: 3.14
             valid: yes
             house: red
+            attributes:
+                readable: yes
+                writable: no
 
         If the dictionary maps a type to *None*, then the default behavior is
         used for that type. If it maps to *False*, then an exception is raised.
 
         .. code-block:: python
 
-            >>> renderers = {
+            >>> converters = {
             ...     bool: lambda b: 'yes' if b else 'no',
             ...     int: hex,
             ...     float: False,
             ...     Color: lambda c: c.color,
+            ...     Info: lambda i: i.__dict__,
             ... }
 
             >>> try:
-            ...    print(nt.dumps(data, renderers=renderers))
+            ...    print(nt.dumps(data, converters=converters))
             ... except nt.NestedTextError as e:
             ...     print(str(e))
             3.1415926: unsupported type.
 
-        Both *default* and *renderers* may be used together. *renderers* has
+        Both *default* and *converters* may be used together. *converters* has
         priority over the built-in types and *default*.  When a function is
         specified as *default*, it is always applied as a last resort.
     """
@@ -1001,13 +1041,34 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         def sort(keys):
             return keys
 
+    # convert {{{3
+    def convert(obj):
+        converter = getattr(obj, '__nestedtext_converter__', None)
+        converter = converters.get(type(obj)) if converters else converter
+        if converter:
+            try:
+                return converter(obj)
+            except TypeError:
+                # is bound method
+                return converter()
+        elif converter is False:
+            raise NestedTextError(
+                obj,
+                template = "unsupported type.",
+                culprit=repr(obj)
+            ) from None
+        return obj
+
     # render_dict_item {{{3
     def render_dict_item(key, dictionary, indent, rdumps):
         value = dictionary[key]
         if is_a_scalar(key):
             key = str(key)
         if not is_a_str(key):
-            raise NestedTextError(template='keys must be strings.', culprit=key)
+            raise NestedTextError(
+                template = 'keys must be strings.',
+                culprit = key
+            ) from None
         multiline_key_required = (
             not key
             or '\n' in key
@@ -1047,6 +1108,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
 
     # render_inline_value {{{3
     def render_inline_value(obj, exclude):
+        obj = convert(obj)
         if is_a_dict(obj):
             return render_inline_dict(obj)
         if is_a_list(obj):
@@ -1055,26 +1117,27 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
 
     # render_inline_scalar {{{3
     def render_inline_scalar(obj, exclude):
-        render = renderers.get(type(obj)) if renderers else None
-        if render is False:
-            raise ValueError()
-        elif render:
-            value = render(obj)
-            if "\n" in value:
-                raise ValueError()
-        elif is_a_str(obj):
+        if is_a_str(obj):
             value = obj
         elif is_a_scalar(obj):
             value = '' if obj is None else str(obj)
         elif default and callable(default):
-            value = default(obj)
+            try:
+                obj = default(obj)
+            except TypeError:
+                raise NestedTextError(
+                    obj,
+                    template = "unsupported type.",
+                    culprit = repr(obj)
+                ) from None
+            return render_inline_value(obj, exclude)
         else:
-            raise ValueError()
+            raise NotSuitableForInline()
 
         if exclude & set(value):
-            raise ValueError()
+            raise NotSuitableForInline()
         if value.strip(' ') != value:
-            raise ValueError()
+            raise NotSuitableForInline()
         return value
 
     # define object type identification functions {{{3
@@ -1098,7 +1161,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
             width = width - indent,
             sort_keys = sort_keys,
             indent = indent,
-            renderers = renderers,
+            converters = converters,
             default = default,
             _level = _level + 1
         )
@@ -1106,23 +1169,18 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
     # render content {{{3
     assert indent > 0
     error = None
-    need_indented_block = is_collection(obj)
     content = ''
-    render = renderers.get(type(obj)) if renderers else None
-    if render is False:
-        error = "unsupported type."
-    elif render:
-        content = render(obj)
-        if "\n" in content:
-            need_indented_block = True
-    elif is_a_dict(obj):
+    obj = convert(obj)
+    need_indented_block = is_collection(obj)
+
+    if is_a_dict(obj):
         try:
             if obj and not (width > 0 and len(obj) <= width/6):
-                raise ValueError
+                raise NotSuitableForInline
             content = render_inline_dict(obj)
             if obj and len(content) > width:
-                raise ValueError
-        except ValueError:
+                raise NotSuitableForInline
+        except NotSuitableForInline:
             content = "\n".join(
                 render_dict_item(k, obj, indent, rdumps)
                 for k in sort(obj)
@@ -1130,11 +1188,11 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
     elif is_a_list(obj):
         try:
             if obj and not (width > 0 and len(obj) <= width/6):
-                raise ValueError
+                raise NotSuitableForInline
             content = render_inline_list(obj)
             if obj and len(content) > width:
-                raise ValueError
-        except ValueError:
+                raise NotSuitableForInline
+        except NotSuitableForInline:
             content = "\n".join(
                 add_prefix("-", rdumps(v))
                 for v in obj
@@ -1152,7 +1210,20 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
         else:
             content = str(obj)
     elif default and callable(default):
-        content = default(obj)
+        try:
+            obj = default(obj)
+        except TypeError:
+            error = 'unsupported type.'
+        else:
+            content = dumps(
+                obj,
+                width = width,
+                sort_keys = sort_keys,
+                indent = indent,
+                converters = converters,
+                default = default,
+                _level = _level
+            )
     else:
         error = 'unsupported type.'
 
@@ -1167,6 +1238,7 @@ def dumps(obj, *, width=0, sort_keys=False, indent=4, renderers=None, default=No
 
 # dump {{{2
 def dump(obj, f, **kwargs):
+    # description {{{3
     """Write the *NestedText* representation of the given object to the given file.
 
     Args:
@@ -1234,15 +1306,16 @@ def dump(obj, f, **kwargs):
             ...     fatal(os_error(e))
 
     """
-    content = dumps(obj, **kwargs)
 
-    # Avoid nested try-except blocks, since they lead to chained exceptions
-    # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
-    # stack trace.
+    # code {{{3
+    content = dumps(obj, **kwargs)
 
     try:
         f.write(content)
     except AttributeError:
+        # Avoid nested try-except blocks, since they lead to chained exceptions
+        # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
+        # stack trace.
         pass
     else:
         return

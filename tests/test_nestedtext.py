@@ -601,9 +601,9 @@ def test_dump_indent(dump, tmp_path):
     assert dump(x, tmp_path, indent=3) == "A:\n   - B"
     assert dump(x, tmp_path, indent=4) == "A:\n    - B"
 
-# test_dump_renderers {{{1
+# test_dump_converters {{{1
 @parametrize_dump_api
-def test_dump_renderers(dump, tmp_path):
+def test_dump_converters(dump, tmp_path):
     x = {'int': 1, 'float': 1.0, 'str': 'A'}
 
     assert dump(x, tmp_path, default=str) == dedent('''\
@@ -612,46 +612,110 @@ def test_dump_renderers(dump, tmp_path):
         str: A
     ''').strip()
 
-    renderers = {str: lambda x: x.lower()}
-    assert dump(x, tmp_path, default=str, renderers=renderers) == dedent('''\
+    converters = {str: lambda x: x.lower()}
+    assert dump(x, tmp_path, default=str, converters=converters) == dedent('''\
         int: 1
         float: 1.0
         str: a
     ''').strip()
-    assert dump(x, tmp_path, default=str, renderers=renderers, width=80) == '{int: 1, float: 1.0, str: a}'
+    assert dump(x, tmp_path, default=str, converters=converters, width=80) == '{int: 1, float: 1.0, str: a}'
 
     y = {'info': Info(val=42)}
-    renderers = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
-    assert dump(y, tmp_path, renderers=renderers) == dedent('''\
+    converters = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
+    assert dump(y, tmp_path, converters=converters) == dedent('''
         info:
-            Info(
-                val=42
-            )
+            > Info(
+            >     val=42
+            > )
     ''').strip()
-    assert dump(y, tmp_path, renderers=renderers, width=80) == dedent('''\
+    assert dump(y, tmp_path, converters=converters, width=80) == dedent('''
         info:
-            Info(
-                val=42
-            )
+            > Info(
+            >     val=42
+            > )
     ''').strip()
-    renderers = {Info: lambda v: f'Info(val={v.val})'}
-    assert dump(y, tmp_path, renderers=renderers, width=80) == '{info: Info(val=42)}'
 
-# test_dump_renderers_err {{{1
+    converters = {Info: lambda v: v.__dict__}
+    result = dump(y, tmp_path, converters=converters, width=80)
+    expected = '{info: {val: 42}}'
+    assert result == expected
+
+    y = dict(info=Info(vals=Info(pair=(42,64))))
+    result = dump(y, tmp_path, converters=converters, width=80)
+    expected = '{info: {vals: {pair: [42, 64]}}}'
+    assert result == expected
+
+    y = dict(info=Info(vals=Info(pair=((1,2), (3,4)))))
+    full_expected = dedent('''
+        info:
+            vals:
+                pair:
+                    -
+                        - 1
+                        - 2
+                    -
+                        - 3
+                        - 4
+    ''').strip()
+    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}}'
+
+    result = dump(y, tmp_path, converters=converters)
+    assert result == full_expected
+
+    result = dump(y, tmp_path, converters=converters, width=80)
+    assert result == compressed_expected
+
+    def defaulter(arg):
+        if isinstance(arg, Info):
+            return arg.__dict__
+        raise TypeError
+
+    result = dump(y, tmp_path, default=defaulter)
+    assert result == full_expected
+
+    result = dump(y, tmp_path, default=defaulter, width=80)
+    assert result == compressed_expected
+
+    class ntInfo(Info):
+        def __nestedtext_converter__(self):
+            return self.__dict__
+
+    y = {'info': ntInfo(val=42)}
+    result = dump(y, tmp_path, width=80)
+    expected = '{info: {val: 42}}'
+    assert result == expected
+
+
+    # assure that converters dominates over __nestedtext_converter__
+    converters = {ntInfo: False}
+    with pytest.raises(nt.NestedTextError) as exc:
+        dump(y, tmp_path, width=80, converters=converters)
+    assert str(exc.value) == f"ntInfo(val=42): unsupported type."
+
+
+# test_dump_converters_err {{{1
+z = complex(0, 0)
+def defaulter(arg):
+    if isinstance(arg, complex):
+        raise TypeError
+    return str(arg)
+
 @parametrize_dump_api
 @parametrize(
         'data, culprit, kwargs', [
             ({'key': 42},   42,   dict(default='strict')),
             ({'key': 42.0}, 42.0, dict(default='strict')),
             ({'key': True}, True, dict(default='strict')),
-            ({'key': 42},   42,   dict(default=str, renderers={int: False})),
+            ({'key': 42},   42,   dict(default=str, converters={int: False})),
+            ({'key': z}, 0j, dict(default=defaulter)),
             ({'key': 42},   42,   dict(default='strict', width=80)),
             ({'key': 42.0}, 42.0, dict(default='strict', width=80)),
             ({'key': True}, True, dict(default='strict', width=80)),
-            ({'key': 42},   42,   dict(default=str, renderers={int: False}, width=80)),
+            ({'key': 42},   42,   dict(default=str, converters={int: False}, width=80)),
+            ({'key': z}, 0j, dict(default=defaulter, width=80)),
         ]
 )
-def test_dump_renderers_err(dump, tmp_path, data, culprit, kwargs):
+def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
     with pytest.raises(nt.NestedTextError) as exc:
         dump(data, tmp_path, **kwargs)
 

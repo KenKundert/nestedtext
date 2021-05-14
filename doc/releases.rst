@@ -14,12 +14,22 @@ Latest development version
     - Restructure documentation.
     - Deprecate quoted keys.
     - Add multiline keys to replace quoted keys.
+    - Move from *renderers* to *converters* in :func:`dump` and :func:`dumps`.  
+      Both allow you to support arbitrary data types.  With *renderers* you 
+      provide functions that are responsible for directly creating the text to 
+      be inserted in the *NestedText* output.  This can be complicated and error 
+      prone.  With *converters* you instead convert the object to a known 
+      *NestedText* data type (dict, list, string, ...) and the *dump* function 
+      automatically formats it appropriately.
 
     .. warning::
 
-        Be aware that this version is not backward compatible because it no 
-        longer supports quoted dictionary keys and no longer allows one to 
-        specify *level* in :func:`dump` and :func:`dumps`.
+        Be aware that this version is not backward compatible because it:
+        1. no longer supports quoted dictionary keys
+        2. the *renderers* argument to :func:`dump` and :func:`dumps` has been 
+           replaced by *converters*.
+        3. no longer allows one to specify *level* in :func:`dump` and 
+           :func:`dumps`.
 
 
 v1.3 (2021-01-02)
