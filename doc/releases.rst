@@ -25,11 +25,11 @@ Latest development version
     .. warning::
 
         Be aware that this version is not backward compatible because it:
-        1. no longer supports quoted dictionary keys
-        2. the *renderers* argument to :func:`dump` and :func:`dumps` has been 
-           replaced by *converters*.
-        3. no longer allows one to specify *level* in :func:`dump` and 
-           :func:`dumps`.
+            1. no longer supports quoted dictionary keys
+            2. the *renderers* argument to :func:`dump` and :func:`dumps` has 
+               been replaced by *converters*.
+            3. no longer allows one to specify *level* in :func:`dump` and 
+               :func:`dumps`.
 
 
 v1.3 (2021-01-02)

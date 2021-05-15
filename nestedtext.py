@@ -869,8 +869,8 @@ def dumps(
             indentation.  Must be one or greater.
         converters (dict):
             A dictionary where the keys are types and the values are converter
-            functions (functions that take an object and convert it into a form
-            that can be processed by NestedText).  If a value is False, an
+            functions (functions that take an object and return it in a form
+            that can be processed by *NestedText*).  If a value is False, an
             unsupported type error is raised.
 
             An object may provide its own converter by defining the
@@ -883,13 +883,13 @@ def dumps(
             to a form that can be processed. If not provided an error will be
             raised for unsupported data types. Typical values are *repr* or
             *str*. If 'strict' is specified then only dictionaries, lists,
-            strings, and those types specified in *converters* are allowed. If
+            strings, and those types that have converters are allowed. If
             *default* is not specified then a broader collection of value types
             are supported, including *None*, *bool*, *int*, *float*, and *list*-
             and *dict*-like objects.  In this case Booleans are rendered as
             'True' and 'False' and None is rendered as an empty string.  If
             *default* is a function, it acts as the default converter.  If
-            converter raises a TypeError, the value is reported as an
+            it raises a TypeError, the value is reported as an
             unsupported type.
         _level (int):
             The number of indentation levels.  When dumps is invoked recursively
@@ -931,7 +931,7 @@ def dumps(
         values being transformed. You can restrict *dumps* to only supporting
         the native types of *NestedText* by passing `default='strict'` to
         *dumps*.  Doing so means that values that are not dictionaries, lists,
-        or strings generate exceptions; as do empty dictionaries and lists.
+        or strings generate exceptions.
 
         .. code-block:: python
 
@@ -978,6 +978,24 @@ def dumps(
             valid: True
             house: red
 
+        If *Color* is consistently used with *NestedText*, you can include the
+        converter in *Color* itself.
+
+        .. code-block:: python
+
+            >>> class Color:
+            ...     def __init__(self, color):
+            ...         self.color = color
+            ...     def __nestedtext_converter__(self):
+            ...         return self.color.title()
+
+            >>> data['house'] = Color('red')
+            >>> print(nt.dumps(data))
+            key: 42
+            value: 3.1415926
+            valid: True
+            house: Red
+
         You can also specify a dictionary of converters. The dictionary maps the
         object type to a converter function.
 
@@ -1008,6 +1026,9 @@ def dumps(
             attributes:
                 readable: yes
                 writable: no
+
+        The above example shows that *Color* in the *converters* argument
+        dominates over the ``__nestedtest__converter__`` class.
 
         If the dictionary maps a type to *None*, then the default behavior is
         used for that type. If it maps to *False*, then an exception is raised.
