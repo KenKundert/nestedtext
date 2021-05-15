@@ -143,6 +143,8 @@ with the need to quote or escape special characters.
 
         - Removal of *level* parameter to *dump* and *dumps* functions.
         - Addition of *width* parameter to *dump* and *dumps* functions.
+        - Replaced *renderers* argument with *converters* on *dump* and *dumps* 
+          functions.
 
 
 Related Projects
