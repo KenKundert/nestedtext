@@ -876,8 +876,8 @@ def dumps(
             An object may provide its own converter by defining the
             ``__nestedtext_converter__`` attribute.  It may be False, or it may
             be a method that converts the object to a supported data type for
-            NestedText.  Converters specified in the argument dominate over the
-            ``__nestedtext_converter__`` attribute.
+            NestedText.  A matching converter specified in the *converters*
+            argument dominates over this attribute.
         default (func or 'strict'):
             The default converter. Use to convert otherwise unrecognized objects
             to a form that can be processed. If not provided an error will be

@@ -71,8 +71,8 @@ A dictionary may consist of dictionary items of either form.
 The final form of a dictionary is the inline dictionary.  This is a compact form 
 where all the dictionary items are given on the same line.  There is a bit of 
 syntax that defines inline dictionaries, so the keys and values are constrained 
-to avoid ambiguities in the syntax.  An inline dictionary starts with an open 
-brace (``{``), ends with a matching closed brace (``}``), and contains inline 
+to avoid ambiguities in the syntax.  An inline dictionary starts with an opening 
+brace (``{``), ends with a matching closing brace (``}``), and contains inline 
 dictionary items separated by commas (``,``). An inline dictionary item is a key 
 and value separated by a colon (``:``).  A space need not follow the colon and 
 any spaces that do follow the colon are ignored. The keys are inline strings and 
@@ -107,7 +107,7 @@ the list.
 
 The value of a list item may be a rest-of-line string, a multiline string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
-characters that follow the "-␣" that introduces the list item.  For all other 
+characters that follow the ``-␣`` that introduces the list item.  For all other 
 values, the rest of the line must be empty, with the value given on the next 
 line, which must be further indented.
 
@@ -121,8 +121,8 @@ line, which must be further indented.
 Another form of a list is the inline list.  This is a compact form where  all 
 the list items are given on the same line.  There is a bit of syntax that 
 defines the list, so the values are constrained to avoid ambiguities in the 
-syntax.  An inline list starts with an open bracket (``[``), ends with 
-a matching closed bracket (``]``), and contains inline values separated by 
+syntax.  An inline list starts with an opening bracket (``[``), ends with 
+a matching closing bracket (``]``), and contains inline values separated by 
 commas.  The values may be inline strings, inline lists, and inline 
 dictionaries.  For example:
 

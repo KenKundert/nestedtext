@@ -57,9 +57,11 @@ function.
     {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
 Notice that the type of the return value is specified to be 'dict'. This is the 
-default. You can also specify 'list', 'str', or 'any'.  All but 'any' constrain 
-the data type of the top-level of the *NestedText* content.
+default. You can also specify 'list', 'str', or 'any' (or *dict*, *list*, *str*, 
+or *any*).  All but 'any' constrain the data type of the top-level of the 
+*NestedText* content.
 
+More advanced usage is described in :meth:`loads`.
 
 NestedText Writer
 -----------------
@@ -89,3 +91,5 @@ The :func:`dump` function writes *NestedText* to a file or stream.
     ...     e.terminate()
     ... except OSError as e:
     ...     fatal(os_error(e))
+
+More advanced usage is described in :meth:`dumps`.
