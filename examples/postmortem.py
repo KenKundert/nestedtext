@@ -106,4 +106,4 @@ try:
 except nt.NestedTextError as e:
     e.report()
 except Invalid as e:
-    print(f"ERROR: {', '.join(str(p) for p in e.path)}: {e.msg}")
+    print(f"ERROR: {'.'.join(str(p) for p in e.path)}: {e.msg}")
