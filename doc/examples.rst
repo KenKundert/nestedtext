@@ -101,6 +101,35 @@ to *JSON*.  It demonstrates the use of :func:`load()` and
    :language: python
 
 
+.. _display format example:
+
+Display format
+==============
+
+Besides being a readable file format, *NestedText* makes a reasonable display 
+format for structured data.  You can further simplify the output by stripping 
+leading multiline string tags if you so desire.
+
+.. code-block:: python
+
+    >>> import nestedtext as nt
+    >>> import re
+    >>>
+    >>> def strip_nestedtext(text):
+    ...     return re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M)
+
+    >>> addresses = nt.load('examples/address.nt')
+    >>> print(strip_nestedtext(nt.dumps(addresses['treasurer'])))
+    name: Fumiko Purvis
+    address:
+        3636 Buffalo Ave
+        Topeka, Kansas 20692
+    phone: 1-268-555-0280
+    email: fumiko.purvis@hotmail.com
+    additional roles:
+        - accounting task force
+
+
 .. _cryptocurrency example:
 
 Cryptocurrency holdings
