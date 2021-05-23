@@ -14,6 +14,7 @@ Latest development version
     - Restructure documentation.
     - Deprecate quoted keys.
     - Add multiline keys to replace quoted keys.
+    - Add inline lists and dictionaries.
     - Move from *renderers* to *converters* in :func:`dump` and :func:`dumps`.  
       Both allow you to support arbitrary data types.  With *renderers* you 
       provide functions that are responsible for directly creating the text to 
