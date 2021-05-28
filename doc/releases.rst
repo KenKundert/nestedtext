@@ -8,8 +8,8 @@ Releases
 Latest development version
 --------------------------
 
-    | Version: 1.3.7
-    | Released: 2021-05-14
+    | Version: 2.0.0
+    | Released: 2021-05-28
 
 
 v2.0 (2021-05-28)
