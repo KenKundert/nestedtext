@@ -11,7 +11,10 @@ Latest development version
     | Version: 1.3.7
     | Released: 2021-05-14
 
-    - Restructure documentation.
+
+v2.0 (2021-05-28)
+-----------------
+
     - Deprecate quoted keys.
     - Add multiline keys to replace quoted keys.
     - Add inline lists and dictionaries.
@@ -22,6 +25,7 @@ Latest development version
       prone.  With *converters* you instead convert the object to a known 
       *NestedText* data type (dict, list, string, ...) and the *dump* function 
       automatically formats it appropriately.
+    - Restructure documentation.
 
     .. warning::
 
