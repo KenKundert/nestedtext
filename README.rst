@@ -126,24 +126,21 @@ with the need to quote or escape special characters.
 
 .. note::
 
-    This version contains some significant changes from version 1.3.0.  It 
-    should be considered an trial version, meaning that the changes it contains 
-    may be abandoned or modified before the next stable release.  Some of these 
-    changes are not backward compatible. Feel free to comment on changes in 
-    `GitHub Issues <https://github.com/KenKundert/nestedtext/issues>`_.
+    This version contains some significant changes from version 1.3.0.  Some of 
+    these changes are not backward compatible.
 
     Language changes:
 
-        - Removal of quoted keys
-        - Addition of multiline keys
-        - Addition of single line lists and dictionaries
+    - Removal of quoted keys
+    - Addition of multiline keys
+    - Addition of single line lists and dictionaries
 
     Python implementation changes:
 
-        - Removal of *level* parameter to *dump* and *dumps* functions.
-        - Addition of *width* parameter to *dump* and *dumps* functions.
-        - Replaced *renderers* argument with *converters* on *dump* and *dumps* 
-          functions.
+    - Removal of *level* parameter to *dump* and *dumps* functions.
+    - Addition of *width* parameter to *dump* and *dumps* functions.
+    - Replaced *renderers* argument with *converters* on *dump* and *dumps* 
+        functions.
 
 
 Related Projects
