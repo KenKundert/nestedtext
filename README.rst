@@ -147,12 +147,13 @@ Related Projects
 
 `nestedtext docs <https://nestedtext.org>`_
 """""""""""""""""""""""""""""""""""""""""""
-*NestedText* documentation.
+*NestedText* documentation and language specification.
 
 
-`nestedtext spec <https://github.com/kenkundert/nestedtext>`_
+`nestedtext source <https://github.com/kenkundert/nestedtext>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-Language specification and Python implementation.
+Source code repository for language documentation and Python implementation.
+Report any issues here.
 
 
 `nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
