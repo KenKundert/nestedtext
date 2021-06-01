@@ -71,6 +71,7 @@ This produces the following data structure:
      'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
      'webmaster_email': 'admin@example.com'}
 
+
 .. _json-to-nestedtext:
 
 JSON to NestedText
@@ -88,6 +89,7 @@ The presence of this example should not be taken as a suggestion that
 be converted to *NestedText*, and in the conversion all type information is 
 lost.
 
+
 .. _nestedtext-to-json:
 
 NestedText to JSON
@@ -98,6 +100,19 @@ to *JSON*.  It demonstrates the use of :func:`load()` and
 :exc:`NestedTextError`.
 
 .. literalinclude:: ../examples/nestedtext-to-json
+   :language: python
+
+
+.. _csv-to-nestedtext:
+
+CSV to NestedText
+==================
+
+This example implements a command-line utility that converts a *CSV* file to 
+*NestedText*.  It demonstrates the use of the *converters* argument to 
+:func:`dumps()`, which is used to cull empty dictionary fields.
+
+.. literalinclude:: ../examples/csv-to-nestedtext
    :language: python
 
 

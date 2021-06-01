@@ -1049,6 +1049,44 @@ def dumps(
             ...     print(str(e))
             3.1415926: unsupported type.
 
+        *converters* need not actually change the type of a value, it may simply
+        transform the value.  In the following example, *converters* is used to
+        transform strings and dictionaries by adding quotes to strings and
+        removing empty dictionary fields.  It is also converts dates and
+        physical quantities to strings.
+
+        .. code-block:: python
+
+            >>> import arrow
+            >>> from inform import cull
+            >>> import quantiphy
+
+            >>> class Dollars(quantiphy.Quantity):
+            ...     units = '$'
+            ...     form = 'fixed'
+            ...     prec = 2
+            ...     strip_zeros = False
+            ...     show_commas = True
+
+            >>> converters = {
+            ...     str: repr,
+            ...     dict: cull,
+            ...     arrow.Arrow: lambda d: d.format('D MMMM YYYY'),
+            ...     quantiphy.Quantity: lambda q: str(q)
+            ... }
+
+            >>> transaction = dict(
+            ...     date = arrow.get('2013-05-07T22:19:11.363410-07:00'),
+            ...     description = "Incoming wire from Publisher's Clearing House",
+            ...     debit = 0,
+            ...     credit = Dollars(12345.67)
+            ... )
+
+            >>> print(nt.dumps(transaction, converters=converters))
+            date: 7 May 2013
+            description: "Incoming wire from Publisher's Clearing House"
+            credit: $12,345.67
+
         Both *default* and *converters* may be used together. *converters* has
         priority over the built-in types and *default*.  When a function is
         specified as *default*, it is always applied as a last resort.

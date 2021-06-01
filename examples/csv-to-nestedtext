@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""
+Read a CSV file and convert it to NestedText.
+
+usage:
+    csv-to-nestedtext [options] [<filename>]
+
+options:
+    -n, --names            first row contains column names
+    -c, --cull             remove empty fields (only for --names)
+    -f, --force            force overwrite of output file
+    -i <n>, --indent <n>   number of spaces per indent [default: 4]
+
+If <filename> is not given, csv input is taken from stdin and NestedText output 
+is written to stdout.
+
+If --names is specified, then the first line is assumed to hold the column/field 
+names with the remaining lines containing the data.  In this case the output is 
+a list of dictionaries.  Otherwise every line contains data and that data is 
+output as a list of lists.
+"""
+
+from docopt import docopt
+from inform import cull, done, fatal, full_stop, os_error, warn
+from pathlib import Path
+import csv
+import nestedtext as nt
+import sys
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
+
+cmdline = docopt(__doc__)
+input_filename = cmdline['<filename>']
+try:
+    indent = int(cmdline['--indent'])
+except Exception:
+    warn('expected positive integer for indent.', culprit=cmdline['--indent'])
+    indent = 4
+
+converters = {str: repr}
+if cmdline['--cull']:
+    converters.update({dict: cull})
+
+try:
+    # read CSV content; from file or from stdin
+    if input_filename:
+        input_path = Path(input_filename)
+        csv_content = input_path.read_text(encoding='utf-8')
+    else:
+        csv_content = sys.stdin.read()
+    if cmdline['--names']:
+        data = csv.DictReader(csv_content.splitlines())
+    else:
+        data = csv.reader(csv_content.splitlines())
+
+    # convert to NestedText
+    nt_content = nt.dumps(data, indent=indent, converters=converters) + "\n"
+
+    # output NestedText content; to file or to stdout
+    if input_filename:
+        output_path = input_path.with_suffix('.nt')
+        if output_path.exists():
+            if not cmdline['--force']:
+                fatal('file exists, use -f to force over-write.', culprit=output_path)
+        output_path.write_text(nt_content, encoding='utf-8')
+    else:
+        sys.stdout.write(nt_content)
+
+except OSError as e:
+    fatal(os_error(e))
+except nt.NestedTextError as e:
+    e.terminate(culprit=input_filename)
+except KeyboardInterrupt:
+    done()
+except csv.Error as e:
+    fatal(full_stop(e), culprit=(input_filename, data.line_num))
