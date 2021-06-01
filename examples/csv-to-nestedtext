@@ -37,9 +37,8 @@ except Exception:
     warn('expected positive integer for indent.', culprit=cmdline['--indent'])
     indent = 4
 
-converters = {str: repr}
-if cmdline['--cull']:
-    converters.update({dict: cull})
+# strip dictionaries of empty fields if requested
+converters = {dict: cull} if cmdline['--cull'] else {}
 
 try:
     # read CSV content; from file or from stdin
