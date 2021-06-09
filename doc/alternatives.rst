@@ -28,7 +28,7 @@ the user to provide data of the correct type (e.g. ``32`` vs. ``32.0`` vs.
 of this results in *JSON* being a frustrating format for humans to read, enter 
 or edit.
 
-*NestedText* has the following clear advantages over *JSON* as human readable 
+*NestedText* has the following clear advantages over *JSON* as a human readable 
 and writable data file format:
 
 - text does not require quotes
@@ -60,8 +60,8 @@ means it has to guess at times, and small seemingly insignificant details can
 affect the result.
 
 *NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
-following clear advantages over *YAML* as human readable and writable data file 
-format:
+following clear advantages over *YAML* as a human readable and writable data 
+file format:
 
 - simple
 - unambiguous (no implicit typing)
@@ -70,16 +70,16 @@ format:
 - safe, no risk of malicious code execution
 
 
-TOML
-====
+TOML or INI
+===========
 
-TOML_ is a configuration file format inspired by the well-known *INI* syntax.  
-It supports a number of basic data types (notably including dates and times) 
-using syntax that is more similar to *JSON* (explicit but verbose) than to 
-*YAML* (succinct but confusing).  As discussed previously, though, this makes 
-it the responsibility of the user to specify the correct type for each field, 
-when it should be the responsibility of the application to convert each field 
-to the correct type.
+TOML_ is a configuration file format inspired by the well-known INI_ syntax.  It 
+supports a number of basic data types (notably including dates and times) using 
+syntax that is more similar to *JSON* (explicit but verbose) than to *YAML* 
+(succinct but confusing).  As discussed previously, though, this makes it the 
+responsibility of the user to specify the correct type for each field, when it 
+should be the responsibility of the application to convert each field to the 
+correct type.
 
 Another flaw in TOML is that it is difficult to specify deeply nested 
 structures.  The only way to specify a nested dictionary is to give the full 
@@ -90,15 +90,40 @@ this is that TOML-based configurations do not scale well: increases in
 complexity are often accompanied by disproportionate decreases in readability 
 and writability.
 
-*NestedText* has the following clear advantages over *TOML* as human readable 
-and writable data file format:
+*NestedText* has the following clear advantages over *TOML* and *INI* as a human 
+readable and writable data file format:
 
-- text does not require quotes
+- text does not require quoting or escaping
 - data is left in its original form
 - indentation used to succinctly represent nested data
 - the structure of the file matches the structure of the data
+
+
+CSV or TSV
+==========
+
+CSV_ (comma-separated values), or the closely related TSV_ (tab-separated 
+values), is an exchange format for tabular data.  Tabular data consists of 
+multiple records where each record is made up of a consistent set of fields.
+The format separates the records using line breaks and separates the fields 
+using commas or tabs.  Quoting and escaping is required when the fields contain 
+line breaks or commas/tabs.
+
+*NestedText* has the following clear advantages over *CSV* and *TSV* as a human 
+readable and writable data file format:
+
+- text does not require quoting or escaping
+- arbitrary data hierarchies are supported
+- file representation tends to be tall and skinny rather than short and fat
+
+
 
 .. _json: https://www.json.org/json-en.html
 .. _yaml: https://yaml.org/
 .. _strictyaml: <https://hitchdev.com/strictyaml
 .. _toml: https://toml.io/en/
+.. _ini: https://en.wikipedia.org/wiki/INI_file
+.. _csv: https://en.wikipedia.org/wiki/Comma-separated_values
+.. _tsv: https://en.wikipedia.org/wiki/Tab-separated_values
+
+

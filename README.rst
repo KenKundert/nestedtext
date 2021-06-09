@@ -151,7 +151,7 @@ Related Projects
 
 
 `nestedtext source <https://github.com/kenkundert/nestedtext>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Source code repository for language documentation and Python implementation.
 Report any issues here.
 
