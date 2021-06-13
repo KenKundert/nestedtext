@@ -226,37 +226,6 @@ def report(message, line, *args, colno=None, **kwargs):
     raise NestedTextError(template=message, *args, **kwargs)
 
 
-# indentation_error {{{2
-def indentation_error(line, depth):
-    assert line.depth != depth
-    prev_line = line.prev_line
-    if not line.prev_line and depth == 0:
-        msg = 'top-level content must start in column 1.'
-    elif (
-        prev_line and
-        prev_line.value and
-        prev_line.depth < line.depth and
-        prev_line.kind in ['list item', 'dict item']
-    ):
-        if prev_line.value.strip() == '':
-            obs = ', which in this case consists only of whitespace'
-        else:
-            obs = ''
-        msg = ' '.join([
-            'invalid indentation.',
-            'An indent may only follow a dictionary or list item that does',
-            f'not already have a value{obs}.'
-        ])
-    elif (
-        prev_line and
-        prev_line.depth > line.depth
-    ):
-        msg = 'invalid indentation, partial dedent.'
-    else:
-        msg = 'invalid indentation.'
-    report(textwrap.fill(msg), line, colno=depth)
-
-
 # Lines class {{{2
 class Lines:
     # constructor {{{3
@@ -391,6 +360,36 @@ class Lines:
             report('unrecognized line.', this_line)
         return this_line
 
+    # indentation_error {{{3
+    def indentation_error(self, line, depth):
+        assert line.depth != depth
+        prev_line = line.prev_line
+        if not line.prev_line and depth == 0:
+            msg = 'top-level content must start in column 1.'
+        elif (
+            prev_line and
+            prev_line.value and
+            prev_line.depth < line.depth and
+            prev_line.kind in ['list item', 'dict item']
+        ):
+            if prev_line.value.strip() == '':
+                obs = ', which in this case consists only of whitespace'
+            else:
+                obs = ''
+            msg = ' '.join([
+                'invalid indentation.',
+                'An indent may only follow a dictionary or list item that does',
+                f'not already have a value{obs}.'
+            ])
+        elif (
+            prev_line and
+            prev_line.depth > line.depth
+        ):
+            msg = 'invalid indentation, partial dedent.'
+        else:
+            msg = 'invalid indentation.'
+        report(textwrap.fill(msg), line, colno=depth)
+
 
 # read_value() {{{2
 def read_value(lines, depth, on_dup):
@@ -411,7 +410,7 @@ def read_list(lines, depth, on_dup):
     while lines.still_within_level(depth):
         line = lines.get_next()
         if line.depth != depth:
-            indentation_error(line, depth)
+            lines.indentation_error(line, depth)
         if line.kind != "list item":
             report("expected list item.", line, colno=depth)
         if line.value:
@@ -434,7 +433,7 @@ def read_dict(lines, depth, on_dup):
     while lines.still_within_level(depth):
         line = lines.get_next()
         if line.depth != depth:
-            indentation_error(line, depth)
+            lines.indentation_error(line, depth)
         if line.kind not in ["dict item", "key item"]:
             report("expected dictionary item.", line, colno=depth)
         if line.kind == "key item":
@@ -477,7 +476,7 @@ def read_string(lines, depth):
         line = lines.get_next()
         data.append(line.value)
         if line.depth != depth:
-            indentation_error(line, depth)
+            lines.indentation_error(line, depth)
     return "\n".join(data)
 
 
@@ -1137,10 +1136,10 @@ def dumps(
             or ': ' in key
         )
         if multiline_key_required:
-            key = "\n".join(": "+l if l else ":" for l in key.split('\n'))
+            key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
             if is_str(value):
                 # force use of multiline value with multiline keys
-                return key + "\n" + add_leader(value, indent*' ' + '> ')
+                return key + "\n" + add_leader(value, indent*" " + "> ")
             else:
                 return key + rdumps(value)
         else:
@@ -1287,7 +1286,7 @@ def dumps(
         error = 'unsupported type.'
 
     if need_indented_block and content and _level:
-        content = "\n" + add_leader(content, indent*' ')
+        content = "\n" + add_leader(content, indent*" ")
 
     if error:
         raise NestedTextError(obj, template=error, culprit=repr(obj))

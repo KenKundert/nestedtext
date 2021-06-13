@@ -318,9 +318,8 @@ def parametrize_via_nt(relpath):
 
     return decorator
 
-# }}}1
-
-# test_load_success_cases {{{1
+# Test load {{{1
+# test_load_success_cases {{{2
 @parametrize_load_api
 @parametrize_load_success_cases
 def test_load_success_cases(load_factory, path_in, data_out, tmp_path):
@@ -328,7 +327,7 @@ def test_load_success_cases(load_factory, path_in, data_out, tmp_path):
     load, _ = load_factory(content, tmp_path)
     assert load() == data_out
 
-# test_load_error_cases {{{1
+# test_load_error_cases {{{2
 @parametrize_load_api
 @parametrize_load_error_cases
 def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_path):
@@ -378,7 +377,7 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     assert isinstance(e, Error)
     assert isinstance(e, ValueError)
 
-# test_load_api_errors {{{1
+# test_load_api_errors {{{2
 def test_load_api_errors():
     with pytest.raises(FileNotFoundError):
         nt.load('does_not_exist.nt')
@@ -386,7 +385,7 @@ def test_load_api_errors():
     with pytest.raises(TypeError):
         nt.load(['path_1.nt', 'path_2.nt'])
 
-# test_load_top {{{1
+# test_load_top {{{2
 def test_load_top():
     content = ''
     data = nt.loads(content, top='dict')
@@ -463,6 +462,7 @@ def test_load_top():
     with pytest.raises(nt.NestedTextError):
         data = nt.loads(content, top=list)
 
+# test_load_top_str {{{3
 def test_load_top_str():
     data = nt.loads('> hello', 'str')
     assert data == 'hello'
@@ -474,6 +474,7 @@ def test_load_top_str():
         nt.loads('- hello', 'str')
     assert e.value.get_message() == 'content must start with greater-than sign (>).'
 
+# test_load_top_list {{{3
 def test_load_top_list():
     data = nt.loads('- hello', 'list')
     assert data == ['hello']
@@ -485,6 +486,7 @@ def test_load_top_list():
         nt.loads('> hello', 'list')
     assert e.value.get_message() == 'content must start with dash (-).'
 
+# test_load_top_dict {{{3
 def test_load_top_dict():
     data = nt.loads('key: hello', 'dict')
     assert data == {'key': 'hello'}
@@ -496,17 +498,7 @@ def test_load_top_dict():
         nt.loads('> hello', 'dict')
     assert e.value.get_message() == 'content must start with key.'
 
-def test_load_top_default():
-    data = nt.loads('key: hello')
-    assert data == {'key': 'hello'}
-
-    data = nt.loads('')
-    assert data == {}
-
-    with pytest.raises(nt.NestedTextError) as e:
-        nt.loads('> hello')
-    assert e.value.get_message() == 'content must start with key.'
-
+# test_load_top_any {{{3
 def test_load_top_any():
     data = nt.loads('> hello', 'any')
     assert data == 'hello'
@@ -521,13 +513,56 @@ def test_load_top_any():
     assert data == None
 
 
-# test_dump_success_cases {{{1
+# test_load_top_default {{{3
+def test_load_top_default():
+    data = nt.loads('key: hello')
+    assert data == {'key': 'hello'}
+
+    data = nt.loads('')
+    assert data == {}
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads('> hello')
+    assert e.value.get_message() == 'content must start with key.'
+
+# test_load_duplicates {{{2
+def test_load_duplicates():
+    def de_dup(key, value, data, state):
+        if key not in state:
+            state[key] = 1
+        state[key] += 1
+        return f"{key}#{state[key]}"
+
+    content = 'key: hello\nkey: goodbye'
+
+    data = nt.loads(content, on_dup='ignore')
+    assert data == {'key': 'hello'}
+
+    data = nt.loads(content, on_dup='replace')
+    assert data == {'key': 'goodbye'}
+
+    data = nt.loads(content, on_dup=de_dup)
+    assert data == {'key': 'hello', 'key#2': 'goodbye'}
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads(content)
+    assert e.value.get_message() == 'duplicate key: key.'
+    assert e.value.source == None
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads(content, source='nantucket')
+    assert e.value.get_message() == 'duplicate key: key.'
+    assert e.value.source == 'nantucket'
+
+
+# Test dump {{{1
+# test_dump_success_cases {{{2
 @parametrize_dump_api
 @parametrize_dump_success_cases
 def test_dump_success_cases(dump, data_in, path_out, tmp_path):
     assert dump(data_in, tmp_path, default='strict') == path_out.read_text().rstrip('\n')
 
-# test_dump_error_cases {{{1
+# test_dump_error_cases {{{2
 @parametrize_dump_api
 @parametrize_dump_error_cases
 def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
@@ -546,7 +581,7 @@ def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
     assert isinstance(e, Error)
     assert isinstance(e, ValueError)
 
-# test_dump_default {{{1
+# test_dump_default {{{2
 @parametrize_dump_api
 def test_dump_default(dump, tmp_path):
     data = dict(none=None, true=True, false=False, empty_dict={}, empty_list=[])
@@ -561,7 +596,7 @@ def test_dump_default(dump, tmp_path):
                 []
     ''').strip()
 
-# test_dump_sort_keys {{{1
+# test_dump_sort_keys {{{2
 @parametrize_dump_api
 def test_dump_sort_keys(dump, tmp_path):
     data = dict(cc=3, aaa=1, b=2)
@@ -588,7 +623,7 @@ def test_dump_sort_keys(dump, tmp_path):
     assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}'
     assert dump(data, tmp_path, sort_keys=len, width=80) == '{b: 2, cc: 3, aaa: 1}'
 
-# test_dump_indent {{{1
+# test_dump_indent {{{2
 @parametrize_dump_api
 def test_dump_indent(dump, tmp_path):
     x = dict(A=['B'])
@@ -601,7 +636,7 @@ def test_dump_indent(dump, tmp_path):
     assert dump(x, tmp_path, indent=3) == "A:\n   - B"
     assert dump(x, tmp_path, indent=4) == "A:\n    - B"
 
-# test_dump_converters {{{1
+# test_dump_converters {{{2
 @parametrize_dump_api
 def test_dump_converters(dump, tmp_path):
     x = {'int': 1, 'float': 1.0, 'str': 'A'}
@@ -642,7 +677,7 @@ def test_dump_converters(dump, tmp_path):
 
     y = dict(info=Info(vals=Info(pair=(42,64))))
     result = dump(y, tmp_path, converters=converters, width=80)
-    expected = '{info: {vals: {pair: [42, 64]}}}'
+    expected = '{info: {vals: {pair: [42, 64]}}' + '}'
     assert result == expected
 
     y = dict(info=Info(vals=Info(pair=((1,2), (3,4)))))
@@ -657,7 +692,7 @@ def test_dump_converters(dump, tmp_path):
                         - 3
                         - 4
     ''').strip()
-    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}}'
+    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}' + '}'
 
     result = dump(y, tmp_path, converters=converters)
     assert result == full_expected
@@ -693,7 +728,7 @@ def test_dump_converters(dump, tmp_path):
     assert str(exc.value) == f"ntInfo(val=42): unsupported type."
 
 
-# test_dump_converters_err {{{1
+# test_dump_converters_err {{{2
 z = complex(0, 0)
 def defaulter(arg):
     if isinstance(arg, complex):
@@ -728,7 +763,7 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
     assert isinstance(exc.value, Error)
     assert isinstance(exc.value, ValueError)
 
-# test_dump_width {{{1
+# test_dump_width {{{2
 @parametrize_dump_api
 @parametrize(
         'given, expected, kwargs', [
@@ -794,7 +829,6 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
             ({'a': '0', 'b': []}, '{a: 0, b: []}', dict(width=80)),
             ({'a': [], 'b': {}}, '{a: [], b: {}}', dict(width=80)),
             ({'a': {}, 'b': '0'}, '{a: {}, b: 0}', dict(width=80)),
-
             (
                 [['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']],
                 dedent("""
@@ -845,4 +879,3 @@ def test_dump_width(dump, tmp_path, given, expected, kwargs):
     assert dump(given, tmp_path, **kwargs) == expected
 
 # vim: fdm=marker
-

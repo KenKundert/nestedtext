@@ -190,6 +190,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Indentation**:
 
+    Leading spaces on a line represents indentation.  Only ASCII spaces are 
+    allowed in the indentation. Specifically, tabs and the various Unicode 
+    spaces are not allowed.
+
     There is no indentation on the top-level object.
 
     An increase in the number of spaces in the indentation signifies the start 
@@ -205,9 +209,6 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     An indented value may only follow a list item or dict item that does not 
     have a value on the same line.  An indented value must follow a key item.
-
-    Only ASCII spaces are allowed in the indentation. Specifically, tabs and the 
-    various Unicode spaces are not allowed.
 
 
 **Escaping and Quoting**:
