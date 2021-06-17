@@ -11,8 +11,8 @@ that include no changes to the language.
 Latest development version
 --------------------------
 
-    | Version: 2.0.1
-    | Released: 2021-06-13
+    | Version: 2.0.2
+    | Released: 2021-06-16
 
 
 v2.0 (2021-05-28)
