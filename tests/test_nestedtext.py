@@ -368,6 +368,7 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
         if colno is None:
             assert e.codicil == (f'{lineno:>4} «{line}»',)
         else:
+            line = line.replace('\t', '→')
             assert e.codicil == (
                 (f'{prev_lineno:>4} «{prev_line}»\n' if prev_line else '') +
                 f'{lineno:>4} «{line}»' +

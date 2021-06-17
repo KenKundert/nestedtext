@@ -209,8 +209,10 @@ def report(message, line, *args, colno=None, **kwargs):
                 codicil = [f'{line.prev_line.lineno:>4} «{line.prev_line.text}»']
             else:
                 codicil = []
+            # replace tabs with → so that arrow points to right location.
+            text = line.text.replace("\t", "→")
             codicil += [
-                f'{line.lineno:>4} «{line.text}»',
+                f'{line.lineno:>4} «{text}»',
                 '      ' + (colno*' ') + '▲',
             ]
             kwargs['codicil'] = '\n'.join(codicil)
@@ -540,7 +542,7 @@ def read_inline(lines):
         return (inline_list | inline_dict).parse(value)
     except ParseError as e:
         expected = sorted(lexer_aliases.get(x, x) for x in e.expected)
-        msg = f'expected {conjoin(expected, conj=", or ")}.'
+        msg = f'expected {conjoin(expected, conj=" or ")}.'
         msg = msg.replace('{', r'{{').replace('}', r'}}')
         report(msg, line, colno=e.index + line.depth)
 
