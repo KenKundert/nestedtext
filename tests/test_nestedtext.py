@@ -9,6 +9,7 @@ from functools import wraps
 from io import StringIO
 from textwrap import dedent
 from inform import Error, Info, render, indent
+from quantiphy import Quantity
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
@@ -780,14 +781,28 @@ def test_keymaps():
     keymap = {}
     addresses = nt.loads(document, keymap=keymap)
 
+    doc_lines = document.splitlines()
+
     for case in cases:
         given, expected = case.split('→')
         keys = tuple(fix_key(n) for n in given.split())
         expected = tuple(int(n) for n in expected.split())
         location = keymap[keys]
-        assert location.as_tuple() == (expected[2], expected[3]), keys
-        assert location.as_tuple('value') == (expected[2], expected[3]), keys
-        assert location.as_tuple('key') == (expected[0], expected[1]), keys
+        key_lineno, key_colno, lineno, colno = expected
+        assert location.as_tuple() == (lineno, colno), keys
+        assert location.as_tuple('value') == (lineno, colno), keys
+        assert location.as_tuple('key') == (key_lineno, key_colno), keys
+
+        assert location.line.render() == f'{lineno:>4} «{doc_lines[lineno]}»'
+        rendered = f"{lineno:>4} «{doc_lines[lineno]}»\n      {colno*' '}▲"
+        assert location.line.render(colno) == rendered
+        assert location.as_line() == rendered
+        assert location.as_line('value') == rendered
+        rendered = f"{key_lineno:>4} «{doc_lines[key_lineno]}»\n      {key_colno*' '}▲"
+        assert location.as_line('key') == rendered
+        assert str(location.line) == doc_lines[lineno]
+        assert repr(location.line) == f'Line({lineno}: «{doc_lines[lineno]}»)'
+        assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
 
 
 # Test dump {{{1
@@ -819,17 +834,81 @@ def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
 # test_dump_default {{{2
 @parametrize_dump_api
 def test_dump_default(dump, tmp_path):
-    data = dict(none=None, true=True, false=False, empty_dict={}, empty_list=[])
+    data = dict(
+        none = None,
+        true = True,
+        false = False,
+        empty_dict = {},
+        empty_list = [],
+        zero = 0
+    )
+
+    expected = dedent('''\
+        none:
+        true: True
+        false: False
+        empty_dict:
+            {}
+        empty_list:
+            []
+        zero: 0
+    ''').strip()
+    assert dump(data, tmp_path) == expected
+    assert dump(data, tmp_path, default=repr) == expected
+
+    with pytest.raises(nt.NestedTextError):
+        data = dict(none = None)
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = {None: 'none'}
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = dict(true = True)
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = {True: 'true'}
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = dict(false = False)
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = {False: 'false'}
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = dict(zero = 0)
+        dump(data, tmp_path, default='strict')
+
+    with pytest.raises(nt.NestedTextError):
+        data = {0: 'zero'}
+        dump(data, tmp_path, default='strict')
+
+    data = {
+        None: 'none',
+        True: 'true',
+        False: 'false',
+        3: 'three',
+    }
 
     assert dump(data, tmp_path) == dedent('''\
-            none:
-            true: True
-            false: False
-            empty_dict:
-                {}
-            empty_list:
-                []
+        None: none
+        True: true
+        False: false
+        3: three
     ''').strip()
+
+    assert dump(data, tmp_path, default=repr) == dedent('''\
+        None: none
+        True: true
+        False: false
+        3: three
+    ''').strip()
+
 
 # test_dump_sort_keys {{{2
 @parametrize_dump_api
@@ -975,6 +1054,12 @@ def test_dump_converters(dump, tmp_path):
     result = dump(y, tmp_path, converters=converters, width=99)
     expected = '{date: 1969-07-20}'
     assert result == expected
+    result = dump(y, tmp_path, default=str)
+    expected = 'date: 1969-07-20T00:00:00+00:00'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99)
+    expected = 'date: 1969-07-20T00:00:00+00:00'
+    assert result == expected
 
     # arrow object as key
     y = {given: 'moon landing'}
@@ -983,6 +1068,45 @@ def test_dump_converters(dump, tmp_path):
     assert result == expected
     result = dump(y, tmp_path, converters=converters, width=99)
     expected = '{1969-07-20: moon landing}'
+    assert result == expected
+    result = dump(y, tmp_path, default=str)
+    expected = '1969-07-20T00:00:00+00:00: moon landing'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99)
+    expected = '1969-07-20T00:00:00+00:00: moon landing'
+    assert result == expected
+
+    # converting quantity object
+    converters = {Quantity: lambda q: q.render(prec=8)}
+
+    # arrow object as value
+    y = {'c': Quantity('c')}
+    result = dump(y, tmp_path, converters=converters)
+    expected = 'c: 299.792458 Mm/s'
+    assert result == expected
+    result = dump(y, tmp_path, converters=converters, width=99)
+    expected = '{c: 299.792458 Mm/s}'
+    assert result == expected
+    result = dump(y, tmp_path, default=str)
+    expected = 'c: 299.79 Mm/s'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99)
+    expected = '{c: 299.79 Mm/s}'
+    assert result == expected
+
+    # arrow object as key
+    y = {Quantity('c'): 'c'}
+    result = dump(y, tmp_path, converters=converters)
+    expected = '299.792458 Mm/s: c'
+    assert result == expected
+    result = dump(y, tmp_path, converters=converters, width=99)
+    expected = '{299.792458 Mm/s: c}'
+    assert result == expected
+    result = dump(y, tmp_path, default=str)
+    expected = '299.79 Mm/s: c'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99)
+    expected = '{299.79 Mm/s: c}'
     assert result == expected
 
     # integer object as key
@@ -1198,6 +1322,31 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
             """).strip(),
             dict(inline_level=0, width=20)
         ),
+        ({' a': 'A'}, ':  a\n    > A', dict(width=80)),
+        ({'a ': 'A'}, ': a \n    > A', dict(width=80)),
+        ({'\ta': 'A'}, ': \ta\n    > A', dict(width=80)),
+        ({'a\t': 'A'}, ': a\t\n    > A', dict(width=80)),
+        ({'a,b': 'A'}, 'a,b: A', dict(width=80)),
+        ({'a:b': 'A'}, 'a:b: A', dict(width=80)),
+        ({'a[b': 'A'}, 'a[b: A', dict(width=80)),
+        ({'a]b': 'A'}, 'a]b: A', dict(width=80)),
+        ({'a{b': 'A'}, 'a{b: A', dict(width=80)),
+        ({'a}b': 'A'}, 'a}b: A', dict(width=80)),
+        ({'a\nb': 'A'}, ': a\n: b\n    > A', dict(width=80)),
+        ({'a\rb': 'A'}, ': a\n: b\n    > A', dict(width=80)),
+
+        ({'A': ' a'}, 'A:  a', dict(width=80)),
+        ({'A': 'a '}, 'A: a ', dict(width=80)),
+        ({'A': '\ta'}, 'A: \ta', dict(width=80)),
+        ({'A': 'a\t'}, 'A: a\t', dict(width=80)),
+        ({'A': 'a,b'}, 'A: a,b', dict(width=80)),
+        ({'A': 'a:b'}, 'A: a:b', dict(width=80)),
+        ({'A': 'a[b'}, 'A: a[b', dict(width=80)),
+        ({'A': 'a]b'}, 'A: a]b', dict(width=80)),
+        ({'A': 'a{b'}, 'A: a{b', dict(width=80)),
+        ({'A': 'a}b'}, 'A: a}b', dict(width=80)),
+        ({'A': 'a\nb'}, 'A:\n    > a\n    > b', dict(width=80)),
+        ({'A': 'a\rb'}, 'A:\n    > a\n    > b', dict(width=80)),
     ]
 )
 def test_dump_width(dump, tmp_path, given, expected, kwargs):

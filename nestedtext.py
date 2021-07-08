@@ -485,20 +485,18 @@ class Location:
         self.key_col = key_col
 
     def __repr__(self):
-        from inform import indent
-        from collection import Collection
-        lines = [f"{self.__class__.__name__}("]
-        for each in ['line', 'col', 'key_line', 'key_col']:
-            val = getattr(self, each)
-            if val is not None:
-                lines.append(indent(f"{each} = {val},"))
-        if self.children:
-            lines.append(indent("children = ("))
-            for k, v in Collection(self.children).items():
-                lines.append(indent(f"{k}: {v!r}", stops=2))
-                lines.append(indent('), ('))
-            lines[-1] = indent('),')
-        return '\n'.join(lines) + '\n)'
+        components = []
+        components.append(f"lineno={self.line.lineno}")
+        components.append(f"colno={self.col}")
+        key_line = self.key_line
+        if key_line is None:
+            key_line = self.line
+        components.append(f"key_lineno={key_line.lineno}")
+        key_col = self.key_col
+        if key_col is None:
+            key_col = self.col
+        components.append(f"key_colno={key_col}")
+        return f"{self.__class__.__name__}({', '.join(components)})"
 
     # as_tuple() {{{3
     def as_tuple(self, kind='value'):
@@ -537,7 +535,7 @@ class Location:
                 Specify either 'key' or 'value' depending on which token is
                 desired.
         """
-        if kind == 'key' and self.key_line:
+        if kind == 'key':
             line = self.key_line
             col = self.key_col
             if line is None:
@@ -719,11 +717,11 @@ class Inline:
         return self.values, self.keymap
 
     # render {{{3
-    def render(self, index):
+    def render(self, index):  # pragma: no cover
         return f"«{self.text}»\n {index*' '}▲"
 
     # __repr__ {{{3
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         name = self.__class__.__name__
         return f"{name}({self.text!r})"
 
@@ -1249,7 +1247,7 @@ class NestedTextDumper:
     def render_key(self, key):
         key = self.convert(key)
         if self.is_a_scalar(key):
-            key = convert_returns(str(key))
+            key = str(key)
         if not self.is_a_str(key) and callable(self.default):
             key = self.default(key)
         if not self.is_a_str(key):
@@ -1257,7 +1255,7 @@ class NestedTextDumper:
                 template = 'keys must be strings.',
                 culprit = key
             ) from None
-        return key
+        return convert_returns(key)
 
     # render_dict_item {{{3
     def render_dict_item(self, key, value, level):
@@ -1318,9 +1316,6 @@ class NestedTextDumper:
     def render_inline_scalar(self, obj, exclude):
         obj = self.convert(obj)
         if self.is_a_str(obj):
-            stripped = obj.strip()
-            if len(obj) > len(stripped):
-                raise NotSuitableForInline from None
             value = obj
         elif self.is_a_scalar(obj):
             value = '' if obj is None else str(obj)
@@ -1339,7 +1334,7 @@ class NestedTextDumper:
 
         if exclude & set(value):
             raise NotSuitableForInline from None
-        if value.strip(' ') != value:
+        if value.strip() != value:
             raise NotSuitableForInline from None
         return value
 
