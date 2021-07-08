@@ -92,7 +92,7 @@ try:
     if config_filepath.exists():
 
         # load from file
-        settings = nt.load(config_filepath)
+        settings = nt.load(config_filepath, keymap=(keymap:={}))
 
         # expand references
         settings = expand_settings(settings)
@@ -106,4 +106,7 @@ try:
 except nt.NestedTextError as e:
     e.report()
 except Invalid as e:
-    print(f"ERROR: {'.'.join(str(p) for p in e.path)}: {e.msg}")
+    kind = 'key' if 'key' in e.msg else 'value'
+    loc = keymap[tuple(e.path)]
+    print(f"ERROR: {'.'.join(str(p) for p in e.path)}: {e.msg}.")
+    print(loc.as_line(kind))

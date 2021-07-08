@@ -9,7 +9,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Encoding**:
 
-    A *NestedText* document is encoded in UTF-8.
+    A *NestedText* document is encoded in UTF-8 and may contain any printing 
+    UTF-8 character.
 
 
 **Line breaks**:
@@ -38,7 +39,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Most remaining lines are identifying by the presence of tags, where a tag is
     the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
     a line when followed immediately by a space or line break, or a hash 
-    {``#``), left bracket (``[``), or left brace (``{``) as the first no-white 
+    {``#``), left bracket (``[``), or left brace (``{``) as the first non-white 
     space character on a line.
 
     Most of these symbols only introduce tags when they are the first non-space 
@@ -122,13 +123,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     the first non-space character on the line.  The dict item consists of a key, 
     the tag, and a value.  Any space between the key and the tag is ignored.
 
-    The inline key precedes the tag. It must be a string and must not:
+    The inline key precedes the tag. It must be a non-empty string and must not:
 
     1. contain a line break character.
     2. start with a list item, string item or key item tag,
     3. contain a dict item tag, or
-    4. contain leading or trailing spaces (any spaces that follow the key are 
-       ignored).
+    4. contain leading spaces (any spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
     leaving the value, which follows the tag.  The value takes one of three 
@@ -156,23 +156,20 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     If the first character on a line is either a left bracket (``[``) or a left 
     brace (``{``) the line is an *inline structure*.  A bracket introduces an 
-    *inline list* and a brace introduces an *inline dictionary*.
+    inline list and a brace introduces an inline dictionary.
 
-    An inline list starts with an open bracket (``[``), ends with a matching 
+    An *inline list* starts with an open bracket (``[``), ends with a matching 
     closed bracket (``]``), contains inline values separated by commas (``,``), 
     and is contained on a single line.  The values may be inline strings, inline 
     lists, and inline dictionaries.
 
-    An inline dictionary starts with an open brace (``{``), ends with a matching 
-    closed brace (``}``), contains inline dictionary items separated by commas 
-    (``,``), and is contained on a single line.  An inline dictionary item is 
-    a key and value separated by a colon (``:``).  A space need not follow the 
-    colon and any spaces that do follow the colon are ignored. The keys are 
-    inline strings and the values may be inline strings, inline lists, and 
-    inline dictionaries.
-
-    Both inline lists and dictionaries may be empty, and represent the only way 
-    to represent empty lists or empty dictionaries in *NestedText*.
+    An *inline dictionary* starts with an open brace (``{``), ends with 
+    a matching closed brace (``}``), contains inline dictionary items separated 
+    by commas (``,``), and is contained on a single line.  An inline dictionary 
+    item is a key and value separated by a colon (``:``).  A space need not 
+    follow the colon and any spaces that do follow the colon are ignored. The 
+    keys are inline strings and the values may be inline strings, inline lists, 
+    and inline dictionaries.
 
     *Inline strings* are the string values specified in inline dictionaries and 
     lists.  They are somewhat constrained in the characters that they may 
@@ -181,11 +178,20 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     may not contain newlines or any of the following characters: ``[``, ``]``, 
     ``{``, ``}``, or ``,``.  In addition, inline strings that are contained in 
     inline dictionaries may not contain ``:``.  Leading and trailing white space 
-    are ignored with inline strings.
+    are ignored with inline strings, this includes spaces, tabs, Unicode spaces, 
+    etc.
 
-    Empty inline strings must be followed by a comma to be recognized.  For 
-    example, ``[]`` is an empty list and ``[,]`` is a list that contains 
-    a single empty string.
+    Both inline lists and dictionaries may be empty, and represent the only way 
+    to represent empty lists or empty dictionaries in *NestedText*.  An empty 
+    dictionary is represented with ``{}`` and an empty list with ``[]``.  In 
+    both cases there must be no space between the opening and closing 
+    delimiters.  An inline list that contains only white spaces, such as ``[ 
+    ]``, is treated as a list with a single empty string (the whitespace is 
+    considered a string value, and string values have leading and trailing 
+    spaces removed, resulting in an empty string value).  If a list contains 
+    multiple values, no white space is required to represent an empty string 
+    value.  Thus, ``[]`` represents an empty list, ``[ ]`` a list with a single 
+    empty string value, and ``[,]`` a list with two empty string values.
 
 
 **Indentation**:

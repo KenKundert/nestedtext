@@ -71,6 +71,8 @@ This produces the following data structure:
      'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
      'webmaster_email': 'admin@example.com'}
 
+This example demonstrates how to use the *keymap* argument from :func:`loads` or 
+:func:`load` to add location information to Voluptuous error messages.
 
 .. _json-to-nestedtext:
 
@@ -84,10 +86,8 @@ This example implements a command-line utility that converts a *JSON* file to
 .. literalinclude:: ../examples/json-to-nestedtext
    :language: python
 
-The presence of this example should not be taken as a suggestion that 
-*NestedText* is a replacement for *JSON*.  Be aware that not all *JSON* data can 
-be converted to *NestedText*, and in the conversion all type information is 
-lost.
+Be aware that not all *JSON* data can be converted to *NestedText*, and in the 
+conversion much of the type information is lost.
 
 
 .. _nestedtext-to-json:

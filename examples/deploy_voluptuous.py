@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import nestedtext as nt
-from voluptuous import Schema, Coerce
+from voluptuous import Schema, Coerce, Invalid
+from inform import fatal, full_stop
 from pprint import pprint
 
 schema = Schema({
@@ -16,7 +17,15 @@ schema = Schema({
     },
     'webmaster_email': str,
 })
-raw = nt.load('deploy.nt')
-config = schema(raw)
+try:
+    keymap = {}
+    raw = nt.load('deploy.nt', keymap=keymap)
+    config = schema(raw)
+except nt.NestedTextError as e:
+    e.terminate()
+except Invalid as e:
+    kind = 'key' if 'key' in e.msg else 'value'
+    loc = keymap[tuple(e.path)]
+    fatal(full_stop(e.msg), culprit=e.path, codicil=loc.as_line(kind))
 
 pprint(config)

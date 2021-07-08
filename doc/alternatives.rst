@@ -102,8 +102,8 @@ readable and writable data file format:
 CSV or TSV
 ==========
 
-CSV_ (comma-separated values), or the closely related TSV_ (tab-separated 
-values), is an exchange format for tabular data.  Tabular data consists of 
+CSV_ (comma-separated values) and the closely related TSV_ (tab-separated 
+values) are exchange formats for tabular data.  Tabular data consists of 
 multiple records where each record is made up of a consistent set of fields.
 The format separates the records using line breaks and separates the fields 
 using commas or tabs.  Quoting and escaping is required when the fields contain 
@@ -115,7 +115,6 @@ readable and writable data file format:
 - text does not require quoting or escaping
 - arbitrary data hierarchies are supported
 - file representation tends to be tall and skinny rather than short and fat
-
 
 
 .. _json: https://www.json.org/json-en.html

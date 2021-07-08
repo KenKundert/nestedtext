@@ -13,10 +13,10 @@ setup(
     author_email = 'admin@nestedtext.org',
     url = 'https://nestedtext.org',
     download_url = 'https://github.com/kenkundert/nestedtext/tarball/master',
-    license = 'GPLv3+',
+    license = 'MIT',
     zip_safe = False,
     py_modules = 'nestedtext'.split(),
-    install_requires = 'inform>=1.23 parsy>=1.3'.split(),
+    install_requires = 'inform>=1.25'.split(),
     python_requires = '>=3.6',
     keywords = 'data'.split(),
     classifiers = [

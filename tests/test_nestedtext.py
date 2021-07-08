@@ -3,6 +3,7 @@
 # Imports {{{1
 import pytest
 import nestedtext as nt
+import arrow
 from pathlib import Path
 from functools import wraps
 from io import StringIO
@@ -334,8 +335,8 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     content = path_in.read_text()
     load, source = load_factory(content, tmp_path)
     lines = content.splitlines()
-    line = lines[lineno-1]
-    prev_lines = lines[:lineno-1]
+    line = lines[lineno]
+    prev_lines = lines[:lineno]
     prev_lines.reverse()
     prev_line = None
     prev_lineno = lineno
@@ -354,24 +355,28 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     culprit = e.get_culprit()
     if source:
         assert culprit[0] == source
-        assert culprit[1] == lineno
+        assert culprit[1] == lineno+1
     else:
-        assert culprit[0] == lineno
+        assert culprit[0] == lineno+1
     assert message == e.get_message()
     assert e.line == line
     assert e.source == source
     assert e.lineno == lineno
     assert e.colno == colno
+    if e.prev_line:
+        assert e.prev_line == prev_line
+    else:
+        prev_line = None
     if lineno is None:
         assert e.codicil == (f'«{line}»',)
     else:
         if colno is None:
-            assert e.codicil == (f'{lineno:>4} «{line}»',)
+            assert e.codicil == (f'{lineno+1:>4} «{line}»',)
         else:
             line = line.replace('\t', '→')
             assert e.codicil == (
-                (f'{prev_lineno:>4} «{prev_line}»\n' if prev_line else '') +
-                f'{lineno:>4} «{line}»' +
+                (f'{prev_lineno+1:>4} «{prev_line}»\n' if prev_line else '') +
+                f'{lineno+1:>4} «{line}»' +
                 (f'\n      {" "*colno}▲' if colno is not None else ''),
             )
 
@@ -425,7 +430,45 @@ def test_load_top():
     with pytest.raises(nt.NestedTextError):
         data = nt.loads(content, top=str)
 
+    content = '{key1: value1, key2: value2}'
+    expected = {'key1': 'value1', 'key2': 'value2'}
+    data = nt.loads(content, top='dict')
+    assert data == expected
+    data = nt.loads(content, top=dict)
+    assert data == expected
+    data = nt.loads(content, top='any')
+    assert data == expected
+    data = nt.loads(content, top=any)
+    assert data == expected
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='list')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=list)
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='str')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=str)
+
     content = '- value1\n- value2'
+    expected = ['value1', 'value2']
+    data = nt.loads(content, top='list')
+    assert data == expected
+    data = nt.loads(content, top=list)
+    assert data == expected
+    data = nt.loads(content, top='any')
+    assert data == expected
+    data = nt.loads(content, top=any)
+    assert data == expected
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='dict')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=dict)
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top='str')
+    with pytest.raises(nt.NestedTextError):
+        data = nt.loads(content, top=str)
+
+    content = '[value1, value2]'
     expected = ['value1', 'value2']
     data = nt.loads(content, top='list')
     assert data == expected
@@ -485,7 +528,7 @@ def test_load_top_list():
 
     with pytest.raises(nt.NestedTextError) as e:
         nt.loads('> hello', 'list')
-    assert e.value.get_message() == 'content must start with dash (-).'
+    assert e.value.get_message() == 'content must start with dash (-) or bracket ([).'
 
 # test_load_top_dict {{{3
 def test_load_top_dict():
@@ -497,7 +540,7 @@ def test_load_top_dict():
 
     with pytest.raises(nt.NestedTextError) as e:
         nt.loads('> hello', 'dict')
-    assert e.value.get_message() == 'content must start with key.'
+    assert e.value.get_message() == 'content must start with key or brace ({).'
 
 # test_load_top_any {{{3
 def test_load_top_any():
@@ -524,7 +567,7 @@ def test_load_top_default():
 
     with pytest.raises(nt.NestedTextError) as e:
         nt.loads('> hello')
-    assert e.value.get_message() == 'content must start with key.'
+    assert e.value.get_message() == 'content must start with key or brace ({).'
 
 # test_load_duplicates {{{2
 def test_load_duplicates():
@@ -554,6 +597,197 @@ def test_load_duplicates():
         nt.loads(content, source='nantucket')
     assert e.value.get_message() == 'duplicate key: key.'
     assert e.value.source == 'nantucket'
+
+# test_load_inline {{{2
+@parametrize(
+    'given, expected, kwargs', [
+        (
+            '- v',
+            dict(message = 'content must start with key or brace ({).'),
+            dict(top='dict'),
+        ),
+        (
+            '> v',
+            dict(message = 'content must start with key or brace ({).'),
+            dict(top='dict'),
+        ),
+        (
+            '[v]',
+            dict(message = 'content must start with key or brace ({).'),
+            dict(top='dict'),
+        ),
+        (
+            'k: v',
+            dict(message = 'content must start with dash (-) or bracket ([).'),
+            dict(top='list'),
+        ),
+        (
+            '{k: v}',
+            dict(message = 'content must start with dash (-) or bracket ([).'),
+            dict(top='list'),
+        ),
+        (
+            '> v',
+            dict(message = 'content must start with dash (-) or bracket ([).'),
+            dict(top='list'),
+        ),
+        (
+            'k: v',
+            dict(message = 'content must start with greater-than sign (>).'),
+            dict(top='str'),
+        ),
+        (
+            '{k: v}',
+            dict(message = 'content must start with greater-than sign (>).'),
+            dict(top='str'),
+        ),
+        (
+            '- v',
+            dict(message = 'content must start with greater-than sign (>).'),
+            dict(top='str'),
+        ),
+        (
+            '[v]',
+            dict(message = 'content must start with greater-than sign (>).'),
+            dict(top='str'),
+        ),
+        (
+            '{k: v1, k: v2}',
+            dict(
+                message = 'duplicate key: k.',
+                colno = 7,
+            ),
+            dict(top=any),
+        ),
+        (
+            '{k:v1,k:v2}',
+            dict(
+                message = 'duplicate key: k.',
+                source = 'src_filename',
+                colno = 6,
+            ),
+            dict(top=any, source='src_filename'),
+        ),
+    ]
+)
+def test_load_inline_errors(given, expected, kwargs):
+    if not kwargs:
+        kwargs = dict(top=any)
+
+    with pytest.raises(nt.NestedTextError) as exc_info:
+        nt.loads(given, **kwargs)
+
+    e = exc_info.value
+    assert isinstance(e, Error), given
+    assert isinstance(e, ValueError), given
+
+    result = dict(
+        lineno = e.lineno,
+        colno = e.colno,
+        message = e.get_message()
+    )
+    if e.source:
+        result['source'] = e.source
+    if 'lineno' not in expected:
+        expected['lineno'] = 0
+    if 'colno' not in expected:
+        expected['colno'] = None
+    assert result == expected, given
+
+def test_keymaps():
+    document = dedent("""
+
+        # Contact information for our officers
+
+        president:
+            name: Katheryn McDaniel
+            address:
+                > 138 Almond Street
+                > Topeka, Kansas 20697
+            phone:
+                cell: 1-210-555-5297
+                work: 1-210-555-3423
+                home: 1-210-555-8470
+                    # Katheryn prefers that we always call her on her cell phone.
+            email: KateMcD@aol.com
+            kids:
+                - Joanie
+                - Terrance
+
+        vice president:
+            name: Margaret Hodge
+            address:
+                > 2586 Marigold Lane
+                > Topeka, Kansas 20697
+            phone:
+                {cell: 1-470-555-0398, home: 1-470-555-7570}
+            email: margaret.hodge@ku.edu
+            kids:
+                [Arnie, Zach, Maggie]
+
+        treasurer:
+            -
+                name: Fumiko Purvis
+                address:
+                    > 3636 Buffalo Ave
+                    > Topeka, Kansas 20692
+                phone: 1-268-555-0280
+                email: fumiko.purvis@hotmail.com
+                additional roles:
+                    - accounting task force
+
+    """).strip()
+
+    cases = """
+        president                           → 2 0 3 4
+        president name                      → 3 4 3 10
+        president address                   → 4 4 5 10
+        president phone                     → 7 4 8 8
+        president phone cell                → 8 8 8 14
+        president phone work                → 9 8 9 14
+        president phone home                → 10 8 10 14
+        president email                     → 12 4 12 11
+        president kids                      → 13 4 14 8
+        president kids 0                    → 14 8 14 10
+        president kids 1                    → 15 8 15 10
+        vice_president                      → 17 0 18 4
+        vice_president name                 → 18 4 18 10
+        vice_president address              → 19 4 20 10
+        vice_president phone                → 22 4 23 8
+        vice_president phone cell           → 23 9 23 15
+        vice_president phone home           → 23 31 23 37
+        vice_president email                → 24 4 24 11
+        vice_president kids                 → 25 4 26 8
+        vice_president kids 0               → 26 9 26 9
+        vice_president kids 1               → 26 16 26 16
+        vice_president kids 2               → 26 22 26 22
+        treasurer                           → 28 0 29 4
+        treasurer 0                         → 29 4 30 8
+        treasurer 0 name                    → 30 8 30 14
+        treasurer 0 address                 → 31 8 32 14
+        treasurer 0 phone                   → 34 8 34 15
+        treasurer 0 email                   → 35 8 35 15
+        treasurer 0 additional_roles        → 36 8 37 12
+        treasurer 0 additional_roles 0      → 37 12 37 14
+    """.strip().splitlines()
+
+    def fix_key(key):
+        try:
+            return int(key)
+        except:
+            return key.replace('_', ' ')
+
+    keymap = {}
+    addresses = nt.loads(document, keymap=keymap)
+
+    for case in cases:
+        given, expected = case.split('→')
+        keys = tuple(fix_key(n) for n in given.split())
+        expected = tuple(int(n) for n in expected.split())
+        location = keymap[keys]
+        assert location.as_tuple() == (expected[2], expected[3]), keys
+        assert location.as_tuple('value') == (expected[2], expected[3]), keys
+        assert location.as_tuple('key') == (expected[0], expected[1]), keys
 
 
 # Test dump {{{1
@@ -721,12 +955,50 @@ def test_dump_converters(dump, tmp_path):
     expected = '{info: {val: 42}}'
     assert result == expected
 
-
     # assure that converters dominates over __nestedtext_converter__
     converters = {ntInfo: False}
     with pytest.raises(nt.NestedTextError) as exc:
         dump(y, tmp_path, width=80, converters=converters)
     assert str(exc.value) == f"ntInfo(val=42): unsupported type."
+
+    # converting arrow object
+    date = '1969-07-20'
+    fmt = 'YYYY-MM-DD'
+    given = arrow.get(date)
+    converters = {arrow.Arrow: lambda v: v.format(fmt)}
+
+    # arrow object as value
+    y = {'date': given}
+    result = dump(y, tmp_path, converters=converters)
+    expected = 'date: 1969-07-20'
+    assert result == expected
+    result = dump(y, tmp_path, converters=converters, width=99)
+    expected = '{date: 1969-07-20}'
+    assert result == expected
+
+    # arrow object as key
+    y = {given: 'moon landing'}
+    result = dump(y, tmp_path, converters=converters)
+    expected = '1969-07-20: moon landing'
+    assert result == expected
+    result = dump(y, tmp_path, converters=converters, width=99)
+    expected = '{1969-07-20: moon landing}'
+    assert result == expected
+
+    # integer object as key
+    y = {0: 'zero', 'one': 'one', 'four': 'four'}
+    result = dump(y, tmp_path, default=str)
+    expected = '0: zero\none: one\nfour: four'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99)
+    expected = '{0: zero, one: one, four: four}'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, sort_keys=True)
+    expected = '0: zero\nfour: four\none: one'
+    assert result == expected
+    result = dump(y, tmp_path, default=str, width=99, sort_keys=True)
+    expected = '{0: zero, four: four, one: one}'
+    assert result == expected
 
 
 # test_dump_converters_err {{{2
@@ -767,114 +1039,166 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
 # test_dump_width {{{2
 @parametrize_dump_api
 @parametrize(
-        'given, expected, kwargs', [
-            (['a[b'], '- a[b', dict(width=80)),
-            (['a]b'], '- a]b', dict(width=80)),
-            (['a{b'], '- a{b', dict(width=80)),
-            (['a}b'], '- a}b', dict(width=80)),
-            ({'a,b'}, '- a,b', dict(width=80)),
-            ({'a[b': 0}, 'a[b: 0', dict(width=80)),
-            ({'a]b': 0}, 'a]b: 0', dict(width=80)),
-            ({'a{b': 0}, 'a{b: 0', dict(width=80)),
-            ({'a}b': 0}, 'a}b: 0', dict(width=80)),
-            ({'a,b': 0}, 'a,b: 0', dict(width=80)),
-            ({'a:b': 0}, 'a:b: 0', dict(width=80)),
-            ({0: 'a[b'}, '0: a[b', dict(width=80)),
-            ({0: 'a]b'}, '0: a]b', dict(width=80)),
-            ({0: 'a{b'}, '0: a{b', dict(width=80)),
-            ({0: 'a}b'}, '0: a}b', dict(width=80)),
-            ({0: 'a,b'}, '0: a,b', dict(width=80)),
-            ({0: 'a:b'}, '0: a:b', dict(width=80)),
-            ([' ab'], '-  ab', dict(width=80)),
-            ({'ab '}, '- ab ', dict(width=80)),
-            ({0: ' ab'}, '0:  ab', dict(width=80)),
-            ({0: 'ab '}, '0: ab ', dict(width=80)),
-            ({0: 'ab '}, '0: ab ', dict(width=80)),
+    'given, expected, kwargs', [
+        (['a[b'], '- a[b', dict(width=80)),
+        (['a]b'], '- a]b', dict(width=80)),
+        (['a{b'], '- a{b', dict(width=80)),
+        (['a}b'], '- a}b', dict(width=80)),
+        ({'a,b'}, '- a,b', dict(width=80)),
+        ({'a[b': 0}, 'a[b: 0', dict(width=80)),
+        ({'a]b': 0}, 'a]b: 0', dict(width=80)),
+        ({'a{b': 0}, 'a{b: 0', dict(width=80)),
+        ({'a}b': 0}, 'a}b: 0', dict(width=80)),
+        ({'a,b': 0}, 'a,b: 0', dict(width=80)),
+        ({'a:b': 0}, 'a:b: 0', dict(width=80)),
+        ({0: 'a[b'}, '0: a[b', dict(width=80)),
+        ({0: 'a]b'}, '0: a]b', dict(width=80)),
+        ({0: 'a{b'}, '0: a{b', dict(width=80)),
+        ({0: 'a}b'}, '0: a}b', dict(width=80)),
+        ({0: 'a,b'}, '0: a,b', dict(width=80)),
+        ({0: 'a:b'}, '0: a:b', dict(width=80)),
+        ([' ab'], '-  ab', dict(width=80)),
+        ({'ab '}, '- ab ', dict(width=80)),
+        ({0: ' ab'}, '0:  ab', dict(width=80)),
+        ({0: 'ab '}, '0: ab ', dict(width=80)),
+        ({0: 'ab '}, '0: ab ', dict(width=80)),
 
-            ([], '[]', dict(width=80)),
-            ([''], '[, ]', dict(width=80)),
-            (['a'], '[a]', dict(width=80)),
-            ([':'], '[:]', dict(width=80)),
-            ([[]], '[[]]', dict(width=80)),
-            ([['a']], '[[a]]', dict(width=80)),
-            ([{}], '[{}]', dict(width=80)),
-            ([{'a': '0'}], '[{a: 0}]', dict(width=80)),
-            (['a', 'b'], '[a, b]', dict(width=80)),
-            (['', ''], '[, , ]', dict(width=80)),
-            ([[], []], '[[], []]', dict(width=80)),
-            ([['a', 'b'], ['c', 'd']], '[[a, b], [c, d]]', dict(width=80)),
-            ([{}, {}], '[{}, {}]', dict(width=80)),
-            ([{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}], '[{a: 0, b: 1}, {c: 2, d: 3}]', dict(width=80)),
-            (['a', []], '[a, []]', dict(width=80)),
-            ([[], {}], '[[], {}]', dict(width=80)),
-            ([{}, 'b'], '[{}, b]', dict(width=80)),
-            (['a', 'b'], '[a, b]', dict(width=80)),
-            (['a', 'b', ''], '[a, b, , ]', dict(width=80)),
-            ([['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']], '[[11, 12, 13], [21, 22, 23], [31, 32, 33]]', dict(width=80)),
-            ({}, '{}', dict(width=80)),
-            ({'': ''}, '{: }', dict(width=80)),
-            ({'a': '0'}, '{a: 0}', dict(width=80)),
-            ({'a': 'k'}, '{a: k}', dict(width=80)),
-            ({'a': []}, '{a: []}', dict(width=80)),
-            ({'a': ['b']}, '{a: [b]}', dict(width=80)),
-            ({'a': {}}, '{a: {}}', dict(width=80)),
-            ({'a': {'b': '1'}}, '{a: {b: 1}}', dict(width=80)),
-            ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
-            ({'a': {'A': '0'}, 'b': {'B': '1'}}, '{a: {A: 0}, b: {B: 1}}', dict(width=80)),
-            ({'a': ['1', '2', '3'], 'b': ['4', '5', '6']}, '{a: [1, 2, 3], b: [4, 5, 6]}', dict(width=80)),
-            ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
-            ({'a': [], 'b': []}, '{a: [], b: []}', dict(width=80)),
-            ({'a': ['0', '1'], 'b': ['2', '3']}, '{a: [0, 1], b: [2, 3]}', dict(width=80)),
-            ({'a': {}, 'b': {}}, '{a: {}, b: {}}', dict(width=80)),
-            ({'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}}, '{a: {b: 0, c: 1}, d: {e: 2, f: 3}}', dict(width=80)),
-            ({'a': '0', 'b': []}, '{a: 0, b: []}', dict(width=80)),
-            ({'a': [], 'b': {}}, '{a: [], b: {}}', dict(width=80)),
-            ({'a': {}, 'b': '0'}, '{a: {}, b: 0}', dict(width=80)),
-            (
-                [['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']],
-                dedent("""
-                    -
-                        - 11
-                        - 12
-                        - 13
-                    -
-                        - 21
-                        - 22
-                        - 23
-                    -
-                        - 31
-                        - 32
-                        - 33
-                """).strip(),
-                dict(width=20)
-            ),
-            (
-                {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
-                dedent("""
-                    a:
-                        {b: 0, c: 1}
-                    d:
-                        {e: 2, f: 3}
-                """).strip(),
-                dict(width=20)
-            ),
-            (
-                {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
-                dedent("""
-                    a:
-                        b: 0
-                        c: 1
-                    d:
-                        e: 2
-                        f: 3
-                """).strip(),
-                dict(width=5)
-            ),
+        ([], '[]', dict(width=80)),
+        ([''], '[ ]', dict(width=80)),
+        (['a'], '[a]', dict(width=80)),
+        ([':'], '[:]', dict(width=80)),
+        ([[]], '[[]]', dict(width=80)),
+        ([['a']], '[[a]]', dict(width=80)),
+        ([{}], '[{}]', dict(width=80)),
+        ([{'a': '0'}], '[{a: 0}]', dict(width=80)),
+        (['a', 'b'], '[a, b]', dict(width=80)),
+        (['', ''], '[ , ]', dict(width=80)),
+        ([[], []], '[[], []]', dict(width=80)),
+        ([['a', 'b'], ['c', 'd']], '[[a, b], [c, d]]', dict(width=80)),
+        ([{}, {}], '[{}, {}]', dict(width=80)),
+        ([{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}], '[{a: 0, b: 1}, {c: 2, d: 3}]', dict(width=80)),
+        (['a', []], '[a, []]', dict(width=80)),
+        ([[], {}], '[[], {}]', dict(width=80)),
+        ([{}, 'b'], '[{}, b]', dict(width=80)),
+        (['a', 'b'], '[a, b]', dict(width=80)),
+        (['a', 'b', ''], '[a, b, ]', dict(width=80)),
+        ([['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']], '[[11, 12, 13], [21, 22, 23], [31, 32, 33]]', dict(width=80)),
+        ({}, '{}', dict(width=80)),
+        ({'': ''}, '{: }', dict(width=80)),
+        ({'a': '0'}, '{a: 0}', dict(width=80)),
+        ({'a': 'k'}, '{a: k}', dict(width=80)),
+        ({'a': []}, '{a: []}', dict(width=80)),
+        ({'a': ['b']}, '{a: [b]}', dict(width=80)),
+        ({'a': {}}, '{a: {}}', dict(width=80)),
+        ({'a': {'b': '1'}}, '{a: {b: 1}}', dict(width=80)),
+        ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
+        ({'a': {'A': '0'}, 'b': {'B': '1'}}, '{a: {A: 0}, b: {B: 1}}', dict(width=80)),
+        ({'a': ['1', '2', '3'], 'b': ['4', '5', '6']}, '{a: [1, 2, 3], b: [4, 5, 6]}', dict(width=80)),
+        ({'a': '0', 'b': '1'}, '{a: 0, b: 1}', dict(width=80)),
+        ({'a': [], 'b': []}, '{a: [], b: []}', dict(width=80)),
+        ({'a': ['0', '1'], 'b': ['2', '3']}, '{a: [0, 1], b: [2, 3]}', dict(width=80)),
+        ({'a': {}, 'b': {}}, '{a: {}, b: {}}', dict(width=80)),
+        ({'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}}, '{a: {b: 0, c: 1}, d: {e: 2, f: 3}}', dict(width=80)),
+        ({'a': '0', 'b': []}, '{a: 0, b: []}', dict(width=80)),
+        ({'a': [], 'b': {}}, '{a: [], b: {}}', dict(width=80)),
+        ({'a': {}, 'b': '0'}, '{a: {}, b: 0}', dict(width=80)),
+        (
+            [['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']],
+            dedent("""
+                -
+                    - 11
+                    - 12
+                    - 13
+                -
+                    - 21
+                    - 22
+                    - 23
+                -
+                    - 31
+                    - 32
+                    - 33
+            """).strip(),
+            dict(width=10)
+        ),
+        (
+            [['11', '12', '13'], ['21', '22', '23'], ['31', '32', '33']],
+            dedent("""
+                -
+                    [11, 12, 13]
+                -
+                    [21, 22, 23]
+                -
+                    [31, 32, 33]
+            """).strip(),
+            dict(width=20)
+        ),
+        (
+            {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
+            dedent("""
+                a:
+                    {b: 0, c: 1}
+                d:
+                    {e: 2, f: 3}
+            """).strip(),
+            dict(width=20)
+        ),
+        (
+            {'a': {'b': '0', 'c': '1'}, 'd': {'e': '2', 'f': '3'}},
+            dedent("""
+                a:
+                    b: 0
+                    c: 1
+                d:
+                    e: 2
+                    f: 3
+            """).strip(),
+            dict(width=5)
+        ),
 
-            ([None], '[, ]', dict(width=80)),
-            ([Info(arg='a'), Info(arg='b')], "[Info(arg='a'), Info(arg='b')]", dict(width=80, default=repr)),
-            ({'a': Info(arg=0), 'b': Info(arg=1)}, "{a: Info(arg=0), b: Info(arg=1)}", dict(width=80, default=repr)),
-        ]
+        ([None], '[ ]', dict(width=80)),
+        ([Info(arg='a'), Info(arg='b')], "[Info(arg='a'), Info(arg='b')]", dict(width=80, default=repr)),
+        ({'a': Info(arg=0), 'b': Info(arg=1)}, "{a: Info(arg=0), b: Info(arg=1)}", dict(width=80, default=repr)),
+        (
+            [{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}],
+            '[{a: 0, b: 1}, {c: 2, d: 3}]',
+            dict(inline_level=0, width=80)
+        ),
+        (
+            [{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}],
+            dedent("""
+                -
+                    {a: 0, b: 1}
+                -
+                    {c: 2, d: 3}
+            """).strip(),
+            dict(inline_level=1, width=80)
+        ),
+        (
+            [{'a': '0', 'b': '1'}, {'c': '2', 'd': '3'}],
+            dedent("""
+                -
+                    a: 0
+                    b: 1
+                -
+                    c: 2
+                    d: 3
+            """).strip(),
+            dict(inline_level=2, width=80)
+        ),
+        (
+            ['aaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+            '[aaaaaaaaaaaaaaaaaaaaaaaaaaa, bbbbbbbbbbbbbbbbbbbbbbbbbbb]',
+            dict(inline_level=0, width=80)
+        ),
+        (
+            ['aaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+            dedent("""
+                - aaaaaaaaaaaaaaaaaaaaaaaaaaa
+                - bbbbbbbbbbbbbbbbbbbbbbbbbbb
+            """).strip(),
+            dict(inline_level=0, width=20)
+        ),
+    ]
 )
 def test_dump_width(dump, tmp_path, given, expected, kwargs):
     assert dump(given, tmp_path, **kwargs) == expected

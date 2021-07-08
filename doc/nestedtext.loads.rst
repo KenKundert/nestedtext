@@ -1,5 +1,5 @@
-nestedtext.loads
-================
+loads
+=====
 
 .. currentmodule:: nestedtext
 

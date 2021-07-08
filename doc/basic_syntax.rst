@@ -5,8 +5,8 @@ Language introduction
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
 :ref:`lists <lists>`, and :ref:`strings <strings>`.  All leaf values must be 
-simple text or an empty dictionary or list. You can find more specifics 
-:ref:`later on <nestedtext file format>`.
+simple text or empty. You can find more specifics :ref:`later on <nestedtext 
+file format>`.
 
 
 .. _dictionaries:
@@ -24,11 +24,12 @@ A dictionary is an ordered collection of key value pairs:
 
 A dictionary item is a single key value pair.  A dictionary is all adjacent 
 dictionary items in which the keys all begin at the same level of indentation.
+There are several different ways to specify dictionaries.
 
 In the first form, the key and value are separated with a colon (``:``) followed 
 by either a space or a newline.  The key must be a string and must not contain 
-newline characters, leading or trailing spaces, or the ``:␣`` character 
-sequence.  Any spaces between the key and the colon are ignored.
+newline characters, leading spaces, or the ``:␣`` character sequence.  Any 
+spaces between the key and the colon are ignored.
 
 The value of this dictionary item may be a rest-of-line string, a multiline 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
@@ -74,10 +75,13 @@ syntax that defines inline dictionaries, so the keys and values are constrained
 to avoid ambiguities in the syntax.  An inline dictionary starts with an opening 
 brace (``{``), ends with a matching closing brace (``}``), and contains inline 
 dictionary items separated by commas (``,``). An inline dictionary item is a key 
-and value separated by a colon (``:``).  A space need not follow the colon and 
-any spaces that do follow the colon are ignored. The keys are inline strings and 
-the values may be inline strings, inline lists, and inline dictionaries.  For 
-example:
+and value separated by a colon (``:``).  A space need not follow the colon.  The 
+keys are inline strings and the values may be inline strings, inline lists, and 
+inline dictionaries.  An empty dictionary is represented with ``{}`` (there can 
+be no space between the opening and closing braces).  Leading and trailing 
+spaces are stripped from keys and string values.
+
+For example:
 
 .. code-block:: nestedtext
 
@@ -118,13 +122,16 @@ line, which must be further indented.
         key 2a: value 2a
         key 2b: value 2b
 
-Another form of a list is the inline list.  This is a compact form where  all 
-the list items are given on the same line.  There is a bit of syntax that 
-defines the list, so the values are constrained to avoid ambiguities in the 
-syntax.  An inline list starts with an opening bracket (``[``), ends with 
-a matching closing bracket (``]``), and contains inline values separated by 
-commas.  The values may be inline strings, inline lists, and inline 
-dictionaries.  For example:
+Another form of a list is the inline list.  This is a compact form where all the 
+list items are given on the same line.  There is a bit of syntax that defines 
+the list, so the values are constrained to avoid ambiguities in the syntax.  An 
+inline list starts with an opening bracket (``[``), ends with a matching closing 
+bracket (``]``), and contains inline values separated by commas.  The values may 
+be inline strings, inline lists, and inline dictionaries.  An empty list is 
+represented by ``[]`` (there should be no space between the opening and closing 
+brackets).  Leading and trailing spaces are stripped from string values.
+
+For example:
 
 .. code-block:: nestedtext
 
@@ -133,6 +140,11 @@ dictionaries.  For example:
 .. code-block:: nestedtext
 
     [value 1, [value 2a, value 2b], {key 3a: value 3a, key 3b: value 3b}]
+
+``[ ]`` is not treated as an empty list as there is space between the brackets, 
+rather this represents a list with a single empty string value.  The contents of 
+the brackets, which consists only of white space, is stripped of its padding, 
+leaving an empty string.
 
 
 .. _strings:
@@ -143,7 +155,7 @@ Strings
 There are three types of strings: rest-of-line strings, multiline strings, and 
 inline strings.  Rest-of-line strings are simply all the remaining characters on 
 the line, including any leading or trailing white space.  They can contain any 
-character other than newline:
+character other than a newline:
 
 .. code-block:: nestedtext
 

@@ -1,6 +1,13 @@
 # encoding: utf8
 """
 NestedText: A Human Readable and Writable Data Format
+
+NestedText is a file format for holding data that is intended to be entered,
+edited, or viewed by people.  It allows data to be organized into a nested
+collection of dictionaries, lists, and strings.
+
+It is easily created, modified, or viewed with a text editor and easily
+understood and used by both programmers and non-programmers.
 """
 
 # MIT License {{{1
@@ -26,26 +33,32 @@ NestedText: A Human Readable and Writable Data Format
 
 # Imports {{{1
 from inform import (
-    conjoin,
     full_stop,
     set_culprit,
     get_culprit,
     is_str,
     is_collection,
     is_mapping,
+    plural,
     Error,
     Info,
 )
-from parsy import generate, regex, ParseError
 import textwrap
 import collections.abc
 import re
+import unicodedata
 
 
 # Globals {{{1
 __version__ = "2.0.2"
 __released__ = "2021-06-16"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
+
+
+# Utility functions {{{1
+# convert_returns {{{2
+def convert_returns(text):
+    return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
 # Exceptions {{{1
@@ -71,11 +84,13 @@ class NestedTextError(Error, ValueError):
 
     lineno:
 
-        The number of the line where the problem was found.
+        The number of the line where the problem was found.  Line numbers are
+        zero based except when included in messages to the end user.
 
     colno:
 
         The number of the character where the problem was found on *line*.
+        Column numbers are zero based.
 
     prev_line:
 
@@ -149,7 +164,7 @@ class NestedTextError(Error, ValueError):
            2 «name1: value2»
               ▲
 
-    Note the « and » characters in the codicil. They delimit the extend of the
+    Note the « and » characters in the codicil. They delimit the extent of the
     text on each line and help you see troublesome leading or trailing white
     space.
 
@@ -187,7 +202,7 @@ class NotSuitableForInline(Exception):
 # constants {{{2
 # regular expressions used to recognize dict items
 dict_item_regex = r"""
-    (?P<key>.*?)           # key
+    (?P<key>[^\s].*?)      # key (must start with non-space character)
     \s*                    # optional white space
     :                      # separator
     (?:\ (?P<value>.*))?   # value
@@ -202,30 +217,54 @@ def report(message, line, *args, colno=None, **kwargs):
     if culprits:
         kwargs['source'] = culprits[0]
     if line:
-        kwargs['culprit'] = get_culprit(line.lineno)
+        # line numbers are always 0 based unless included in a message to user
+        include_prev_line = not (
+            line.prev_line is None or kwargs.pop('suppress_prev_line', False)
+        )
         if colno is not None:
             # build codicil that shows both the line and the preceding line
-            if line.prev_line is not None:
-                codicil = [f'{line.prev_line.lineno:>4} «{line.prev_line.text}»']
+            if include_prev_line:
+                codicil = [f'{line.prev_line.lineno+1:>4} «{line.prev_line.text}»']
             else:
                 codicil = []
             # replace tabs with → so that arrow points to right location.
             text = line.text.replace("\t", "→")
             codicil += [
-                f'{line.lineno:>4} «{text}»',
+                f'{line.lineno+1:>4} «{text}»',
                 '      ' + (colno*' ') + '▲',
             ]
             kwargs['codicil'] = '\n'.join(codicil)
             kwargs['colno'] = colno
         else:
-            kwargs['codicil'] = f'{line.lineno:>4} «{line.text}»'
+            kwargs['codicil'] = f'{line.lineno+1:>4} «{line.text}»'
+        kwargs['culprit'] = get_culprit(line.lineno+1)
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
-        if line.prev_line:
+        if include_prev_line:
             kwargs['prev_line'] = line.prev_line.text
     else:
         kwargs['culprit'] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
+
+
+# unrecognized_line {{{2
+def unrecognized_line(line):
+    # line will not be recognized if there is invalid white space in indentation
+    first_non_space = line.text.lstrip(' ')[0]
+    index_of_first_non_space = line.text.index(first_non_space)
+    if first_non_space.strip() == '':
+        # first non-space is a white space character
+        # treat it as invalid indentation
+        desc = unicodedata.name(first_non_space, "")
+        if desc:
+            desc = f' ({desc})'
+        report(
+            f'invalid character in indentation: {first_non_space!r}{desc}.',
+            line,
+            colno = index_of_first_non_space
+        )
+    else:
+        report('unrecognized line.', line, colno=index_of_first_non_space)
 
 
 # Lines class {{{2
@@ -242,7 +281,17 @@ class Lines:
 
     # Line class {{{3
     class Line(Info):
-        pass
+        def render(self, col=None):
+            result = [f'{self.lineno:>4} «{self.text}»']
+            if col is not None:
+                result += ['      ' + (col*' ') + '▲']
+            return '\n'.join(result)
+
+        def __str__(self):
+            return self.text
+
+        def __repr__(self):
+            return self.__class__.__name__ + f"({self.lineno}: «{self.text}»)"
 
     # read_lines() {{{3
     def read_lines(self):
@@ -253,7 +302,7 @@ class Lines:
             line = line.rstrip('\n')
 
             # compute indentation
-            stripped = line.lstrip()
+            stripped = line.lstrip(' ')
             depth = len(line) - len(stripped)
 
             # determine line type and extract values
@@ -275,7 +324,8 @@ class Lines:
                 kind = "key item"
                 value = line[depth+2:]
             elif stripped[0:1] in ['[', '{']:
-                kind = "inline"
+                tag = stripped[0:1]
+                kind = 'inline dict' if tag == '{' else 'inline list'
                 value = line[depth:]
             else:
                 matches = dict_item_recognizer.fullmatch(stripped)
@@ -292,7 +342,7 @@ class Lines:
             # bundle information about line
             the_line = self.Line(
                 text = line,
-                lineno = lineno+1,
+                lineno = lineno,
                 kind = kind,
                 depth = depth,
                 key = key,
@@ -300,21 +350,19 @@ class Lines:
                 prev_line = prev_line,
             )
             if kind.endswith(' item'):
-                prev_line = the_line
-
-            # check the indent for non-spaces
-            if depth:
-                first_non_space = len(line) - len(line.lstrip(" "))
-                if first_non_space < depth:
-                    report(
-                        f'invalid character in indentation: {line[first_non_space]!r}.',
-                        the_line,
-                        colno = first_non_space
-                    )
+                # Do not include the_line.prev_line in the prev_line to avoid
+                # keeping the chain of all previous lines.
+                prev_line = self.Line(
+                    text = the_line.text,
+                    value = the_line.value,
+                    kind = the_line.kind,
+                    depth = the_line.depth,
+                    lineno = the_line.lineno,
+                )
 
             yield the_line
 
-    # type_of_next() {{{3
+    # type_of_next() {{{3e
     def type_of_next(self):
         if self.next_line:
             return self.next_line.kind
@@ -359,7 +407,7 @@ class Lines:
                 break
 
         if this_line and this_line.kind == "unrecognized":
-            report('unrecognized line.', this_line)
+            unrecognized_line(this_line)
         return this_line
 
     # indentation_error {{{3
@@ -393,214 +441,501 @@ class Lines:
         report(textwrap.fill(msg), line, colno=depth)
 
 
-# read_value() {{{2
-def read_value(lines, depth, on_dup):
-    if lines.type_of_next() == "list item":
-        return read_list(lines, depth, on_dup)
-    if lines.type_of_next() in ["dict item", "key item"]:
-        return read_dict(lines, depth, on_dup)
-    if lines.type_of_next() == "string item":
-        return read_string(lines, depth)
-    if lines.type_of_next() == "inline":
-        return read_inline(lines)
-    report('unrecognized line.', lines.get_next())
+# KeyPolicy class {{{2
+# Used to hold and implement the on_dup policy for dictionaries.
+class KeyPolicy:
+    @classmethod
+    def set_policy(cls, on_dup):
+        if callable(on_dup):
+            # if on_dup is a function, convert it to a data structure that will
+            # hold state during the load
+            on_dup = dict(_callback_func=on_dup)
+        cls.on_dup = on_dup
 
-
-# read_list() {{{2
-def read_list(lines, depth, on_dup):
-    data = []
-    while lines.still_within_level(depth):
-        line = lines.get_next()
-        if line.depth != depth:
-            lines.indentation_error(line, depth)
-        if line.kind != "list item":
-            report("expected list item.", line, colno=depth)
-        if line.value:
-            data.append(line.value)
-        else:
-            # value may simply be empty, or it may be on next line, in which
-            # case it must be indented.
-            depth_of_next = lines.depth_of_next()
-            if depth_of_next > depth:
-                value = read_value(lines, depth_of_next, on_dup)
-            else:
-                value = ''
-            data.append(value)
-    return data
-
-
-# read_dict() {{{2
-def read_dict(lines, depth, on_dup):
-    data = {}
-    while lines.still_within_level(depth):
-        line = lines.get_next()
-        if line.depth != depth:
-            lines.indentation_error(line, depth)
-        if line.kind not in ["dict item", "key item"]:
-            report("expected dictionary item.", line, colno=depth)
-        if line.kind == "key item":
-            # multiline key
-            key = read_key(lines, line, depth)
-            value = None
-        else:
-            # inline key
-            key = line.key
-            value = line.value
-
-        if not value:
-            depth_of_next = lines.depth_of_next()
-            if depth_of_next > depth:
-                value = read_value(lines, depth_of_next, on_dup)
-            elif line.kind == "dict item":
-                value = ''
-            else:
-                report('multiline key requires a value.', line, None, colno=depth)
-
-        if line.key in data:
+    @classmethod
+    def add_to_dictionary(cls, dictionary, key, value, line=None, colno=None):
+        if key in dictionary:
             # found duplicate key
-            if on_dup is None:
-                report('duplicate key: {}.', line, line.key, colno=depth)
-            if on_dup == 'ignore':
-                continue
-            if isinstance(on_dup, dict):
-                key = on_dup['_callback_func'](key, value, data, on_dup)
-                assert key not in data
-            elif on_dup != 'replace':
-                raise NotImplementedError(f'{on_dup}: unknown value for on_dup.')
-        data[key] = value
-    return data
+            if cls.on_dup is None:
+                report('duplicate key: {}.', line, key, colno=colno)
+            if cls.on_dup == 'ignore':
+                return
+            if isinstance(cls.on_dup, dict):
+                key = cls.on_dup['_callback_func'](
+                    key, value, dictionary, cls.on_dup
+                )
+                assert key not in dictionary
+            elif cls.on_dup != 'replace':
+                raise NotImplementedError(f'{cls.on_dup}: unknown value for on_dup.')
+        dictionary[key] = value
 
 
-# read_string() {{{2
-def read_string(lines, depth):
-    data = []
-    while lines.still_within_string(depth):
+# Location class {{{2
+class Location:
+    """Holds information about the location of a token.
+
+    Returned from :func:`load` and :func:`loads` as the values in a *keymap*.
+    Objects of this class holds the line and column numbers of the key and value
+    tokens.
+    """
+    def __init__(self, line=None, col=None, key_line=None, key_col=None):
+        self.line = line
+        self.key_line = key_line
+        self.col = col
+        self.key_col = key_col
+
+    def __repr__(self):
+        from inform import indent
+        from collection import Collection
+        lines = [f"{self.__class__.__name__}("]
+        for each in ['line', 'col', 'key_line', 'key_col']:
+            val = getattr(self, each)
+            if val is not None:
+                lines.append(indent(f"{each} = {val},"))
+        if self.children:
+            lines.append(indent("children = ("))
+            for k, v in Collection(self.children).items():
+                lines.append(indent(f"{k}: {v!r}", stops=2))
+                lines.append(indent('), ('))
+            lines[-1] = indent('),')
+        return '\n'.join(lines) + '\n)'
+
+    # as_tuple() {{{3
+    def as_tuple(self, kind='value'):
+        """
+        Returns the location either the value or the key token as a tuple
+        that contains the line number and the column number.  The line and
+        column numbers are 0 based.
+
+        Args:
+            kind (str):
+                Specify either 'key' or 'value' depending on which token is
+                desired.
+        """
+        if kind == 'key':
+            line = self.key_line
+            col = self.key_col
+            if line is None:
+                line = self.line
+            if col is None:
+                col = self.col
+        else:
+            line = self.line
+            col = self.col
+        return line.lineno, col
+
+    # as_line() {{{3
+    def as_line(self, kind='value'):
+        """
+        Returns a string containing two lines that identify the token in
+        context.  The first line contains the line number and text of the line
+        that contains the token.  The second line contains a pointer to the
+        token.
+
+        Args:
+            kind (str):
+                Specify either 'key' or 'value' depending on which token is
+                desired.
+        """
+        if kind == 'key' and self.key_line:
+            line = self.key_line
+            col = self.key_col
+            if line is None:
+                line = self.line
+            if col is None:
+                col = self.col
+        else:
+            line = self.line
+            col = self.col
+        return line.render(col)
+
+
+# Inline class {{{2
+class Inline:
+    # a recursive descent parser to interpret inline lists and dictionaries
+
+    # constructor() {{{3
+    def __init__(self, line, keys, loader):
+        self.line = line
+        self.loader = loader
+        self.text = line.value
+        self.max_index = len(self.text)
+        self.starting_col = line.depth
+        try:
+            self.values, self.keymap, index = self.parse_inline_value(keys, 0)
+        except IndexError:
+            self.inline_error(
+                "line ended without closing delimiter", self.max_index
+            )
+        if index < self.max_index:
+            extra = self.text[index:]
+            self.inline_error(
+                f"extra {plural(extra):character} after closing delimiter: ‘{{}}’.",
+                index, extra
+            )
+        assert index == self.max_index
+
+    # parse_inline_value() {{{3
+    def parse_inline_value(self, keys, index, forbidden_chars=None):
+        if self.text[index] == '{':
+            return self.parse_inline_dict(keys, index)
+        elif self.text[index] == '[':
+            return self.parse_inline_list(keys, index)
+        else:
+            return self.parse_inline_str(keys, index, forbidden_chars)
+
+    # parse_inline_dict() {{{3
+    def parse_inline_dict(self, keys, index):
+        starting_index = index
+        assert self.text[index] == '{'
+        index += 1
+        values = {}
+        need_another = False
+
+        while self.text[index] != '}':
+            prev_index = index
+            key, value, location, index = self.parse_inline_dict_item(keys, index)
+            KeyPolicy.add_to_dictionary(values, key, value, self.line, prev_index)
+            self.loader._add_keymap(keys + (key,), location)
+            need_another = False
+            if self.text[index] not in ',}':
+                self.inline_error(
+                    "expected ‘,’ or ‘}}’, found ‘{}’", index, self.text[index]
+                )
+            if self.text[index] == ',':
+                index += 1
+                need_another = True
+        if need_another:
+            self.inline_error("expected value", index)
+        return (
+            values,
+            self.location(starting_index),
+            self.adjust_index(index+1)
+        )
+
+    # parse_inline_dict_item() {{{3
+    def parse_inline_dict_item(self, keys, index):
+        forbidden_chars = '{}[],:'
+        key_index = self.adjust_index(index)
+        if self.text[index] in forbidden_chars:
+            key = ''
+        else:
+            key, _, index = self.parse_inline_value(keys, index, forbidden_chars)
+        if self.text[index] != ':':
+            self.inline_error(
+                "expected ‘:’, found ‘{}’", index, self.text[index], culprit=key
+            )
+        index = self.adjust_index(index+1)
+        if self.text[index] in ',}':
+            value = ''
+            loc = self.location(index)
+        else:
+            value, loc, index = self.parse_inline_value(keys, index, forbidden_chars)
+        self.add_key_location(loc, key_index)
+        return key, value, loc, index
+
+    # parse_inline_list() {{{3
+    def parse_inline_list(self, keys, index):
+        forbidden_chars = '{}[],'
+        starting_index = index
+        assert self.text[index] == '['
+        index += 1
+
+        # handle empty list
+        if self.text[index] == ']':
+            return [], self.location(starting_index), self.adjust_index(index+1)
+
+        key = 0
+        values = []
+        value = ''
+        loc = self.location(index)
+        while True:
+            new_keys = keys + (key,)
+            c = self.text[index]
+            if c in ',]':
+                values.append(value)
+                self.loader._add_keymap(new_keys, loc)
+                key += 1
+                if c == ']':
+                    return (
+                        values,
+                        self.location(starting_index),
+                        self.adjust_index(index+1)
+                    )
+                index += 1
+                loc = self.location(index)
+                index = self.adjust_index(index)
+                value = ''
+            elif value:
+                self.inline_error(
+                    "expected ‘,’ or ‘]’, found ‘{}’", index, self.text[index]
+                )
+            elif c in '}],':
+                self.inline_error("expected value", index)
+            else:
+                value, loc, index = self.parse_inline_value(
+                    new_keys, index, forbidden_chars
+                )
+
+    # parse_inline_str() {{{3
+    def parse_inline_str(self, keys, index, forbidden_chars):
+        starting_index = index
+        while self.text[index] not in forbidden_chars:
+            index = self.adjust_index(index+1)
+        value = self.text[starting_index:index].strip()
+        return value, self.location(starting_index), index
+
+    # adjust_index() {{{3
+    def adjust_index(self, index):
+        # if desired index points to white space, shift right until it doesn't
+        while index < self.max_index and self.text[index] in ' \t':
+            index += 1
+        return index
+
+    # location() {{{3
+    def location(self, index, **kwargs):
+        if self.line:
+            kwargs['line'] = self.line
+        return Location(col=index + self.starting_col, **kwargs)
+
+    # add_key_location() {{{3
+    def add_key_location(self, loc, key_index):
+        loc.key_col = key_index + self.starting_col
+
+    # inline_error {{{3
+    def inline_error(self, message, index, *args, culprit=None, **kwargs):
+        report(
+            full_stop(message),
+            self.line,
+            *args,
+            colno = index + self.starting_col,
+            culprit = culprit,
+            suppress_prev_line = True,
+            **kwargs,
+        )
+
+    # get_values() {{{3
+    def get_values(self):
+        return self.values, self.keymap
+
+    # render {{{3
+    def render(self, index):
+        return f"«{self.text}»\n {index*' '}▲"
+
+    # __repr__ {{{3
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.text!r})"
+
+
+# NestedTextLoader class {{{2
+class NestedTextLoader:
+    # __init__() {{{3
+    def __init__(self, lines, top, source, on_dup, keymap):
+        KeyPolicy.set_policy(on_dup)
+        self.source = source
+        self.keymap = {} if keymap is True else keymap
+
+        with set_culprit(source):
+            lines = self.lines = Lines(lines)
+            next_is = lines.type_of_next()
+
+            if top in ['any', any]:
+                if next_is is None:
+                    self.values, self.keymap = None, None
+                else:
+                    self.values, self.keymap = self._read_value(0, ())
+                return
+
+            if top in ['dict', dict]:
+                if next_is in ["dict item", "key item", "inline dict"]:
+                    self.values, self.keymap = self._read_value(0, ())
+                elif next_is is None:
+                    self.values, self.keymap = {}, None
+                else:
+                    report('content must start with key or brace ({{).', lines.get_next())
+                return
+
+            if top in ['list', list]:
+                if next_is in ["list item", "inline list"]:
+                    self.values, self.keymap = self._read_value(0, ())
+                elif next_is is None:
+                    self.values, self.keymap = [], None
+                else:
+                    report('content must start with dash (-) or bracket ([).', lines.get_next())
+                return
+
+            if top in ['str', str]:
+                if next_is == "string item":
+                    self.values, self.keymap = self._read_value(0, ())
+                elif next_is is None:
+                    self.values, self.keymap = "", None
+                else:
+                    report('content must start with greater-than sign (>).', lines.get_next())
+                return
+
+            raise NotImplementedError(top)
+
+    # get_decoded() {{{3
+    def get_decoded(self):
+        return self.values
+
+    # # get_keymap() {{{3
+    # this method becomes useful when an interface that returns the loader develops
+    # def get_keymap(self):
+    #     return self.keymap
+
+    # # get_source() {{{3
+    # this method becomes useful when an interface that returns the loader develops
+    # def get_source(self):
+    #     return self.source
+
+    # # get_value() {{{3
+    # this method becomes useful when an interface that returns the loader develops
+    # def get_value(self, keys):
+    #     """
+    #     Return the value associated with a set of keys.
+    #     """
+    #     value = self.values
+    #     key = None
+    #     keys_used = ()
+    #     try:
+    #         for key in keys:
+    #             keys_used += (key,)
+    #             value = value[key]
+    #     except (KeyError, IndexError) as e:
+    #         raise NestedTextError(f"bad key.", key=key, culprit=keys_used)
+    #     return value
+
+    # _add_keymap() {{{3
+    def _add_keymap(self, keys, location):
+        if self.keymap is not None:
+            self.keymap[keys] = location
+
+    # _read_value() {{{3
+    def _read_value(self, depth, keys):
+        lines = self.lines
+        if lines.type_of_next() == "list item":
+            return self._read_list(depth, keys)
+        if lines.type_of_next() in ["dict item", "key item"]:
+            return self._read_dict(depth, keys)
+        if lines.type_of_next() == "string item":
+            return self._read_string(depth, keys)
+        if lines.type_of_next() in ["inline dict", "inline list"]:
+            return self._read_inline(keys)
+        unrecognized_line(lines.get_next())
+
+    # _read_list() {{{3
+    def _read_list(self, depth, keys):
+        lines = self.lines
+        values = []
+        index = 0
+        first_line = lines.next_line
+        while lines.still_within_level(depth):
+            line = lines.get_next()
+            if line.depth != depth:
+                lines.indentation_error(line, depth)
+            if line.kind != "list item":
+                report("expected list item.", line, colno=depth)
+            new_keys = keys + (index,)
+            if line.value:
+                values.append(line.value)
+                self._add_keymap(
+                    new_keys, Location(line=line, key_col=depth, col=depth + 2)
+                )
+            else:
+                # value may simply be empty, or it may be on next line, in which
+                # case it must be indented.
+                depth_of_next = lines.depth_of_next()
+                if depth_of_next > depth:
+                    value, loc = self._read_value(depth_of_next, new_keys)
+                    loc.key_line = line
+                    loc.key_col = depth
+                else:
+                    value = ''
+                    loc = Location(line=line, key_col=depth, col=depth + 1)
+                values.append(value)
+                self._add_keymap(new_keys, loc)
+            index += 1
+
+        return values, Location(line=first_line, col=first_line.depth)
+
+    # _read_dict() {{{3
+    def _read_dict(self, depth, keys):
+        lines = self.lines
+        values = {}
+        first_line = lines.next_line
+        while lines.still_within_level(depth):
+            line = lines.get_next()
+            if line.depth != depth:
+                lines.indentation_error(line, depth)
+            if line.kind not in ["dict item", "key item"]:
+                report("expected dictionary item.", line, colno=depth)
+            key_line = line
+            key_col = depth
+            if line.kind == "key item":
+                # multiline key
+                key = self._read_key(line, depth)
+                value = None
+            else:
+                # key and value on a single line
+                key = line.key
+                value = line.value
+
+            new_keys = keys + (key,)
+            if value:
+                loc = Location(line=line, col=depth+len(key)+2)
+            else:
+                depth_of_next = lines.depth_of_next()
+                if depth_of_next > depth:
+                    value, loc = self._read_value(depth_of_next, new_keys)
+                elif line.kind == "dict item":
+                    value = ''
+                    loc = Location(line=line, col=depth+len(key)+1)
+                else:
+                    report('multiline key requires a value.', line, None, colno=depth)
+
+            try:
+                KeyPolicy.add_to_dictionary(values, key, value, line, depth)
+                loc.key_line = key_line
+                loc.key_col = key_col
+                self._add_keymap(new_keys, loc)
+            except NestedTextError as e:
+                report(e.template, line, key, colno=depth)
+        return values, Location(line=first_line, col=first_line.depth)
+
+    # _read_key() {{{3
+    def _read_key(self, line, depth):
+        lines = self.lines
+        data = [line.value]
+        while lines.still_within_key(depth):
+            line = lines.get_next()
+            data.append(line.value)
+        return "\n".join(data)
+
+    # _read_string() {{{3
+    def _read_string(self, depth, keys):
+        lines = self.lines
+        data = []
+        loc = Location(line=lines.next_line, key_col=depth)
+        while lines.still_within_string(depth):
+            line = lines.get_next()
+            data.append(line.value)
+            if line.depth != depth:
+                lines.indentation_error(line, depth)
+        value = "\n".join(data)
+        loc.col = depth + (2 if value else 1)
+        return value, loc
+
+    # _read_inline() {{{3
+    def _read_inline(self, keys):
+        lines = self.lines
         line = lines.get_next()
-        data.append(line.value)
-        if line.depth != depth:
-            lines.indentation_error(line, depth)
-    return "\n".join(data)
+        return Inline(line, keys, self).get_values()
 
 
-# read_key() {{{2
-def read_key(lines, line, depth):
-    data = [line.value]
-    while lines.still_within_key(depth):
-        line = lines.get_next()
-        data.append(line.value)
-    return "\n".join(data)
-
-
-# read_all() {{{2
-def read_all(lines, top, source, on_dup):
-    if callable(on_dup):
-        on_dup = dict(_callback_func=on_dup)
-
-    with set_culprit(source):
-        lines = Lines(lines)
-
-        if top in ['any', any]:
-            if lines.type_of_next():
-                return read_value(lines, 0, on_dup)
-            else:
-                return None
-
-        next_is = lines.type_of_next()
-
-        if top in ['dict', dict]:
-            if next_is in ["dict item", "key item"]:
-                return read_dict(lines, 0, on_dup)
-            elif next_is:
-                report('content must start with key.', lines.get_next())
-            else:
-                return {}
-
-        if top in ['list', list]:
-            if next_is == "list item":
-                return read_list(lines, 0, on_dup)
-            elif next_is:
-                report('content must start with dash (-).', lines.get_next())
-            else:
-                return []
-
-        if top in ['str', str]:
-            if next_is == "string item":
-                return read_string(lines, 0)
-            elif next_is:
-                report('content must start with greater-than sign (>).', lines.get_next())
-            else:
-                return ""
-
-        raise NotImplementedError(top)
-
-
-# read_inline() {{{2
-def read_inline(lines):
-    line = lines.get_next()
-    value = line.value
-    try:
-        return (inline_list | inline_dict).parse(value)
-    except ParseError as e:
-        expected = sorted(lexer_aliases.get(x, x) for x in e.expected)
-        msg = f'expected {conjoin(expected, conj=" or ")}.'
-        msg = msg.replace('{', r'{{').replace('}', r'}}')
-        report(msg, line, colno=e.index + line.depth)
-
-
-# inline_list() {{{3
-@generate
-def inline_list():
-    yield list_open
-    items = yield list_value.sep_by(sep)
-    trailing_sep = yield sep.optional()
-    yield list_close
-
-    if not trailing_sep and items[-1] == '':
-        items.pop()
-
-    return items
-
-
-# inline_dict() {{{3
-@generate
-def inline_dict():
-    yield dict_open
-    items = yield dict_item.sep_by(sep)
-    yield sep.optional()
-    yield dict_close
-    return dict(items)
-
-
-# dict_item() {{{3
-@generate
-def dict_item():
-    key = yield dict_key
-    yield dict_key_sep
-    value = yield dict_value
-    return key, value
-
-
-# strip() {{{3
-def strip(x):
-    return x.strip()
-
-
-# parsing rules() {{{3
-padded_literal = lambda x: regex(rf'{re.escape(x)}\s*').desc(repr(x))
-list_open = padded_literal('[')
-list_close = padded_literal(']')
-list_value = inline_list | inline_dict | regex(r'[^{}[\],]*').map(strip)
-dict_open = padded_literal('{')
-dict_close = padded_literal('}')
-dict_key = regex(r'[^{}[\],:]*').map(strip).desc('key')
-dict_key_sep = padded_literal(':')
-dict_value = inline_list | inline_dict | dict_key
-sep = padded_literal(',')
-lexer_aliases = dict(EOF='end of line')
-
-
-# loads() {{{2
-def loads(content, top='dict', *, source=None, on_dup=None):
+# loads {{{2
+def loads(content, top='dict', *, source=None, on_dup=None, keymap=None):
     # description {{{3
     r'''
     Loads *NestedText* from string.
@@ -637,12 +972,23 @@ def loads(content, top='dict', *, source=None, on_dup=None):
             4. The state; a dictionary that is created as the *loads* is called
                and deleted as it returns. Values placed in this dictionary are
                retained between multiple calls to this call back function.
+        keymap (dict):
+            Specify an empty dictionary or nothing at all for the value of
+            this argument.  If you give an empty dictionary it will be filled
+            with location information for the values that are returned.  Upon
+            return the dictionary maps a tuple containing the keys for the value
+            of interest to the location of that value in the NestedText source
+            document. The location is contained in a :class:`Location` object.
+            You can access the line and column number using the
+            :meth:`Location.as_tuple` method, and the line that contains the
+            value annotated with its location using the :meth:`Location.as_line`
+            method.
 
     Returns:
         The extracted data.  The type of the return value is specified by the
         top argument.  If top is 'any', then the return value will match that of
         top-level data container in the input content. If content is empty, an
-        empty data value is return of the type specified by top. If top is
+        empty data value of the type specified by top is returned. If top is
         'any' None is returned.
 
     Raises:
@@ -730,12 +1076,13 @@ def loads(content, top='dict', *, source=None, on_dup=None):
     '''
 
     # code {{{3
-    lines = content.replace('\r\n', '\n').replace('\r', '\n').split('\n')
-    return read_all(lines, top, source, on_dup)
+    lines = convert_returns(content).split('\n')
+    loader = NestedTextLoader(lines, top, source, on_dup, keymap)
+    return loader.get_decoded()
 
 
-# load() {{{2
-def load(f=None, top='dict', *, on_dup=None):
+# load {{{2
+def load(f=None, top='dict', *, on_dup=None, keymap=None):
     # description {{{3
     r'''
     Loads *NestedText* from file or stream.
@@ -805,20 +1152,23 @@ def load(f=None, top='dict', *, on_dup=None):
     # code {{{3
     # Do not invoke the read method as that would read in the entire contents of
     # the file, possibly consuming a lot of memory. Instead pass the file
-    # pointer into read_all(), it will iterate through the lines, discarding
+    # pointer into _read_all(), it will iterate through the lines, discarding
     # them once they are no longer needed, which reduces the memory usage.
 
     if isinstance(f, collections.abc.Iterator):
         source = getattr(f, 'name', None)
-        return read_all(f, top, source, on_dup)
+        loader = NestedTextLoader(f, top, source, on_dup, keymap)
+        return loader.get_decoded()
     else:
         source = str(f)
         with open(f, encoding='utf-8') as fp:
-            return read_all(fp, top, source, on_dup)
+            loader = NestedTextLoader(fp, top, source, on_dup, keymap)
+            return loader.get_decoded()
 
 
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
+
 
 # add_leader {{{2
 def add_leader(s, leader):
@@ -842,16 +1192,236 @@ def add_prefix(prefix, suffix):
     return prefix + " " + suffix
 
 
+# NestedTextDumper class {{{2
+class NestedTextDumper:
+    # constructor {{{3
+    def __init__(self, width, inline_level, sort_keys, indent, converters, default):
+        assert indent > 0
+        self.width = width
+        self.inline_level = inline_level
+        self.indent = indent
+        self.converters = converters
+        self.default = default
+
+        # define key sorting function {{{4
+        if sort_keys:
+            def sort(keys):
+                return sorted(keys, key=sort_keys if callable(sort_keys) else None)
+        else:
+            def sort(keys):
+                return keys
+        self.sort_keys = sort
+
+        # define object type identification functions {{{4
+        if default == 'strict':
+            self.is_a_dict = lambda obj: isinstance(obj, dict)
+            self.is_a_list = lambda obj: isinstance(obj, list)
+            self.is_a_str = lambda obj: isinstance(obj, str)
+            self.is_a_scalar = lambda obj: False
+        else:
+            self.is_a_dict = is_mapping
+            self.is_a_list = is_collection
+            self.is_a_str = is_str
+            self.is_a_scalar = lambda obj: obj is None or isinstance(obj, (bool, int, float))
+            if is_str(default):
+                raise NotImplementedError(default)
+
+    # convert {{{3
+    def convert(self, obj):
+        converters = self.converters
+        converter = getattr(obj, '__nestedtext_converter__', None)
+        converter = converters.get(type(obj)) if converters else converter
+        if converter:
+            try:
+                return converter(obj)
+            except TypeError:
+                # is bound method
+                return converter()
+        elif converter is False:
+            raise NestedTextError(
+                obj,
+                template = "unsupported type.",
+                culprit=repr(obj)
+            ) from None
+        return obj
+
+    # render_key {{{3
+    def render_key(self, key):
+        key = self.convert(key)
+        if self.is_a_scalar(key):
+            key = convert_returns(str(key))
+        if not self.is_a_str(key) and callable(self.default):
+            key = self.default(key)
+        if not self.is_a_str(key):
+            raise NestedTextError(
+                template = 'keys must be strings.',
+                culprit = key
+            ) from None
+        return key
+
+    # render_dict_item {{{3
+    def render_dict_item(self, key, value, level):
+        multiline_key_required = (
+            not key
+            or '\n' in key
+            or key.strip() != key
+            or key[:1] in "#[{"
+            or key[:2] in ["- ", "> ", ": "]
+            or ': ' in key
+        )
+        if multiline_key_required:
+            key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
+            if is_str(value):
+                # force use of multiline value with multiline keys
+                value = convert_returns(value)
+                return key + "\n" + add_leader(value, self.indent*" " + "> ")
+            else:
+                return key + self.render_content(value, level + 1)
+        else:
+            return add_prefix(key + ":", self.render_content(value, level + 1))
+
+    # render_inline_value {{{3
+    def render_inline_value(self, obj, exclude):
+        obj = self.convert(obj)
+        if self.is_a_dict(obj):
+            return self.render_inline_dict(obj)
+        if self.is_a_list(obj):
+            return self.render_inline_list(obj)
+        return self.render_inline_scalar(obj, exclude)
+
+    # render_inline_dict {{{3
+    def render_inline_dict(self, obj):
+        exclude = set('\n\r[]{}:,')
+        rendered = {}
+        for k, v in obj.items():
+            v = self.render_inline_value(obj[k], exclude=exclude)
+            k = self.render_inline_scalar(k, exclude=exclude)
+            rendered[k] = v
+        items = []
+        for k in self.sort_keys(rendered):
+            items.append(f'{k}: {rendered[k]}')
+        return '{' + ', '.join(items) + '}'
+
+    # render_inline_list {{{3
+    def render_inline_list(self, obj):
+        items = []
+        for v in obj:
+            v = self.render_inline_value(v, exclude=set('\n\r[]{},'))
+            items.append(v)
+        if len(items) == 1 and not items[0]:
+            return '[ ]'
+        content = ', '.join(items)
+        leading_delimiter = '[ ' if content[0:1] == ',' else '['
+        return leading_delimiter + content + ']'
+
+    # render_inline_scalar {{{3
+    def render_inline_scalar(self, obj, exclude):
+        obj = self.convert(obj)
+        if self.is_a_str(obj):
+            stripped = obj.strip()
+            if len(obj) > len(stripped):
+                raise NotSuitableForInline from None
+            value = obj
+        elif self.is_a_scalar(obj):
+            value = '' if obj is None else str(obj)
+        elif self.default and callable(self.default):
+            try:
+                obj = self.default(obj)
+            except TypeError:
+                raise NestedTextError(
+                    obj,
+                    template = "unsupported type.",
+                    culprit = repr(obj)
+                ) from None
+            return self.render_inline_value(obj, exclude)
+        else:
+            raise NotSuitableForInline from None
+
+        if exclude & set(value):
+            raise NotSuitableForInline from None
+        if value.strip(' ') != value:
+            raise NotSuitableForInline from None
+        return value
+
+    # render content {{{3
+    def render_content(self, obj, level):
+        assert level >= 0
+        error = None
+        content = ''
+        obj = self.convert(obj)
+        need_indented_block = is_collection(obj)
+
+        if self.is_a_dict(obj):
+            try:
+                if level < self.inline_level:
+                    raise NotSuitableForInline from None
+                if obj and not (self.width > 0 and len(obj) <= self.width/6):
+                    raise NotSuitableForInline from None
+                content = self.render_inline_dict(obj)
+                if obj and len(content) > self.width:
+                    raise NotSuitableForInline from None
+            except NotSuitableForInline:
+                rendered = {}
+                for k, v in obj.items():
+                    key = self.render_key(k)
+                    v = self.render_dict_item(key, obj[k], level)
+                    rendered[key] = v
+                content = "\n".join(rendered[k] for k in self.sort_keys(rendered))
+        elif self.is_a_list(obj):
+            try:
+                if level < self.inline_level:
+                    raise NotSuitableForInline from None
+                if obj and not (self.width > 0 and len(obj) <= self.width/6):
+                    raise NotSuitableForInline from None
+                content = self.render_inline_list(obj)
+                if obj and len(content) > self.width:
+                    raise NotSuitableForInline from None
+            except NotSuitableForInline:
+                content = "\n".join(
+                    add_prefix("-", self.render_content(v, level+1))
+                    for v in obj
+                )
+        elif self.is_a_str(obj):
+            text = convert_returns(obj)
+            if "\n" in text or level == 0:
+                content = add_leader(text, '> ')
+                need_indented_block = True
+            else:
+                content = text
+        elif self.is_a_scalar(obj):
+            if obj is None:
+                content = ''
+            else:
+                content = str(obj)
+        elif self.default and callable(self.default):
+            try:
+                obj = self.default(obj)
+            except TypeError:
+                error = 'unsupported type.'
+            else:
+                content = self.render_content(obj, level+1)
+        else:
+            error = 'unsupported type.'
+
+        if need_indented_block and content and level:
+            content = "\n" + add_leader(content, self.indent*" ")
+
+        if error:
+            raise NestedTextError(obj, template=error, culprit=repr(obj)) from None
+
+        return content
+
+
 # dumps {{{2
 def dumps(
     obj,
     *,
     width = 0,
+    inline_level = 0,
     sort_keys = False,
     indent = 4,
     converters = None,
     default = None,
-    _level = 0
 ):
     # description {{{3
     """Recursively convert object to *NestedText* string.
@@ -860,8 +1430,11 @@ def dumps(
         obj:
             The object to convert to *NestedText*.
         width (int):
-            Enables compact lists and dictionaries if greater than zero and if
+            Enables inline lists and dictionaries if greater than zero and if
             resulting line would be less than or equal to given width.
+        inline_level (int):
+            Recursion depth must be equal to this value or greater to be
+            eligible for inlining.
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is true.
             If a function is passed in, it is used as the key function.
@@ -894,8 +1467,8 @@ def dumps(
             unsupported type.
         _level (int):
             The number of indentation levels.  When dumps is invoked recursively
-            this is used to increment the level and so the indent.  Should not
-            be specified by the user.
+            this is used to increment the level and so the indent.  This argument
+            is use internally and should not be specified by the user.
 
     Returns:
         The *NestedText* content.
@@ -1052,9 +1625,8 @@ def dumps(
 
         *converters* need not actually change the type of a value, it may simply
         transform the value.  In the following example, *converters* is used to
-        transform strings and dictionaries by adding quotes to strings and
-        removing empty dictionary fields.  It is also converts dates and
-        physical quantities to strings.
+        transform dictionaries by removing empty dictionary fields.  It is also
+        converts dates and physical quantities to strings.
 
         .. code-block:: python
 
@@ -1070,7 +1642,6 @@ def dumps(
             ...     show_commas = True
 
             >>> converters = {
-            ...     str: repr,
             ...     dict: cull,
             ...     arrow.Arrow: lambda d: d.format('D MMMM YYYY'),
             ...     quantiphy.Quantity: lambda q: str(q)
@@ -1085,7 +1656,7 @@ def dumps(
 
             >>> print(nt.dumps(transaction, converters=converters))
             date: 7 May 2013
-            description: "Incoming wire from Publisher's Clearing House"
+            description: Incoming wire from Publisher's Clearing House
             credit: $12,345.67
 
         Both *default* and *converters* may be used together. *converters* has
@@ -1093,207 +1664,11 @@ def dumps(
         specified as *default*, it is always applied as a last resort.
     """
 
-    # define sort function {{{3
-    if sort_keys:
-        def sort(keys):
-            return sorted(keys, key=sort_keys if callable(sort_keys) else None)
-    else:
-        def sort(keys):
-            return keys
-
-    # convert {{{3
-    def convert(obj):
-        converter = getattr(obj, '__nestedtext_converter__', None)
-        converter = converters.get(type(obj)) if converters else converter
-        if converter:
-            try:
-                return converter(obj)
-            except TypeError:
-                # is bound method
-                return converter()
-        elif converter is False:
-            raise NestedTextError(
-                obj,
-                template = "unsupported type.",
-                culprit=repr(obj)
-            ) from None
-        return obj
-
-    # render_dict_item {{{3
-    def render_dict_item(key, dictionary, indent, rdumps):
-        value = dictionary[key]
-        if is_a_scalar(key):
-            key = str(key)
-        if not is_a_str(key):
-            raise NestedTextError(
-                template = 'keys must be strings.',
-                culprit = key
-            ) from None
-        multiline_key_required = (
-            not key
-            or '\n' in key
-            or key.strip(' ') != key
-            or key[:1] in "#[{"
-            or key[:2] in ["- ", "> ", ": "]
-            or ': ' in key
-        )
-        if multiline_key_required:
-            key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
-            if is_str(value):
-                # force use of multiline value with multiline keys
-                return key + "\n" + add_leader(value, indent*" " + "> ")
-            else:
-                return key + rdumps(value)
-        else:
-            return add_prefix(key + ":", rdumps(value))
-
-    # render_inline_dict {{{3
-    def render_inline_dict(obj):
-        exclude = set('\n[]{}:,')
-        items = []
-        for k in sort(obj):
-            v = render_inline_value(obj[k], exclude=exclude)
-            k = render_inline_scalar(k, exclude=exclude)
-            items.append(f'{k}: {v}')
-        return '{' + ', '.join(items) + '}'
-
-    # render_inline_list {{{3
-    def render_inline_list(obj):
-        items = []
-        for v in obj:
-            v = render_inline_value(v, exclude=set('\n[]{},'))
-            items.append(v)
-        endcap = ', ]' if len(items) and items[-1] == '' else ']'
-        return '[' + ', '.join(items) + endcap
-
-    # render_inline_value {{{3
-    def render_inline_value(obj, exclude):
-        obj = convert(obj)
-        if is_a_dict(obj):
-            return render_inline_dict(obj)
-        if is_a_list(obj):
-            return render_inline_list(obj)
-        return render_inline_scalar(obj, exclude)
-
-    # render_inline_scalar {{{3
-    def render_inline_scalar(obj, exclude):
-        if is_a_str(obj):
-            value = obj
-        elif is_a_scalar(obj):
-            value = '' if obj is None else str(obj)
-        elif default and callable(default):
-            try:
-                obj = default(obj)
-            except TypeError:
-                raise NestedTextError(
-                    obj,
-                    template = "unsupported type.",
-                    culprit = repr(obj)
-                ) from None
-            return render_inline_value(obj, exclude)
-        else:
-            raise NotSuitableForInline()
-
-        if exclude & set(value):
-            raise NotSuitableForInline()
-        if value.strip(' ') != value:
-            raise NotSuitableForInline()
-        return value
-
-    # define object type identification functions {{{3
-    if default == 'strict':
-        is_a_dict = lambda obj: isinstance(obj, dict)
-        is_a_list = lambda obj: isinstance(obj, list)
-        is_a_str = lambda obj: isinstance(obj, str)
-        is_a_scalar = lambda obj: False
-    else:
-        is_a_dict = is_mapping
-        is_a_list = is_collection
-        is_a_str = is_str
-        is_a_scalar = lambda obj: obj is None or isinstance(obj, (bool, int, float))
-        if is_str(default):
-            raise NotImplementedError(default)
-
-    # define dumps function for recursion {{{3
-    def rdumps(v):
-        return dumps(
-            v,
-            width = width - indent,
-            sort_keys = sort_keys,
-            indent = indent,
-            converters = converters,
-            default = default,
-            _level = _level + 1
-        )
-
-    # render content {{{3
-    assert indent > 0
-    error = None
-    content = ''
-    obj = convert(obj)
-    need_indented_block = is_collection(obj)
-
-    if is_a_dict(obj):
-        try:
-            if obj and not (width > 0 and len(obj) <= width/6):
-                raise NotSuitableForInline
-            content = render_inline_dict(obj)
-            if obj and len(content) > width:
-                raise NotSuitableForInline
-        except NotSuitableForInline:
-            content = "\n".join(
-                render_dict_item(k, obj, indent, rdumps)
-                for k in sort(obj)
-            )
-    elif is_a_list(obj):
-        try:
-            if obj and not (width > 0 and len(obj) <= width/6):
-                raise NotSuitableForInline
-            content = render_inline_list(obj)
-            if obj and len(content) > width:
-                raise NotSuitableForInline
-        except NotSuitableForInline:
-            content = "\n".join(
-                add_prefix("-", rdumps(v))
-                for v in obj
-            )
-    elif is_a_str(obj):
-        text = obj.replace('\r\n', '\n').replace('\r', '\n')
-        if "\n" in text or _level == 0:
-            content = add_leader(text, '> ')
-            need_indented_block = True
-        else:
-            content = text
-    elif is_a_scalar(obj):
-        if obj is None:
-            content = ''
-        else:
-            content = str(obj)
-    elif default and callable(default):
-        try:
-            obj = default(obj)
-        except TypeError:
-            error = 'unsupported type.'
-        else:
-            content = dumps(
-                obj,
-                width = width,
-                sort_keys = sort_keys,
-                indent = indent,
-                converters = converters,
-                default = default,
-                _level = _level
-            )
-    else:
-        error = 'unsupported type.'
-
-    if need_indented_block and content and _level:
-        content = "\n" + add_leader(content, indent*" ")
-
-    if error:
-        raise NestedTextError(obj, template=error, culprit=repr(obj))
-
-    return content
+    # code {{{3
+    dumper = NestedTextDumper(
+        width, inline_level, sort_keys, indent, converters, default
+    )
+    return dumper.render_content(obj, 0)
 
 
 # dump {{{2
@@ -1380,5 +1755,5 @@ def dump(obj, f, **kwargs):
     else:
         return
 
-    with open(f, 'w', encoding='utf-8') as fp:
-        fp.write(content)
+    with open(f, 'w', encoding='utf-8') as f:
+        f.write(content)

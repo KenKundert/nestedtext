@@ -1,5 +1,5 @@
-nestedtext.dumps
-================
+dumps
+=====
 
 .. currentmodule:: nestedtext
 
