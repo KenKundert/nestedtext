@@ -1,0 +1,798 @@
+-
+    Year: 1970
+    Agriculture: 4.22979798
+    Architecture: 11.92100539
+    Art and Performance: 59.7
+    Biology: 29.08836297
+    Business: 9.064438975
+    Communications and Journalism: 35.3
+    Computer Science: 13.6
+    Education: 74.53532758
+    Engineering: 0.8
+    English: 65.57092343
+    Foreign Languages: 73.8
+    Health Professions: 77.1
+    Math and Statistics: 38
+    Physical Sciences: 13.8
+    Psychology: 44.4
+    Public Administration: 68.4
+    Social Sciences and History: 36.8
+-
+    Year: 1971
+    Agriculture: 5.452796685
+    Architecture: 12.00310559
+    Art and Performance: 59.9
+    Biology: 29.39440285
+    Business: 9.503186594
+    Communications and Journalism: 35.5
+    Computer Science: 13.6
+    Education: 74.14920369
+    Engineering: 1
+    English: 64.55648516
+    Foreign Languages: 73.9
+    Health Professions: 75.5
+    Math and Statistics: 39
+    Physical Sciences: 14.9
+    Psychology: 46.2
+    Public Administration: 65.5
+    Social Sciences and History: 36.2
+-
+    Year: 1972
+    Agriculture: 7.42071022
+    Architecture: 13.21459351
+    Art and Performance: 60.4
+    Biology: 29.81022105
+    Business: 10.5589621
+    Communications and Journalism: 36.6
+    Computer Science: 14.9
+    Education: 73.55451996
+    Engineering: 1.2
+    English: 63.6642632
+    Foreign Languages: 74.6
+    Health Professions: 76.9
+    Math and Statistics: 40.2
+    Physical Sciences: 14.8
+    Psychology: 47.6
+    Public Administration: 62.6
+    Social Sciences and History: 36.1
+-
+    Year: 1973
+    Agriculture: 9.653602412
+    Architecture: 14.7916134
+    Art and Performance: 60.2
+    Biology: 31.14791477
+    Business: 12.80460152
+    Communications and Journalism: 38.4
+    Computer Science: 16.4
+    Education: 73.50181443
+    Engineering: 1.6
+    English: 62.94150212
+    Foreign Languages: 74.9
+    Health Professions: 77.4
+    Math and Statistics: 40.9
+    Physical Sciences: 16.5
+    Psychology: 50.4
+    Public Administration: 64.3
+    Social Sciences and History: 36.4
+-
+    Year: 1974
+    Agriculture: 14.07462346
+    Architecture: 17.44468758
+    Art and Performance: 61.9
+    Biology: 32.99618284
+    Business: 16.20485038
+    Communications and Journalism: 40.5
+    Computer Science: 18.9
+    Education: 73.33681143
+    Engineering: 2.2
+    English: 62.41341209
+    Foreign Languages: 75.3
+    Health Professions: 77.9
+    Math and Statistics: 41.8
+    Physical Sciences: 18.2
+    Psychology: 52.6
+    Public Administration: 66.1
+    Social Sciences and History: 37.3
+-
+    Year: 1975
+    Agriculture: 18.33316153
+    Architecture: 19.13404767
+    Art and Performance: 60.9
+    Biology: 34.44990213
+    Business: 19.68624931
+    Communications and Journalism: 41.5
+    Computer Science: 19.8
+    Education: 72.80185448
+    Engineering: 3.2
+    English: 61.64720641
+    Foreign Languages: 75
+    Health Professions: 78.9
+    Math and Statistics: 40.7
+    Physical Sciences: 19.1
+    Psychology: 54.5
+    Public Administration: 63
+    Social Sciences and History: 37.7
+-
+    Year: 1976
+    Agriculture: 22.25276005
+    Architecture: 21.39449143
+    Art and Performance: 61.3
+    Biology: 36.07287146
+    Business: 23.4300375
+    Communications and Journalism: 44.3
+    Computer Science: 23.9
+    Education: 72.16652471
+    Engineering: 4.5
+    English: 62.14819377
+    Foreign Languages: 74.4
+    Health Professions: 79.2
+    Math and Statistics: 41.5
+    Physical Sciences: 20
+    Psychology: 56.9
+    Public Administration: 65.6
+    Social Sciences and History: 39.2
+-
+    Year: 1977
+    Agriculture: 24.6401766
+    Architecture: 23.74054054
+    Art and Performance: 62
+    Biology: 38.33138629
+    Business: 27.16342715
+    Communications and Journalism: 46.9
+    Computer Science: 25.7
+    Education: 72.45639481
+    Engineering: 6.8
+    English: 62.72306675
+    Foreign Languages: 74.3
+    Health Professions: 80.5
+    Math and Statistics: 41.1
+    Physical Sciences: 21.3
+    Psychology: 59
+    Public Administration: 69.3
+    Social Sciences and History: 40.5
+-
+    Year: 1978
+    Agriculture: 27.14619175
+    Architecture: 25.84923973
+    Art and Performance: 62.5
+    Biology: 40.11249564
+    Business: 30.52751868
+    Communications and Journalism: 49.9
+    Computer Science: 28.1
+    Education: 73.19282134
+    Engineering: 8.4
+    English: 63.61912216
+    Foreign Languages: 74.3
+    Health Professions: 81.9
+    Math and Statistics: 41.6
+    Physical Sciences: 22.5
+    Psychology: 61.3
+    Public Administration: 71.5
+    Social Sciences and History: 41.8
+-
+    Year: 1979
+    Agriculture: 29.63336549
+    Architecture: 27.77047744
+    Art and Performance: 63.2
+    Biology: 42.06555109
+    Business: 33.62163381
+    Communications and Journalism: 52.3
+    Computer Science: 30.2
+    Education: 73.82114234
+    Engineering: 9.4
+    English: 65.08838972
+    Foreign Languages: 74.2
+    Health Professions: 82.3
+    Math and Statistics: 42.3
+    Physical Sciences: 23.7
+    Psychology: 63.3
+    Public Administration: 73.3
+    Social Sciences and History: 43.6
+-
+    Year: 1980
+    Agriculture: 30.75938956
+    Architecture: 28.08038075
+    Art and Performance: 63.4
+    Biology: 43.99925716
+    Business: 36.76572529
+    Communications and Journalism: 54.7
+    Computer Science: 32.5
+    Education: 74.98103152
+    Engineering: 10.3
+    English: 65.28413007
+    Foreign Languages: 74.1
+    Health Professions: 83.5
+    Math and Statistics: 42.8
+    Physical Sciences: 24.6
+    Psychology: 65.1
+    Public Administration: 74.6
+    Social Sciences and History: 44.2
+-
+    Year: 1981
+    Agriculture: 31.31865519
+    Architecture: 29.84169408
+    Art and Performance: 63.3
+    Biology: 45.24951206
+    Business: 39.26622984
+    Communications and Journalism: 56.4
+    Computer Science: 34.8
+    Education: 75.84512345
+    Engineering: 11.6
+    English: 65.83832154
+    Foreign Languages: 73.9
+    Health Professions: 84.1
+    Math and Statistics: 43.2
+    Physical Sciences: 25.7
+    Psychology: 66.9
+    Public Administration: 74.7
+    Social Sciences and History: 44.6
+-
+    Year: 1982
+    Agriculture: 32.63666364
+    Architecture: 34.81624758
+    Art and Performance: 63.1
+    Biology: 45.96733794
+    Business: 41.94937335
+    Communications and Journalism: 58
+    Computer Science: 36.3
+    Education: 75.84364914
+    Engineering: 12.4
+    English: 65.84735212
+    Foreign Languages: 72.7
+    Health Professions: 84.4
+    Math and Statistics: 44
+    Physical Sciences: 27.3
+    Psychology: 67.5
+    Public Administration: 76.8
+    Social Sciences and History: 44.6
+-
+    Year: 1983
+    Agriculture: 31.6353471
+    Architecture: 35.82625735
+    Art and Performance: 62.4
+    Biology: 46.71313451
+    Business: 43.54206966
+    Communications and Journalism: 58.6
+    Computer Science: 37.1
+    Education: 75.95060123
+    Engineering: 13.1
+    English: 65.91837999
+    Foreign Languages: 71.8
+    Health Professions: 84.6
+    Math and Statistics: 44.3
+    Physical Sciences: 27.6
+    Psychology: 67.9
+    Public Administration: 76.1
+    Social Sciences and History: 44.1
+-
+    Year: 1984
+    Agriculture: 31.09294748
+    Architecture: 35.45308311
+    Art and Performance: 62.1
+    Biology: 47.66908276
+    Business: 45.12403027
+    Communications and Journalism: 59.1
+    Computer Science: 36.8
+    Education: 75.86911601
+    Engineering: 13.5
+    English: 65.74986233
+    Foreign Languages: 72.1
+    Health Professions: 85.1
+    Math and Statistics: 46.2
+    Physical Sciences: 28
+    Psychology: 68.2
+    Public Administration: 75.9
+    Social Sciences and History: 44.1
+-
+    Year: 1985
+    Agriculture: 31.3796588
+    Architecture: 36.13334795
+    Art and Performance: 61.8
+    Biology: 47.9098841
+    Business: 45.747782
+    Communications and Journalism: 59
+    Computer Science: 35.7
+    Education: 75.92343971
+    Engineering: 13.5
+    English: 65.79819852
+    Foreign Languages: 70.8
+    Health Professions: 85.3
+    Math and Statistics: 46.5
+    Physical Sciences: 27.5
+    Psychology: 69
+    Public Administration: 75
+    Social Sciences and History: 43.8
+-
+    Year: 1986
+    Agriculture: 31.19871923
+    Architecture: 37.24022346
+    Art and Performance: 62.1
+    Biology: 48.30067763
+    Business: 46.53291505
+    Communications and Journalism: 60
+    Computer Science: 34.7
+    Education: 76.14301516
+    Engineering: 13.9
+    English: 65.98256091
+    Foreign Languages: 71.2
+    Health Professions: 85.7
+    Math and Statistics: 46.7
+    Physical Sciences: 28.4
+    Psychology: 69
+    Public Administration: 75.7
+    Social Sciences and History: 44
+-
+    Year: 1987
+    Agriculture: 31.48642948
+    Architecture: 38.73067535
+    Art and Performance: 61.7
+    Biology: 50.20987789
+    Business: 46.69046648
+    Communications and Journalism: 60.2
+    Computer Science: 32.4
+    Education: 76.96309168
+    Engineering: 14
+    English: 66.70603055
+    Foreign Languages: 72
+    Health Professions: 85.5
+    Math and Statistics: 46.5
+    Physical Sciences: 30.4
+    Psychology: 70.1
+    Public Administration: 76.4
+    Social Sciences and History: 43.9
+-
+    Year: 1988
+    Agriculture: 31.08508746
+    Architecture: 39.3989071
+    Art and Performance: 61.7
+    Biology: 50.09981147
+    Business: 46.7648277
+    Communications and Journalism: 60.4
+    Computer Science: 30.8
+    Education: 77.62766177
+    Engineering: 13.9
+    English: 67.14449816
+    Foreign Languages: 72.3
+    Health Professions: 85.2
+    Math and Statistics: 46.2
+    Physical Sciences: 29.7
+    Psychology: 70.9
+    Public Administration: 75.6
+    Social Sciences and History: 44.4
+-
+    Year: 1989
+    Agriculture: 31.6124031
+    Architecture: 39.09653994
+    Art and Performance: 62
+    Biology: 50.77471585
+    Business: 46.7815648
+    Communications and Journalism: 60.5
+    Computer Science: 29.9
+    Education: 78.11191872
+    Engineering: 14.1
+    English: 67.01707156
+    Foreign Languages: 72.4
+    Health Professions: 84.6
+    Math and Statistics: 46.2
+    Physical Sciences: 31.3
+    Psychology: 71.6
+    Public Administration: 76
+    Social Sciences and History: 44.2
+-
+    Year: 1990
+    Agriculture: 32.70344407
+    Architecture: 40.82404662
+    Art and Performance: 62.6
+    Biology: 50.81809432
+    Business: 47.20085084
+    Communications and Journalism: 60.8
+    Computer Science: 29.4
+    Education: 78.86685859
+    Engineering: 14.1
+    English: 66.92190193
+    Foreign Languages: 71.2
+    Health Professions: 83.9
+    Math and Statistics: 47.3
+    Physical Sciences: 31.6
+    Psychology: 72.6
+    Public Administration: 77.6
+    Social Sciences and History: 45.1
+-
+    Year: 1991
+    Agriculture: 34.71183749
+    Architecture: 33.67988118
+    Art and Performance: 62.1
+    Biology: 51.46880537
+    Business: 47.22432481
+    Communications and Journalism: 60.8
+    Computer Science: 28.7
+    Education: 78.99124597
+    Engineering: 14
+    English: 66.24147465
+    Foreign Languages: 71.1
+    Health Professions: 83.5
+    Math and Statistics: 47
+    Physical Sciences: 32.6
+    Psychology: 73.2
+    Public Administration: 78.2
+    Social Sciences and History: 45.5
+-
+    Year: 1992
+    Agriculture: 33.93165961
+    Architecture: 35.20235628
+    Art and Performance: 61
+    Biology: 51.34974154
+    Business: 47.21939541
+    Communications and Journalism: 59.7
+    Computer Science: 28.2
+    Education: 78.43518191
+    Engineering: 14.5
+    English: 65.62245655
+    Foreign Languages: 71
+    Health Professions: 83
+    Math and Statistics: 47.4
+    Physical Sciences: 32.6
+    Psychology: 73.2
+    Public Administration: 77.3
+    Social Sciences and History: 45.8
+-
+    Year: 1993
+    Agriculture: 34.94683208
+    Architecture: 35.77715877
+    Art and Performance: 60.2
+    Biology: 51.12484404
+    Business: 47.63933161
+    Communications and Journalism: 58.7
+    Computer Science: 28.5
+    Education: 77.26731199
+    Engineering: 14.9
+    English: 65.73095014
+    Foreign Languages: 70
+    Health Professions: 82.4
+    Math and Statistics: 46.4
+    Physical Sciences: 33.6
+    Psychology: 73.1
+    Public Administration: 78
+    Social Sciences and History: 46.1
+-
+    Year: 1994
+    Agriculture: 36.03267447
+    Architecture: 34.43353129
+    Art and Performance: 59.4
+    Biology: 52.2462176
+    Business: 47.98392441
+    Communications and Journalism: 58.1
+    Computer Science: 28.5
+    Education: 75.81493264
+    Engineering: 15.7
+    English: 65.64197772
+    Foreign Languages: 69.1
+    Health Professions: 81.8
+    Math and Statistics: 47
+    Physical Sciences: 34.8
+    Psychology: 72.9
+    Public Administration: 78.8
+    Social Sciences and History: 46.8
+-
+    Year: 1995
+    Agriculture: 36.84480747
+    Architecture: 36.06321839
+    Art and Performance: 59.2
+    Biology: 52.59940342
+    Business: 48.57318101
+    Communications and Journalism: 58.8
+    Computer Science: 27.5
+    Education: 75.12525621
+    Engineering: 16.2
+    English: 65.93694921
+    Foreign Languages: 69.6
+    Health Professions: 81.5
+    Math and Statistics: 46.1
+    Physical Sciences: 35.9
+    Psychology: 73
+    Public Administration: 78.8
+    Social Sciences and History: 47.9
+-
+    Year: 1996
+    Agriculture: 38.96977475
+    Architecture: 35.9264854
+    Art and Performance: 58.6
+    Biology: 53.78988011
+    Business: 48.6473926
+    Communications and Journalism: 58.7
+    Computer Science: 27.1
+    Education: 75.03519921
+    Engineering: 16.7
+    English: 66.43777883
+    Foreign Languages: 69.7
+    Health Professions: 81.3
+    Math and Statistics: 46.4
+    Physical Sciences: 37.3
+    Psychology: 73.9
+    Public Administration: 79.8
+    Social Sciences and History: 48.7
+-
+    Year: 1997
+    Agriculture: 40.68568483
+    Architecture: 35.10193413
+    Art and Performance: 58.7
+    Biology: 54.99946903
+    Business: 48.56105033
+    Communications and Journalism: 60
+    Computer Science: 26.8
+    Education: 75.1637013
+    Engineering: 17
+    English: 66.78635548
+    Foreign Languages: 70
+    Health Professions: 81.9
+    Math and Statistics: 47
+    Physical Sciences: 38.3
+    Psychology: 74.4
+    Public Administration: 81
+    Social Sciences and History: 49.2
+-
+    Year: 1998
+    Agriculture: 41.91240333
+    Architecture: 37.59854457
+    Art and Performance: 59.1
+    Biology: 56.35124789
+    Business: 49.2585152
+    Communications and Journalism: 60
+    Computer Science: 27
+    Education: 75.48616027
+    Engineering: 17.8
+    English: 67.2554484
+    Foreign Languages: 70.1
+    Health Professions: 82.1
+    Math and Statistics: 48.3
+    Physical Sciences: 39.7
+    Psychology: 75.1
+    Public Administration: 81.3
+    Social Sciences and History: 50.5
+-
+    Year: 1999
+    Agriculture: 42.88720191
+    Architecture: 38.63152919
+    Art and Performance: 59.2
+    Biology: 58.22882288
+    Business: 49.81020815
+    Communications and Journalism: 61.2
+    Computer Science: 28.1
+    Education: 75.83816206
+    Engineering: 18.6
+    English: 67.82022113
+    Foreign Languages: 70.9
+    Health Professions: 83.5
+    Math and Statistics: 47.8
+    Physical Sciences: 40.2
+    Psychology: 76.5
+    Public Administration: 81.1
+    Social Sciences and History: 51.2
+-
+    Year: 2000
+    Agriculture: 45.05776637
+    Architecture: 40.02358491
+    Art and Performance: 59.2
+    Biology: 59.38985737
+    Business: 49.80361649
+    Communications and Journalism: 61.9
+    Computer Science: 27.7
+    Education: 76.69214284
+    Engineering: 18.4
+    English: 68.36599498
+    Foreign Languages: 70.9
+    Health Professions: 83.5
+    Math and Statistics: 48.2
+    Physical Sciences: 41
+    Psychology: 77.5
+    Public Administration: 81.1
+    Social Sciences and History: 51.8
+-
+    Year: 2001
+    Agriculture: 45.86601517
+    Architecture: 40.69028156
+    Art and Performance: 59.4
+    Biology: 60.71233149
+    Business: 50.27514494
+    Communications and Journalism: 63
+    Computer Science: 27.6
+    Education: 77.37522931
+    Engineering: 19
+    English: 68.57852029
+    Foreign Languages: 71.2
+    Health Professions: 85.1
+    Math and Statistics: 47
+    Physical Sciences: 42.2
+    Psychology: 77.5
+    Public Administration: 80.9
+    Social Sciences and History: 51.7
+-
+    Year: 2002
+    Agriculture: 47.13465821
+    Architecture: 41.13295053
+    Art and Performance: 60.9
+    Biology: 61.8951284
+    Business: 50.5523346
+    Communications and Journalism: 63.7
+    Computer Science: 27
+    Education: 78.64424394
+    Engineering: 18.7
+    English: 68.82995959
+    Foreign Languages: 70.5
+    Health Professions: 85.8
+    Math and Statistics: 45.7
+    Physical Sciences: 41.1
+    Psychology: 77.7
+    Public Administration: 81.3
+    Social Sciences and History: 51.5
+-
+    Year: 2003
+    Agriculture: 47.93518721
+    Architecture: 42.75854266
+    Art and Performance: 61.1
+    Biology: 62.1694558
+    Business: 50.34559774
+    Communications and Journalism: 64.6
+    Computer Science: 25.1
+    Education: 78.54494815
+    Engineering: 18.8
+    English: 68.89448726
+    Foreign Languages: 70.6
+    Health Professions: 86.5
+    Math and Statistics: 46
+    Physical Sciences: 41.7
+    Psychology: 77.8
+    Public Administration: 81.5
+    Social Sciences and History: 50.9
+-
+    Year: 2004
+    Agriculture: 47.88714025
+    Architecture: 43.46649345
+    Art and Performance: 61.3
+    Biology: 61.91458697
+    Business: 49.95089449
+    Communications and Journalism: 64.2
+    Computer Science: 22.2
+    Education: 78.65074774
+    Engineering: 18.2
+    English: 68.45473436
+    Foreign Languages: 70.8
+    Health Professions: 86.5
+    Math and Statistics: 44.7
+    Physical Sciences: 42.1
+    Psychology: 77.8
+    Public Administration: 80.7
+    Social Sciences and History: 50.5
+-
+    Year: 2005
+    Agriculture: 47.67275409
+    Architecture: 43.10036784
+    Art and Performance: 61.4
+    Biology: 61.50098432
+    Business: 49.79185139
+    Communications and Journalism: 63.4
+    Computer Science: 20.6
+    Education: 79.06712173
+    Engineering: 17.9
+    English: 68.57122114
+    Foreign Languages: 69.9
+    Health Professions: 86
+    Math and Statistics: 45.1
+    Physical Sciences: 41.6
+    Psychology: 77.5
+    Public Administration: 81.2
+    Social Sciences and History: 50
+-
+    Year: 2006
+    Agriculture: 46.79029957
+    Architecture: 44.49933107
+    Art and Performance: 61.6
+    Biology: 60.17284465
+    Business: 49.21091439
+    Communications and Journalism: 63
+    Computer Science: 18.6
+    Education: 78.68630551
+    Engineering: 16.8
+    English: 68.29759443
+    Foreign Languages: 69.6
+    Health Professions: 85.9
+    Math and Statistics: 44.1
+    Physical Sciences: 40.8
+    Psychology: 77.4
+    Public Administration: 81.2
+    Social Sciences and History: 49.8
+-
+    Year: 2007
+    Agriculture: 47.60502633
+    Architecture: 43.10045895
+    Art and Performance: 61.4
+    Biology: 59.41199314
+    Business: 49.00045935
+    Communications and Journalism: 62.5
+    Computer Science: 17.6
+    Education: 78.72141311
+    Engineering: 16.8
+    English: 67.87492278
+    Foreign Languages: 70.2
+    Health Professions: 85.4
+    Math and Statistics: 44.1
+    Physical Sciences: 40.7
+    Psychology: 77.1
+    Public Administration: 82.1
+    Social Sciences and History: 49.3
+-
+    Year: 2008
+    Agriculture: 47.570834
+    Architecture: 42.71173041
+    Art and Performance: 60.7
+    Biology: 59.30576517
+    Business: 48.88802678
+    Communications and Journalism: 62.4
+    Computer Science: 17.8
+    Education: 79.19632674
+    Engineering: 16.5
+    English: 67.59402834
+    Foreign Languages: 70.2
+    Health Professions: 85.2
+    Math and Statistics: 43.3
+    Physical Sciences: 40.7
+    Psychology: 77.2
+    Public Administration: 81.7
+    Social Sciences and History: 49.4
+-
+    Year: 2009
+    Agriculture: 48.66722357
+    Architecture: 43.34892051
+    Art and Performance: 61
+    Biology: 58.48958333
+    Business: 48.84047414
+    Communications and Journalism: 62.8
+    Computer Science: 18.1
+    Education: 79.5329087
+    Engineering: 16.8
+    English: 67.96979204
+    Foreign Languages: 69.3
+    Health Professions: 85.1
+    Math and Statistics: 43.3
+    Physical Sciences: 40.7
+    Psychology: 77.1
+    Public Administration: 82
+    Social Sciences and History: 49.4
+-
+    Year: 2010
+    Agriculture: 48.73004227
+    Architecture: 42.06672091
+    Art and Performance: 61.3
+    Biology: 59.01025521
+    Business: 48.75798769
+    Communications and Journalism: 62.5
+    Computer Science: 17.6
+    Education: 79.61862451
+    Engineering: 17.2
+    English: 67.92810557
+    Foreign Languages: 69
+    Health Professions: 85
+    Math and Statistics: 43.1
+    Physical Sciences: 40.2
+    Psychology: 77
+    Public Administration: 81.7
+    Social Sciences and History: 49.3
+-
+    Year: 2011
+    Agriculture: 50.03718193
+    Architecture: 42.7734375
+    Art and Performance: 61.2
+    Biology: 58.7423969
+    Business: 48.18041792
+    Communications and Journalism: 62.2
+    Computer Science: 18.2
+    Education: 79.43281184
+    Engineering: 17.5
+    English: 68.42673015
+    Foreign Languages: 69.5
+    Health Professions: 84.8
+    Math and Statistics: 43.1
+    Physical Sciences: 40.1
+    Psychology: 76.7
+    Public Administration: 81.9
+    Social Sciences and History: 49.2
