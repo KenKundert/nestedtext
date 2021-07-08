@@ -14,8 +14,8 @@ implementation, you will see versions that include no changes to the language.
 Latest development version
 --------------------------
 
-| Version: 2.0.3
-| Released: 2021-07-07
+| Version: 2.0.4
+| Released: 2021-07-08
 
 - Deprecate trailing commas in inline lists and dictionaries.
 
