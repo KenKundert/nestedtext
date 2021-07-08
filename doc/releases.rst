@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 2.0.2
-| Released: 2021-06-16
+| Version: 2.0.3
+| Released: 2021-07-07
 
 - Deprecate trailing commas in inline lists and dictionaries.
 - Adds *keymap* argument to :func:`load` and :func:`loads`.
