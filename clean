@@ -3,6 +3,7 @@
 shopt -s globstar
 rm -rf generated_settings
 rm -rf .cache
+rm -rf data.nt tests/data.nt
 
 # the rest is common to all python directories
 rm -f *.pyc *.pyo
