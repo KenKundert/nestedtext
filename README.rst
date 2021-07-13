@@ -22,14 +22,14 @@ NestedText: A Human Friendly Data Format
 |
 
 
-*NestedText* is a file format for holding data that is to be entered, edited, or 
-viewed by people.  It allows data to be organized into a nested collection of 
-dictionaries, lists, and strings.  In this way it is similar to *JSON*, *YAML* 
-and *TOML*, but without the complexity and risk of *YAML* and without the 
-syntactic clutter of *JSON* and *TOML*.  *NestedText* is both simple and 
-natural.  Only a small number of concepts and rules must be kept in mind when 
-creating it.  It is easily created, modified, or viewed with a text editor and 
-easily understood and used by both programmers and non-programmers.
+*NestedText* is a file format for holding structured data that is to be entered, 
+edited, or viewed by people.  It allows data to be organized into a nested 
+collection of dictionaries, lists, and strings.  In this way it is similar to 
+*JSON*, *YAML* and *TOML*, but without the complexity and risk of *YAML* and 
+without the syntactic clutter of *JSON* and *TOML*.  *NestedText* is both simple 
+and natural.  Only a small number of concepts and rules must be kept in mind 
+when creating it.  It is easily created, modified, or viewed with a text editor 
+and easily understood and used by both programmers and non-programmers.
 
 *NestedText* is convenient for configuration files, address books, account 
 information and the like.  Here is an example of a file that contains a few 
@@ -84,10 +84,10 @@ The format holds dictionaries (ordered collections of name/value pairs), lists
 (ordered collections of values) and strings (text) organized hierarchically to 
 any depth.  Indentation is used to indicate the hierarchy of the data, and 
 a simple natural syntax is used to distinguish the types of data in such 
-a manner that it is not easily confused.  Specifically, lines that begin with a 
-word (or words) followed by a colon are dictionary items, lines that begin with 
-a dash are list items, lines that begin with a greater-than sign are part of 
-a multiline string, and lines that begin with a hash are comments and are 
+a manner that needs no quoting or escaping.  Specifically, lines that begin with 
+a word (or words) followed by a colon are dictionary items, lines that begin 
+with a dash are list items, lines that begin with a greater-than sign are part 
+of a multiline string, and lines that begin with a hash are comments and are 
 ignored.  Dictionaries and lists can be nested arbitrarily.
 
 *NestedText* is somewhat unique in that the leaf values are always strings. Of 
@@ -117,29 +117,6 @@ referred to as applying a schema to the data.  There are packages such as
 `Pydantic <https://pydantic-docs.helpmanual.io>`_ and `Voluptuous 
 <https://github.com/alecthomas/voluptuous>`_ available that make this process 
 easy and reliable.
-
-String values in *NestedText* can hold any printing character or character 
-sequence without the need for quoting or escaping.  This makes *NestedText* 
-particularly convenient for holding code snippets.  The code can be included 
-without modification, and without the complexity and visual clutter the comes 
-with the need to quote or escape special characters.
-
-.. note::
-
-    This version contains some significant changes from version 1.3.0.  Some of 
-    these changes are not backward compatible.
-
-    Language changes:
-
-    - Removal of quoted keys
-    - Addition of multiline keys
-    - Addition of single line lists and dictionaries
-
-    Python implementation changes:
-
-    - Removal of *level* parameter to *dump* and *dumps* functions.
-    - Addition of *width* parameter to *dump* and *dumps* functions.
-    - Replaced *renderers* argument with *converters* on *dump* and *dumps* functions.
 
 
 Related Projects
