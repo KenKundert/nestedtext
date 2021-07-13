@@ -32,7 +32,7 @@ a :exc:`NestedTextError` exception is raised.
     ... """
 
     >>> try:
-    ...     data = nt.loads(content, 'dict')
+    ...     data = nt.loads(content, top='dict')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
 
@@ -47,7 +47,7 @@ function.
     >>> from inform import fatal, os_error
 
     >>> try:
-    ...     groceries = nt.load('examples/groceries.nt', 'dict')
+    ...     groceries = nt.load('examples/groceries.nt', top='dict')
     ... except nt.NestedTextError as e:
     ...     e.terminate()
     ... except OSError as e:

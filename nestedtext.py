@@ -994,7 +994,7 @@ def loads(content, top='dict', *, source=None, on_dup=None, keymap=None):
 
     Examples:
 
-        *NestedText* is specified to *loads* in the form of a string:
+        A *NestedText* document is specified to *loads* in the form of a string:
 
         .. code-block:: python
 
@@ -1521,8 +1521,8 @@ def dumps(
             42: unsupported type.
 
         Alternatively, you can specify a function to *default*, which is used
-        to convert values to strings.  It is used if no other converter is
-        available.  Typical values are *str* and *repr*.
+        to convert values to recognized types.  It is used if no suitable
+        converter is available.  Typical values are *str* and *repr*.
 
         .. code-block:: python
 
