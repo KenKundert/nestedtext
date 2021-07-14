@@ -1,6 +1,9 @@
 NestedText: A Human Friendly Data Format
 ========================================
 
+.. image:: https://pepy.tech/badge/nestedtext/month
+    :target: https://pepy.tech/project/nestedtext
+
 .. image:: https://img.shields.io/travis/KenKundert/nestedtext/master.svg
     :target: https://travis-ci.org/KenKundert/nestedtext
 
