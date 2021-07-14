@@ -4,7 +4,7 @@ import nestedtext
 # General
 
 project = u'NestedText'
-copyright = u'2020-21, Kenneth S. Kundert and Kale Kundert'
+copyright = u'2020-21, Ken and Kale Kundert'
 release = '2.0.4'
 version = '.'.join(release.split('.'))
 

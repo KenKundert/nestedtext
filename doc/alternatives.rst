@@ -4,64 +4,70 @@ Alternatives
 
 There are no shortage of well established alternatives to *NestedText* for 
 storing data in a human-readable text file.  The features and shortcomings of 
-some of these alternatives are discussed next.
+some of these alternatives are discussed next.  *NestedText* is intended to be 
+used in situations where people either create, modify, or consume the data 
+directly.  It is this perspective that informs these comparisons.
+
 
 JSON
 ====
 
 JSON_ is a subset of JavaScript suitable for holding data.  Like *NestedText*, 
-it consists of a hierarchical collection of dictionaries, lists, and strings, 
-but also allows integers, floats, Booleans and nulls.  The fundamental problem 
-with *JSON* in this context is that its meant for serializing and exchanging 
-data between programs; it's not meant for configuration files.  Of course, it's 
-used for this purpose anyways, where it has a number of glaring shortcomings.
+it consists of a hierarchical collection of objects (dictionaries), lists, and 
+strings, but also allows reals, integers, Booleans and nulls.  In practice, JSON 
+is largely generated and consumed by machines.  The data is stored as text, and 
+so can be read, modified, and consumed directly by the end user, but the format 
+is not optimized for this use case and so is often cumbersome or inefficient 
+when used in this manner.
 
-To begin, it has an excessive amount of syntactic clutter.  Dictionary keys and 
-strings both have to be quoted, commas are required between dictionary and list 
-items (but forbidden after the last item), braces are required around 
-dictionaries, etc.  Features that would improve clarity are also lacking.  
-Comments are not allowed, multiline strings are not supported, and whitespace 
-is insignificant (leading to the possibility that the appearance of the data may 
-not match its true structure).  More conceptually, it is the responsibility of 
-the user to provide data of the correct type (e.g. ``32`` vs. ``32.0`` vs.  
-``"32"``), even though the application already knows what type it expects.  All 
-of this results in *JSON* being a frustrating format for humans to read, enter 
-or edit.
+JSON supports all the native data types common to most languages.  Syntax is 
+added to values to unambiguously indicate their type. For example, ``2``, 
+``2.0``, and ``"2"`` are three different values with three different types 
+(integer, real, string).  This adds two types of complexity. First, the rules 
+for distinguishing various types must be learned and used. Second, all strings 
+must be quoted, and
+with quoting comes escaping, which is needed to allow quote characters to be 
+included in strings.
 
-*NestedText* has the following clear advantages over *JSON* as a human readable 
-and writable data file format:
+JSON was derived as a subset of JavaScript, and so inherits a fair amount of 
+syntactic clutter that can be annoying for users to enter and maintain.  In 
+addition, features that would improve clarity are lacking.  Comments are not 
+allowed, multiline strings are not supported, and whitespace is insignificant 
+(leading to the possibility that the appearance of the data may not match its 
+true structure).
 
-- text does not require quotes
-- data is left in its original form
+*NestedText* only supports three data types (strings, lists and dictionaries) 
+and does not have the baggage of being the subset of a general purpose 
+programming language.  The result is a simpler language that has the following 
+clear advantages over *JSON* as a human readable and writable data file format:
+
+- strings do not require quotes
 - comments
 - multiline strings
-- special characters without escaping them
+- no need to escape special characters
 - commas are not used to separate dictionary and list items
 
 
 YAML
 ====
 
-YAML_ is considered by many to be a human friendly alternative to *JSON*, but 
-over time it has accumulated too many data types and too many formats.  To 
-distinguish between all the various types and formats, a complicated and 
-non-intuitive set of rules developed.  *YAML* at first appears very appealing 
-when used with simple examples, but things can quickly become complicated or 
-provide unexpected results.  A reaction to this is the use of *YAML* subsets, 
-such as StrictYAML_.  However, the subsets still try to maintain compatibility 
-with *YAML* and so inherit much of its complexity. For example, both *YAML* and 
-*StrictYAML* support `nine different ways of writing multiline strings 
-<http://stackoverflow.com/a/21699210/660921>`_.
+YAML_ is considered by many to be a human friendly alternative to *JSON*.  There 
+is less syntactic clutter and the quoting of strings is optional.  However, it 
+also supports a wide variety of data types and formats.  The optional quoting 
+can result in the type of values being ambiguous. To distinguish between the 
+various types, a complicated and non-intuitive set of rules developed.  *YAML* 
+at first appears very appealing when used with simple examples, but things can 
+quickly become complicated or provide unexpected results.  A reaction to this is 
+the use of *YAML* subsets, such as StrictYAML_.  However, the subsets still try 
+to maintain compatibility with *YAML* and so inherit much of its complexity. For 
+example, both *YAML* and *StrictYAML* support `nine different ways of writing 
+multiline strings <http://stackoverflow.com/a/21699210/660921>`_.
 
-*YAML* avoids excessive quoting and supports comments and multiline strings, 
-but like *JSON* it converts data to the underlying data types as appropriate, 
-but unlike with *JSON*, the lack of quoting makes the format ambiguous, which 
-means it has to guess at times, and small seemingly insignificant details can 
-affect the result.
-
-*NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
-following clear advantages over *YAML* as a human readable and writable data 
-file format:
+*YAML* avoids excessive quoting and supports comments and multiline strings, but 
+the multitude of formats and disambiguation rules make *YAML* a difficult 
+language to learn, and the ambiguities creates traps for the user.  *NestedText* 
+was inspired by *YAML*, but eschews its complexity. It has the following clear 
+advantages over *YAML* as a human readable and writable data file format:
 
 - simple
 - unambiguous (no implicit typing)
@@ -77,9 +83,7 @@ TOML_ is a configuration file format inspired by the well-known INI_ syntax.  It
 supports a number of basic data types (notably including dates and times) using 
 syntax that is more similar to *JSON* (explicit but verbose) than to *YAML* 
 (succinct but confusing).  As discussed previously, though, this makes it the 
-responsibility of the user to specify the correct type for each field, when it 
-should be the responsibility of the application to convert each field to the 
-correct type.
+responsibility of the user to specify the correct type for each field.
 
 Another flaw in TOML is that it is difficult to specify deeply nested 
 structures.  The only way to specify a nested dictionary is to give the full 
@@ -124,5 +128,3 @@ readable and writable data file format:
 .. _ini: https://en.wikipedia.org/wiki/INI_file
 .. _csv: https://en.wikipedia.org/wiki/Comma-separated_values
 .. _tsv: https://en.wikipedia.org/wiki/Tab-separated_values
-
-

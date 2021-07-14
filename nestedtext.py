@@ -11,7 +11,7 @@ understood and used by both programmers and non-programmers.
 """
 
 # MIT License {{{1
-# Copyright (c) 2020-21 Kenneth S. Kundert and Kale Kundert
+# Copyright (c) 2020-21 Ken and Kale Kundert
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
