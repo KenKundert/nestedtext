@@ -49,11 +49,13 @@ clear advantages over *JSON* as a human readable and writable data file format:
 
 The following examples illustrate the difference between JSON and *NestedText*:
 
-JSON:
+**JSON**:
+
     .. literalinclude:: ../examples/fumiko.json
         :language: json
 
-NestedText:
+**NestedText**:
+
     .. literalinclude:: ../examples/fumiko.nt
         :language: nestedtext
 
@@ -79,7 +81,8 @@ To illustrate these points, the following is a condensation of a YAML document
 taken from the GitHub documentation that describes host to configure continuous 
 integration using Python:
 
-YAML:
+**YAML**:
+
     .. literalinclude:: ../examples/github-orig.yaml
         :language: yaml
 
@@ -103,7 +106,8 @@ There are a few things to notice about this second version.
 Now consider the *NestedText* version; it is simpler and not subject to 
 misinterpretation.
 
-NestedText:
+**NestedText**:
+
     .. literalinclude:: ../examples/github-intent.nt
         :language: nestedtext
 
@@ -138,11 +142,13 @@ and writability.
 
 Here is an example of a configuration file in TOML and *NestedText*:
 
-TOML:
+**TOML**:
+
     .. literalinclude:: ../examples/sparekeys.toml
         :language: toml
 
-NestedText:
+**NestedText**:
+
     .. literalinclude:: ../examples/sparekeys.nt
         :language: nestedtext
 
@@ -168,11 +174,13 @@ line breaks or commas/tabs.
 
 Here is an example data file in CSV and *NestedText*.
 
-CSV:
+**CSV**:
+
     .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.csv
         :language: text
 
-NestedText:
+**NestedText**:
+
     .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.nt
         :language: nestedtext
 
