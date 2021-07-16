@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Read a JSON file and convert it to NestedText.
+Read a TOML file and convert it to NestedText.
 
 usage:
-    json-to-nestedtext [options] [<filename>]
+    toml-to-nestedtext [options] [<filename>]
 
 options:
     -f, --force            force overwrite of output file
@@ -12,14 +12,14 @@ options:
                            use of single-line lists and dictionaries as long
                            as the fit in given width [default: 0]
 
-If <filename> is not given, JSON input is taken from stdin and NestedText output 
+If <filename> is not given, TOML input is taken from stdin and NestedText output 
 is written to stdout.
 """
 
 from docopt import docopt
 from inform import done, fatal, full_stop, os_error, warn
 from pathlib import Path
-import json
+import toml
 import nestedtext as nt
 import sys
 sys.stdin.reconfigure(encoding='utf-8')
@@ -39,13 +39,13 @@ except Exception:
     width = 0
 
 try:
-    # read JSON content; from file or from stdin
+    # read TOML content; from file or from stdin
     if input_filename:
         input_path = Path(input_filename)
-        json_content = input_path.read_text(encoding='utf-8')
+        toml_content = input_path.read_text(encoding='utf-8')
     else:
-        json_content = sys.stdin.read()
-    data = json.loads(json_content)
+        toml_content = sys.stdin.read()
+    data = toml.loads(toml_content)
 
     # convert to NestedText
     nestedtext_content = nt.dumps(data, indent=indent, width=width) + "\n"
@@ -66,7 +66,7 @@ except nt.NestedTextError as e:
     e.terminate(culprit=input_filename)
 except KeyboardInterrupt:
     done()
-except json.JSONDecodeError as e:
+except ValueError as e:
     # create a nice error message with surrounding context
     msg = e.msg
     culprit = input_filename

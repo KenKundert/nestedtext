@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+# Round-trip YAML file
+#
+# reads: github-orig.yaml
+# writes: github-rt.yaml
+
+from inform import fatal, full_stop, os_error
+from pathlib import Path
+import yaml
+from yaml.loader import SafeLoader
+
+try:
+    # read YAML file
+    path = Path("github-orig.yaml")
+    orig_content = path.read_text()
+    data = yaml.load(orig_content, Loader=SafeLoader)
+    path = Path("github-rt.yaml")
+    rt_content = yaml.dump(data)
+    path.write_text(rt_content)
+except OSError as e:
+    fatal(os_error(e))
+except nt.NestedTextError as e:
+    e.terminate(culprit=input_filename)
+except yaml.YAMLError as e:
+    # create a nice error message with surrounding context
+    fatal(full_stop(e))

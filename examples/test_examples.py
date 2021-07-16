@@ -1,7 +1,11 @@
 # encoding: utf8
 
-from shlib import Run, to_path, set_prefs
+from pathlib import Path
+from shlib import Run, cd, cwd
 from textwrap import dedent
+import pytest
+
+home_dir = Path(__file__).parent
 
 def strip_comments(text):
      return '\n'.join(
@@ -10,42 +14,84 @@ def strip_comments(text):
     )
 
 def test_nestedtext_to_json():
-     stimulus = to_path('address.nt').read_text()
-     expected = to_path('address.json').read_text()
-     nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
-     assert nt2json.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        stimulus = Path('address.nt').read_text()
+        expected = Path('address.json').read_text()
+        nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
+        assert nt2json.stdout.strip() == expected.strip()
+
+def test_nestedtext_to_json_fumiko():
+     with cd(home_dir):
+        stimulus = Path('fumiko.nt').read_text()
+        expected = Path('fumiko.json').read_text()
+        nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
+        assert nt2json.stdout.strip() == expected.strip()
 
 def test_json_to_nestedtext():
-     stimulus = to_path('address.json').read_text()
-     expected = strip_comments(to_path('address.nt').read_text())
-     json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
-     assert json2nt.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        stimulus = Path('address.json').read_text()
+        expected = strip_comments(Path('address.nt').read_text())
+        json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
+        assert json2nt.stdout.strip() == expected.strip()
+
+def test_json_to_nestedtext_fumiko():
+     with cd(home_dir):
+        stimulus = Path('fumiko.json').read_text()
+        expected = strip_comments(Path('fumiko.nt').read_text())
+        json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
+        assert json2nt.stdout.strip() == expected.strip()
+
+def test_yaml_to_nestedtext():
+     with cd(home_dir):
+        stimulus = Path('github-orig.yaml').read_text()
+        expected = strip_comments(Path('github-orig.nt').read_text())
+        yaml2nt = Run('./yaml-to-nestedtext', stdin=stimulus, modes='sOEW')
+        assert yaml2nt.stdout.strip() == expected.strip()
+
+def test_nestedtext_to_yaml():
+     with cd(home_dir):
+        stimulus = Path('github-intent.nt').read_text()
+        expected = Path('github-intent.yaml').read_text()
+        nt2yaml = Run('./nestedtext-to-yaml', stdin=stimulus, modes='sOEW')
+        assert nt2yaml.stdout.strip() == expected.strip()
+
+def test_toml_to_nestedtext():
+     with cd(home_dir):
+        stimulus = Path('sparekeys.toml').read_text()
+        expected = Path('sparekeys.nt').read_text()
+        toml2nt = Run('./toml-to-nestedtext', stdin=stimulus, modes='sOEW')
+        assert toml2nt.stdout.strip() == expected.strip()
 
 def test_csv_to_nestedtext():
-     stimulus = to_path('percent_bachelors_degrees_women_usa.csv').read_text()
-     expected = to_path('percent_bachelors_degrees_women_usa.nt').read_text()
-     csv2nt = Run('./csv-to-nestedtext -n', stdin=stimulus, modes='sOEW')
-     assert csv2nt.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        stimulus = Path('percent_bachelors_degrees_women_usa.csv').read_text()
+        expected = Path('percent_bachelors_degrees_women_usa.nt').read_text()
+        csv2nt = Run('./csv-to-nestedtext -n', stdin=stimulus, modes='sOEW')
+        assert csv2nt.stdout.strip() == expected.strip()
 
 def test_deploy_pydantic():
-     expected = to_path('deploy_pydantic.nt').read_text()
-     dp = Run('python3 deploy_pydantic.py', modes='sOEW')
-     assert dp.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        expected = Path('deploy_pydantic.nt').read_text()
+        dp = Run('python3 deploy_pydantic.py', modes='sOEW')
+        assert dp.stdout.strip() == expected.strip()
 
 def test_deploy_voluptuous():
-     expected = to_path('deploy_voluptuous.nt').read_text()
-     dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
-     assert dv.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        expected = Path('deploy_voluptuous.nt').read_text()
+        dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
+        assert dv.stdout.strip() == expected.strip()
 
 def test_cryptocurrency():
-     # the cryptocurrency example outputs the current prices, so just do some
-     # simple sanity checking on the output.
-     cc = Run('./cryptocurrency', modes='sOEW')
-     assert '5 BTC =' in cc.stdout
-     assert '50 ETH =' in cc.stdout
-     assert '50 kXLM =' in cc.stdout
+     with cd(home_dir):
+        # the cryptocurrency example outputs the current prices, so just do some
+        # simple sanity checking on the output.
+        cc = Run('./cryptocurrency', modes='sOEW')
+        assert '5 BTC =' in cc.stdout
+        assert '50 ETH =' in cc.stdout
+        assert '50 kXLM =' in cc.stdout
 
 def test_postmortem():
-     expected = to_path('postmortem.json').read_text()
-     pm = Run('python3 postmortem.py', modes='sOEW')
-     assert pm.stdout.strip() == expected.strip()
+     with cd(home_dir):
+        expected = Path('postmortem.json').read_text()
+        pm = Run('python3 postmortem.py', modes='sOEW')
+        assert pm.stdout.strip() == expected.strip()

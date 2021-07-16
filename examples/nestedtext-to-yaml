@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""
+Read a NestedText file and convert it to YAML.
+
+usage:
+    nestedtext-to-yaml [options] [<filename>]
+
+options:
+    -f, --force   force overwrite of output file
+    -d, --dedup   de-duplicate keys in dictionaries
+
+If <filename> is not given, NestedText input is taken from stdin and YAML output 
+is written to stdout.
+"""
+
+from docopt import docopt
+from inform import done, fatal, os_error
+from pathlib import Path
+try:
+    import yaml
+except ImportError:
+    fatal("must install PyYAML using: 'pip install pyyaml'.")
+import nestedtext as nt
+import sys
+sys.stdin.reconfigure(encoding='utf-8')
+sys.stdout.reconfigure(encoding='utf-8')
+
+
+def de_dup(key, value, data, state):
+    if key not in state:
+        state[key] = 1
+    state[key] += 1
+    return f"{key}#{state[key]}"
+
+
+cmdline = docopt(__doc__)
+input_filename = cmdline['<filename>']
+on_dup = de_dup if cmdline['--dedup'] else None
+
+try:
+    if input_filename:
+        input_path = Path(input_filename)
+        data = nt.load(input_path, top='any', on_dup=de_dup)
+        yaml_content = yaml.dump(data)
+        output_path = input_path.with_suffix('.yaml')
+        if output_path.exists():
+            if not cmdline['--force']:
+                fatal('file exists, use -f to force over-write.', culprit=output_path)
+        output_path.write_text(yaml_content, encoding='utf-8')
+    else:
+        data = nt.load(sys.stdin, top='any', on_dup=de_dup)
+        yaml_content = yaml.dump(data)
+        sys.stdout.write(yaml_content + '\n')
+except OSError as e:
+    fatal(os_error(e))
+except nt.NestedTextError as e:
+    e.terminate()
+except KeyboardInterrupt:
+    done()

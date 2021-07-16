@@ -47,6 +47,15 @@ clear advantages over *JSON* as a human readable and writable data file format:
 - no need to escape special characters
 - commas are not used to separate dictionary and list items
 
+The following examples illustrate the difference between JSON and *NestedText*:
+
+JSON:
+    .. literalinclude:: ../examples/fumiko.json
+        :language: json
+
+NestedText:
+    .. literalinclude:: ../examples/fumiko.nt
+        :language: nestedtext
 
 YAML
 ====
@@ -65,13 +74,46 @@ multiline strings <http://stackoverflow.com/a/21699210/660921>`_.
 
 *YAML* avoids excessive quoting and supports comments and multiline strings, but 
 the multitude of formats and disambiguation rules make *YAML* a difficult 
-language to learn, and the ambiguities creates traps for the user.  *NestedText* 
-was inspired by *YAML*, but eschews its complexity. It has the following clear 
-advantages over *YAML* as a human readable and writable data file format:
+language to learn, and the ambiguities creates traps for the user.
+To illustrate these points, the following is a condensation of a YAML document 
+taken from the GitHub documentation that describes host to configure continuous 
+integration using Python:
+
+YAML:
+    .. literalinclude:: ../examples/github-orig.yaml
+        :language: yaml
+
+And here is the result of running that document through the YAML reader and 
+writer.  One might expect that the format might change a bit but that the 
+information conveyed remains unchanged.
+
+YAML (round-trip):
+    .. literalinclude:: ../examples/github-rt.yaml
+        :language: yaml
+
+There are a few things to notice about this second version.
+
+1. ``on`` key was inappropriately converted to ``true``.
+2. Python version ``3.10`` was inappropriately converted to ``3.1``.
+3. The multiline strings were converted to an even more obscure format.
+4. Indentation is not an accurate reflection of nesting (notice that 
+   ``python-version`` and ``- 3.6`` have the same indentation, but ``- 3.6`` is 
+   contained inside ``python-version``).
+
+Now consider the *NestedText* version; it is simpler and not subject to 
+misinterpretation.
+
+NestedText:
+    .. literalinclude:: ../examples/github-intent.nt
+        :language: nestedtext
+
+*NestedText* was inspired by *YAML*, but eschews its complexity. It has the 
+following clear advantages over *YAML* as a human readable and writable data 
+file format:
 
 - simple
 - unambiguous (no implicit typing)
-- data is left in its original form
+- no unexpected conversions of the data
 - syntax is insensitive to special characters within text
 - safe, no risk of malicious code execution
 
@@ -94,13 +136,24 @@ this is that TOML-based configurations do not scale well: increases in
 complexity are often accompanied by disproportionate decreases in readability 
 and writability.
 
-*NestedText* has the following clear advantages over *TOML* and *INI* as a human 
+Here is an example of a configuration file in TOML and *NestedText*:
+
+TOML:
+    .. literalinclude:: ../examples/sparekeys.toml
+        :language: toml
+
+NestedText:
+    .. literalinclude:: ../examples/sparekeys.nt
+        :language: nestedtext
+
+*NestedText* has the following clear advantages over TOML and INI as a human 
 readable and writable data file format:
 
 - text does not require quoting or escaping
 - data is left in its original form
 - indentation used to succinctly represent nested data
 - the structure of the file matches the structure of the data
+- heavily nested data is represented efficiently
 
 
 CSV or TSV
@@ -113,12 +166,23 @@ The format separates the records using line breaks and separates the fields
 using commas or tabs.  Quoting and escaping is required when the fields contain 
 line breaks or commas/tabs.
 
+Here is an example data file in CSV and *NestedText*.
+
+CSV:
+    .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.csv
+        :language: text
+
+NestedText:
+    .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.nt
+        :language: nestedtext
+
 *NestedText* has the following clear advantages over *CSV* and *TSV* as a human 
 readable and writable data file format:
 
 - text does not require quoting or escaping
 - arbitrary data hierarchies are supported
 - file representation tends to be tall and skinny rather than short and fat
+- easier to read
 
 
 .. _json: https://www.json.org/json-en.html

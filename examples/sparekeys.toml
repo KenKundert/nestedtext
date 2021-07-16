@@ -1,0 +1,22 @@
+[plugins]
+auth = ['avendesora']
+archive = ['ssh', 'gpg', 'avendesora', 'emborg', 'file']
+publish = ['scp', 'mount']
+
+[auth.avendesora]
+account = 'login'
+field = 'passcode'
+
+[archive.file]
+src = ['~/src/nfo/contacts']
+[archive.avendesora]
+[archive.emborg]
+config = 'rsync'
+
+[publish.scp]
+host = ['backups']
+remote_dir = 'archives/{date:YYMMDD}'
+
+[publish.mount]
+drive = '/mnt/secrets'
+remote_dir = 'sparekeys/{date:YYMMDD}'
