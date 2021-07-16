@@ -9,19 +9,19 @@ from pprint import pprint
 def to_str(arg):
     if isinstance(arg, str):
         return arg
-    raise Invalid('expected text.')
+    raise Invalid('expected text')
 
 def to_ident(arg):
     arg = to_str(arg)
     if len(arg.split()) > 1:
-        raise Invalid('expected simple identifier.')
+        raise Invalid('expected simple identifier')
     return arg
 
 def to_list(arg):
     if isinstance(arg, str):
         return arg.split()
     if isinstance(arg, dict):
-        raise Invalid('expected list.')
+        raise Invalid('expected list')
     return arg
 
 def to_paths(arg):
@@ -31,7 +31,7 @@ def to_email(arg):
     user, _, host = arg.partition('@')
     if '.' in host:
         return arg
-    raise Invalid('expected email address.')
+    raise Invalid('expected email address')
 
 def to_emails(arg):
     return [to_email(e) for e in to_list(arg)]
@@ -45,7 +45,7 @@ def to_gpg_id(arg):
             assert len(arg) >= 8  # at least 8 characters long
             return arg
         except (ValueError, AssertionError):
-            raise Invalid('expected GPG id.')
+            raise Invalid('expected GPG id')
 
 def to_gpg_ids(arg):
     return [to_gpg_id(i) for i in to_list(arg)]
