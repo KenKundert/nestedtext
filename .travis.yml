@@ -1,9 +1,6 @@
 language: python
 os:
   - linux
-arch:
-  - amd64
-  - arm64
 install:
   - pip install virtualenv tox coveralls inform
 script:
