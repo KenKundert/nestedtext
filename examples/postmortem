@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import nestedtext as nt
 from pathlib import Path
 from voluptuous import Schema, Invalid, Extra, Required, REMOVE_EXTRA

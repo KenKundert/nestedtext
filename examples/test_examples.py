@@ -4,6 +4,7 @@ from pathlib import Path
 from shlib import Run, cd, cwd, to_path
 from textwrap import dedent
 import pytest
+import sys
 
 tests_dir = Path(__file__).parent
 
@@ -82,6 +83,8 @@ def test_deploy_voluptuous():
         assert dv.stdout.strip() == expected.strip()
 
 def test_cryptocurrency():
+     if sys.version_info < (3, 8):
+         return  # cryptocurrency example uses walrus operator
      with cd(tests_dir):
         # the cryptocurrency example outputs the current prices, so just do some
         # simple sanity checking on the output.
@@ -91,10 +94,12 @@ def test_cryptocurrency():
         assert '50 kXLM =' in cc.stdout
 
 def test_postmortem():
+     if sys.version_info < (3, 8):
+         return  # postmortem example uses walrus operator
      with cd(tests_dir):
         expected = Path('postmortem.json').read_text()
         user_home_dir = str(to_path('~'))
         expected = expected.replace('~', user_home_dir)
 
-        pm = Run('python3 postmortem.py', modes='sOEW')
+        pm = Run('./postmortem', modes='sOEW')
         assert pm.stdout.strip() == expected.strip()
