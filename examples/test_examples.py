@@ -1,11 +1,11 @@
 # encoding: utf8
 
 from pathlib import Path
-from shlib import Run, cd, cwd
+from shlib import Run, cd, cwd, to_path
 from textwrap import dedent
 import pytest
 
-home_dir = Path(__file__).parent
+tests_dir = Path(__file__).parent
 
 def strip_comments(text):
      return '\n'.join(
@@ -14,75 +14,75 @@ def strip_comments(text):
     )
 
 def test_nestedtext_to_json():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('address.nt').read_text()
         expected = Path('address.json').read_text()
         nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
         assert nt2json.stdout.strip() == expected.strip()
 
 def test_nestedtext_to_json_fumiko():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('fumiko.nt').read_text()
         expected = Path('fumiko.json').read_text()
         nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
         assert nt2json.stdout.strip() == expected.strip()
 
 def test_json_to_nestedtext():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('address.json').read_text()
         expected = strip_comments(Path('address.nt').read_text())
         json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert json2nt.stdout.strip() == expected.strip()
 
 def test_json_to_nestedtext_fumiko():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('fumiko.json').read_text()
         expected = strip_comments(Path('fumiko.nt').read_text())
         json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert json2nt.stdout.strip() == expected.strip()
 
 def test_yaml_to_nestedtext():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('github-orig.yaml').read_text()
         expected = strip_comments(Path('github-orig.nt').read_text())
         yaml2nt = Run('./yaml-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert yaml2nt.stdout.strip() == expected.strip()
 
 def test_nestedtext_to_yaml():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('github-intent.nt').read_text()
         expected = Path('github-intent.yaml').read_text()
         nt2yaml = Run('./nestedtext-to-yaml', stdin=stimulus, modes='sOEW')
         assert nt2yaml.stdout.strip() == expected.strip()
 
 def test_toml_to_nestedtext():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('sparekeys.toml').read_text()
         expected = Path('sparekeys.nt').read_text()
         toml2nt = Run('./toml-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert toml2nt.stdout.strip() == expected.strip()
 
 def test_csv_to_nestedtext():
-     with cd(home_dir):
+     with cd(tests_dir):
         stimulus = Path('percent_bachelors_degrees_women_usa.csv').read_text()
         expected = Path('percent_bachelors_degrees_women_usa.nt').read_text()
         csv2nt = Run('./csv-to-nestedtext -n', stdin=stimulus, modes='sOEW')
         assert csv2nt.stdout.strip() == expected.strip()
 
 def test_deploy_pydantic():
-     with cd(home_dir):
+     with cd(tests_dir):
         expected = Path('deploy_pydantic.nt').read_text()
         dp = Run('python3 deploy_pydantic.py', modes='sOEW')
         assert dp.stdout.strip() == expected.strip()
 
 def test_deploy_voluptuous():
-     with cd(home_dir):
+     with cd(tests_dir):
         expected = Path('deploy_voluptuous.nt').read_text()
         dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
         assert dv.stdout.strip() == expected.strip()
 
 def test_cryptocurrency():
-     with cd(home_dir):
+     with cd(tests_dir):
         # the cryptocurrency example outputs the current prices, so just do some
         # simple sanity checking on the output.
         cc = Run('./cryptocurrency', modes='sOEW')
@@ -91,7 +91,10 @@ def test_cryptocurrency():
         assert '50 kXLM =' in cc.stdout
 
 def test_postmortem():
-     with cd(home_dir):
+     with cd(tests_dir):
         expected = Path('postmortem.json').read_text()
+        user_home_dir = str(to_path('~'))
+        expected = expected.replace('~', user_home_dir)
+
         pm = Run('python3 postmortem.py', modes='sOEW')
         assert pm.stdout.strip() == expected.strip()
