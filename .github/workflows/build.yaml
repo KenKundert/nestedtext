@@ -22,6 +22,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
           pip install tox
-      - name: Test NestedText
+      - name: Run tests
         run: tox
-
+      - name: Publish coverage results
+        uses: coverallsapp/github-action@v1.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
