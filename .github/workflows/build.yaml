@@ -24,7 +24,7 @@ jobs:
           pip install tox
       - name: Run tests
         run: tox
-      - name: Publish coverage results
-        uses: coverallsapp/github-action@v1.0.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Report test coverage
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: coveralls
