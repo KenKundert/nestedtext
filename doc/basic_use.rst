@@ -10,7 +10,7 @@ The *NestedText* Python API is similar to that of *JSON*, *YAML*, *TOML*, etc.
 Installation
 ------------
 
-::
+.. code-block:: text
 
    pip3 install --user nestedtext
 

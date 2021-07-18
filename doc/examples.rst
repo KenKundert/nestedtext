@@ -170,7 +170,9 @@ on the form of the values specified and then converts the holdings to a list of
 `QuantiPhy <https://quantiphy.readthedocs.io>`_ quantities.  The latest prices 
 are then downloaded from `cryptocompare <https://www.cryptocompare.com>`_, the 
 value of the holdings are computed, and then displayed. The result looks like 
-this::
+this:
+
+.. code-block:: text
 
     Holdings as of 11:18 AM, Wednesday September 2.
     5 BTC = $56.8k @ $11.4k/BTC    68.4% ████████████████████████████████████▏
@@ -213,7 +215,7 @@ ids*.
 
 Here is the code for validating and transforming the *PostMortem* settings:
 
-.. literalinclude:: ../examples/postmortem.py
+.. literalinclude:: ../examples/postmortem
    :language: python
 
 This code uses *expand_settings* to implement references, and it uses the 

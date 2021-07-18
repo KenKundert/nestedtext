@@ -17,6 +17,10 @@ Latest development version
 | Version: 2.0.5
 | Released: 2021-07-16
 
+
+v3.0 (2021-07-17)
+-----------------
+
 - Deprecate trailing commas in inline lists and dictionaries.
 
 .. warning::
