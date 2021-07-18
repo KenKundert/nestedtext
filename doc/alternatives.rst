@@ -90,7 +90,8 @@ And here is the result of running that document through the YAML reader and
 writer.  One might expect that the format might change a bit but that the 
 information conveyed remains unchanged.
 
-YAML (round-trip):
+**YAML (round-trip)**:
+
     .. literalinclude:: ../examples/github-rt.yaml
         :language: yaml
 
