@@ -27,12 +27,13 @@ NestedText: A Human Friendly Data Format
 
 *NestedText* is a file format for holding structured data that is to be entered, 
 edited, or viewed by people.  It allows data to be organized into a nested 
-collection of dictionaries, lists, and strings.  In this way it is similar to 
-*JSON*, *YAML* and *TOML*, but without the complexity and risk of *YAML* and 
-without the syntactic clutter of *JSON* and *TOML*.  *NestedText* is both simple 
-and natural.  Only a small number of concepts and rules must be kept in mind 
-when creating it.  It is easily created, modified, or viewed with a text editor 
-and easily understood and used by both programmers and non-programmers.
+collection of dictionaries, lists, and strings without the need for quoting or 
+escaping.  In this way it is similar to *JSON*, *YAML* and *TOML*, but without 
+the complexity and risk of *YAML* and without the syntactic clutter of *JSON* 
+and *TOML*.  *NestedText* is both simple and natural.  Only a small number of 
+concepts and rules must be kept in mind when creating it.  It is easily created, 
+modified, or viewed with a text editor and easily understood and used by both 
+programmers and non-programmers.
 
 *NestedText* is convenient for configuration files, address books, account 
 information and the like.  Here is an example of a file that contains a few 
