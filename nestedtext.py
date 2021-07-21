@@ -71,35 +71,46 @@ class NestedTextError(Error, ValueError):
     what you can do with this exception in the `Inform documentation
     <https://inform.readthedocs.io/en/stable/api.html#exceptions>`_.
 
-    The exception provides the following attributes:
+    All exceptions provide the following attributes:
 
-    source:
+    .args:
+        The exception arguments.  A tuple that usually contains the problematic
+        value.
 
+    .template:
+        The possibly parameterized text used for the error message.
+
+    Exceptions raised by the :func:`loads()` or :func:`load()` functions provide
+    the following additional attributes:
+
+    .source:
         The source of the *NestedText* content, if given. This is often a
         filename.
 
-    line:
-
+    .line:
         The text of the line of *NestedText* content where the problem was found.
 
-    lineno:
-
-        The number of the line where the problem was found.  Line numbers are
-        zero based except when included in messages to the end user.
-
-    colno:
-
-        The number of the character where the problem was found on *line*.
-        Column numbers are zero based.
-
-    prev_line:
-
+    .prev_line:
         The text of the meaningful line immediately before where the problem was
         found.  This would not be a comment or blank line.
 
-    template:
+    .lineno:
+        The number of the line where the problem was found.  Line numbers are
+        zero based except when included in messages to the end user.
 
-        The possibly parameterized text used for the error message.
+    .colno:
+        The number of the character where the problem was found on *line*.
+        Column numbers are zero based.
+
+    .codicil:
+        The line that contains the error decorated with the location of the
+        error.
+
+    The exception culprit is the tuple that indicates where the error was found.
+    With exceptions from :func:`loads()` or :func:`load()`, the culprit consists
+    of the source name, if available, and the line number.  With exceptions from
+    :func:`dumps()` or :func:`dump()`, the culprit consists of the keys that
+    lead to the problematic value.
 
     As with most exceptions, you can simply cast it to a string to get a
     reasonable error message.
@@ -802,7 +813,9 @@ class NestedTextLoader:
     #             keys_used += (key,)
     #             value = value[key]
     #     except (KeyError, IndexError) as e:
-    #         raise NestedTextError(f"bad key.", key=key, culprit=keys_used)
+    #         raise NestedTextError(
+    #             key, template=f"key not found ({}).", culprit=keys_used
+    #         )
     #     return value
 
     # _add_keymap() {{{3
@@ -893,13 +906,10 @@ class NestedTextLoader:
                 else:
                     report('multiline key requires a value.', line, None, colno=depth)
 
-            try:
-                KeyPolicy.add_to_dictionary(values, key, value, line, depth)
-                loc.key_line = key_line
-                loc.key_col = key_col
-                self._add_keymap(new_keys, loc)
-            except NestedTextError as e:
-                report(e.template, line, key, colno=depth)
+            KeyPolicy.add_to_dictionary(values, key, value, line, depth)
+            loc.key_line = key_line
+            loc.key_col = key_col
+            self._add_keymap(new_keys, loc)
         return values, Location(line=first_line, col=first_line.depth)
 
     # _read_key() {{{3
@@ -1190,6 +1200,20 @@ def add_prefix(prefix, suffix):
     return prefix + " " + suffix
 
 
+# Keys class {{{2
+class Keys:
+    def __init__(self, key, dumper):
+        self.dumper = dumper
+        self.orig_keys = dumper.keys
+        dumper.keys = dumper.keys + (key,)
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *exc):
+        self.dumper.keys = self.orig_keys
+
+
 # NestedTextDumper class {{{2
 class NestedTextDumper:
     # constructor {{{3
@@ -1200,6 +1224,7 @@ class NestedTextDumper:
         self.indent = indent
         self.converters = converters
         self.default = default
+        self.keys = ()
 
         # define key sorting function {{{4
         if sort_keys:
@@ -1238,8 +1263,8 @@ class NestedTextDumper:
         elif converter is False:
             raise NestedTextError(
                 obj,
-                template = "unsupported type.",
-                culprit=repr(obj)
+                template = f"unsupported type ({type(obj).__name__}).",
+                culprit = self.keys,
             ) from None
         return obj
 
@@ -1252,8 +1277,9 @@ class NestedTextDumper:
             key = self.default(key)
         if not self.is_a_str(key):
             raise NestedTextError(
+                key,
                 template = 'keys must be strings.',
-                culprit = key
+                culprit = self.keys
             ) from None
         return convert_returns(key)
 
@@ -1292,9 +1318,10 @@ class NestedTextDumper:
         exclude = set('\n\r[]{}:,')
         rendered = {}
         for k, v in obj.items():
-            v = self.render_inline_value(obj[k], exclude=exclude)
-            k = self.render_inline_scalar(k, exclude=exclude)
-            rendered[k] = v
+            with Keys(k, self):
+                v = self.render_inline_value(obj[k], exclude=exclude)
+                k = self.render_inline_scalar(k, exclude=exclude)
+                rendered[k] = v
         items = []
         for k in self.sort_keys(rendered):
             items.append(f'{k}: {rendered[k]}')
@@ -1325,8 +1352,8 @@ class NestedTextDumper:
             except TypeError:
                 raise NestedTextError(
                     obj,
-                    template = "unsupported type.",
-                    culprit = repr(obj)
+                    template = f"unsupported type ({type(obj).__name__}).",
+                    culprit = self.keys
                 ) from None
             return self.render_inline_value(obj, exclude)
         else:
@@ -1358,9 +1385,10 @@ class NestedTextDumper:
             except NotSuitableForInline:
                 rendered = {}
                 for k, v in obj.items():
-                    key = self.render_key(k)
-                    v = self.render_dict_item(key, obj[k], level)
-                    rendered[key] = v
+                    with Keys(k, self):
+                        key = self.render_key(k)
+                        v = self.render_dict_item(key, obj[k], level)
+                        rendered[key] = v
                 content = "\n".join(rendered[k] for k in self.sort_keys(rendered))
         elif self.is_a_list(obj):
             try:
@@ -1372,10 +1400,14 @@ class NestedTextDumper:
                 if obj and len(content) > self.width:
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
-                content = "\n".join(
-                    add_prefix("-", self.render_content(v, level+1))
-                    for v in obj
-                )
+                content = []
+                for i, v in enumerate(obj):
+                    with Keys(i, self):
+                        content.append(
+                            add_prefix("-", self.render_content(v, level+1))
+                        )
+                content = "\n".join(content)
+
         elif self.is_a_str(obj):
             text = convert_returns(obj)
             if "\n" in text or level == 0:
@@ -1392,17 +1424,17 @@ class NestedTextDumper:
             try:
                 obj = self.default(obj)
             except TypeError:
-                error = 'unsupported type.'
+                error = f"unsupported type ({type(obj).__name__})."
             else:
                 content = self.render_content(obj, level+1)
         else:
-            error = 'unsupported type.'
+            error = f"unsupported type ({type(obj).__name__})."
 
         if need_indented_block and content and level:
             content = "\n" + add_leader(content, self.indent*" ")
 
         if error:
-            raise NestedTextError(obj, template=error, culprit=repr(obj)) from None
+            raise NestedTextError(obj, template=error, culprit=self.keys) from None
 
         return content
 
@@ -1518,7 +1550,7 @@ def dumps(
             ...     print(nt.dumps(data, default='strict'))
             ... except nt.NestedTextError as e:
             ...     print(str(e))
-            42: unsupported type.
+            key: unsupported type (int).
 
         Alternatively, you can specify a function to *default*, which is used
         to convert values to recognized types.  It is used if no suitable
@@ -1616,7 +1648,7 @@ def dumps(
             ...    print(nt.dumps(data, converters=converters))
             ... except nt.NestedTextError as e:
             ...     print(str(e))
-            3.1415926: unsupported type.
+            value: unsupported type (float).
 
         *converters* need not actually change the type of a value, it may simply
         transform the value.  In the following example, *converters* is used to

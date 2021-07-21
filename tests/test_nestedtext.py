@@ -823,6 +823,8 @@ def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
 
     if culprit is None:
         culprit = ()
+    elif isinstance(culprit, list):
+        culprit = tuple(culprit)
     elif not isinstance(culprit, tuple):
         culprit = (culprit,)
     assert culprit == e.get_culprit()
@@ -1038,7 +1040,7 @@ def test_dump_converters(dump, tmp_path):
     converters = {ntInfo: False}
     with pytest.raises(nt.NestedTextError) as exc:
         dump(y, tmp_path, width=80, converters=converters)
-    assert str(exc.value) == f"ntInfo(val=42): unsupported type."
+    assert str(exc.value) == f"info: unsupported type (ntInfo)."
 
     # converting arrow object
     date = '1969-07-20'
@@ -1134,28 +1136,28 @@ def defaulter(arg):
 
 @parametrize_dump_api
 @parametrize(
-        'data, culprit, kwargs', [
-            ({'key': 42},   42,   dict(default='strict')),
-            ({'key': 42.0}, 42.0, dict(default='strict')),
-            ({'key': True}, True, dict(default='strict')),
-            ({'key': 42},   42,   dict(default=str, converters={int: False})),
-            ({'key': z}, 0j, dict(default=defaulter)),
-            ({'key': 42},   42,   dict(default='strict', width=80)),
-            ({'key': 42.0}, 42.0, dict(default='strict', width=80)),
-            ({'key': True}, True, dict(default='strict', width=80)),
-            ({'key': 42},   42,   dict(default=str, converters={int: False}, width=80)),
-            ({'key': z}, 0j, dict(default=defaulter, width=80)),
+        'data, culprit, kind, kwargs', [
+            ({'key': 42},   'key', 'int',     dict(default='strict')),
+            ({'key': 42.0}, 'key', 'float',   dict(default='strict')),
+            ({'key': True}, 'key', 'bool',    dict(default='strict')),
+            ({'key': 42},   'key', 'int',     dict(default=str, converters={int: False})),
+            ({'key': z},    'key', 'complex', dict(default=defaulter)),
+            ({'key': 42},   'key', 'int',     dict(default='strict', width=80)),
+            ({'key': 42.0}, 'key', 'float',   dict(default='strict', width=80)),
+            ({'key': True}, 'key', 'bool',    dict(default='strict', width=80)),
+            ({'key': 42},   'key', 'int',     dict(default=str, converters={int: False}, width=80)),
+            ({'key': z},    'key', 'complex', dict(default=defaulter, width=80)),
         ]
 )
-def test_dump_converters_err(dump, tmp_path, data, culprit, kwargs):
+def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
     with pytest.raises(nt.NestedTextError) as exc:
         dump(data, tmp_path, **kwargs)
 
-    assert str(exc.value) == f"{culprit}: unsupported type."
-    assert exc.value.args == (culprit,)
+    assert str(exc.value) == f"{culprit}: unsupported type ({kind})."
+    assert exc.value.args == (data[culprit],)
     assert exc.value.kwargs == dict(
         culprit = (str(culprit),),
-        template = 'unsupported type.',
+        template = f'unsupported type ({kind}).',
     )
     assert isinstance(exc.value, Error)
     assert isinstance(exc.value, ValueError)

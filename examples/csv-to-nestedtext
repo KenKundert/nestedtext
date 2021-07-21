@@ -68,7 +68,7 @@ try:
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
-    e.terminate(culprit=input_filename)
+    e.terminate()
 except csv.Error as e:
     fatal(full_stop(e), culprit=(input_filename, data.line_num))
 except KeyboardInterrupt:
