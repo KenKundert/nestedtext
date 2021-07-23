@@ -17,6 +17,14 @@ Latest development version
 | Released: 2021-07-21
 
 
+v3.1 (2021-07-23)
+-----------------
+
+- change error reporting for :ref:`dumps` and :ref:`dump` functions;
+  culprit is now the keys rather than the value.
+
+
+
 v3.0 (2021-07-17)
 -----------------
 

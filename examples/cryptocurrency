@@ -64,7 +64,11 @@ except nt.NestedTextError as e:
 except Invalid as e:
     kind = 'key' if 'key' in e.msg else 'value'
     loc = keymap[tuple(e.path)]
-    fatal(full_stop(e.msg), culprit=e.path, codicil=loc.as_line(kind))
+    fatal(
+        full_stop(e.msg),
+        culprit = [settings_file] + e.path,
+        codicil=loc.as_line(kind)
+    )
 except OSError as e:
     fatal(os_error(e))
 except KeyboardInterrupt:

@@ -109,5 +109,6 @@ except nt.NestedTextError as e:
 except Invalid as e:
     kind = 'key' if 'key' in e.msg else 'value'
     loc = keymap[tuple(e.path)]
-    print(f"ERROR: {'.'.join(str(p) for p in e.path)}: {e.msg}.")
+    culprit = '.'.join(str(p) for p in [config_filepath] + e.path)
+    print(f"ERROR: {culprit}: {e.msg}.")
     print(loc.as_line(kind))
