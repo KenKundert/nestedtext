@@ -5,7 +5,7 @@ import nestedtext
 
 project = u'NestedText'
 copyright = u'2020-21, Ken and Kale Kundert'
-release = '3.0.1'
+release = '3.1.0'
 version = '.'.join(release.split('.'))
 
 master_doc = 'index'
