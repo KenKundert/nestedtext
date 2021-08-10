@@ -4,11 +4,11 @@ NestedText: A Human Friendly Data Format
 .. image:: https://pepy.tech/badge/nestedtext/month
     :target: https://pepy.tech/project/nestedtext
 
-.. image:: https://img.shields.io/travis/KenKundert/nestedtext/master.svg
-    :target: https://travis-ci.org/KenKundert/nestedtext
+..  image:: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml/badge.svg
+    :target: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml
 
-.. image:: https://img.shields.io/coveralls/KenKundert/nestedtext.svg
-    :target: https://coveralls.io/r/KenKundert/nestedtext
+.. image:: https://coveralls.io/repos/github/KenKundert/nestedtext/badge.svg?branch=master
+    :target: https://coveralls.io/github/KenKundert/nestedtext?branch=master
 
 .. image:: https://img.shields.io/pypi/v/nestedtext.svg
     :target: https://pypi.python.org/pypi/nestedtext
