@@ -89,6 +89,21 @@ This example implements a command-line utility that converts a *JSON* file to
 Be aware that not all *JSON* data can be converted to *NestedText*, and in the 
 conversion much of the type information is lost.
 
+*json-to-nestedtext* can be used as a JSON pretty printer:
+
+.. code-block:: text
+
+    > json-to-nestedtext < fumiko.json
+    treasurer:
+        name: Fumiko Purvis
+        address:
+            > 3636 Buffalo Ave
+            > Topeka, Kansas 20692
+        phone: 1-268-555-0280
+        email: fumiko.purvis@hotmail.com
+        additional roles:
+            - accounting task force
+
 
 .. _nestedtext-to-json:
 
