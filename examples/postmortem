@@ -112,3 +112,5 @@ except Invalid as e:
     culprit = '.'.join(str(p) for p in [config_filepath] + e.path)
     print(f"ERROR: {culprit}: {e.msg}.")
     print(loc.as_line(kind))
+except OSError as e:
+    print(f"ERROR: {config_filepath!s}: {e!s}")

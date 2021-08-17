@@ -14,7 +14,7 @@ setup(
     url = 'https://nestedtext.org',
     download_url = 'https://github.com/kenkundert/nestedtext/tarball/master',
     license = 'MIT',
-    zip_safe = False,
+    zip_safe = True,
     py_modules = 'nestedtext'.split(),
     install_requires = 'inform>=1.25'.split(),
     python_requires = '>=3.6',

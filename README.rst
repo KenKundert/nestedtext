@@ -4,6 +4,9 @@ NestedText: A Human Friendly Data Format
 .. image:: https://pepy.tech/badge/nestedtext/month
     :target: https://pepy.tech/project/nestedtext
 
+.. image:: https://img.shields.io/readthedocs/nestedtext.svg
+   :target: https://nestedtext.readthedocs.io/en/latest/?badge=latest
+
 ..  image:: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml/badge.svg
     :target: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml
 
