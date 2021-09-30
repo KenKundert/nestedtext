@@ -129,6 +129,9 @@ easy and reliable.
 Related Projects
 ----------------
 
+Reference Material
+~~~~~~~~~~~~~~~~~~
+
 .. list-table::
    :widths: 20 80
    :header-rows: 1
@@ -143,6 +146,31 @@ Related Projects
    * - `nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
      - Official *NestedText* test suite.  Also included as submodule in 
        `nestedtext <https://github.com/kenkundert/nestedtext>`_.
+
+
+Implementations
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Project
+     - Description
+   * - `janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
+     - `Janet <https://janet-lang.org/>`_ implementation of *NestedText*.
+   * - `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
+     - `Zig <https://ziglang.org>`_ implementation of *NestedText*.
+
+Utilities
+~~~~~~~~~
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Project
+     - Description
    * - `parametrize from file
        <https://github.com/kalekundert/parametrize_from_file>`_
      - Separate your test cases, held in *NestedText*, from your `PyTest 
@@ -152,8 +180,6 @@ Related Projects
    * - `visual studio 
        <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_
      - Syntax files for *Visual Studio*.
-   * - `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
-     - `Zig <https://ziglang.org>`_ implementation of *NestedText*.
 
 
 Contributing

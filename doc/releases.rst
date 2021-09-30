@@ -20,7 +20,7 @@ Latest development version
 v3.1 (2021-07-23)
 -----------------
 
-- change error reporting for :ref:`dumps` and :ref:`dump` functions;
+- change error reporting for :func:`dumps` and :func:`dump` functions;
   culprit is now the keys rather than the value.
 
 
