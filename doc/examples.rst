@@ -131,10 +131,10 @@ This example implements a command-line utility that converts a *CSV* file to
    :language: python
 
 
-.. _display format example:
+.. _pretty printing example:
 
-Display format
-==============
+Pretty Printing
+===============
 
 Besides being a readable file format, *NestedText* makes a reasonable display 
 format for structured data.  You can further simplify the output by stripping 
