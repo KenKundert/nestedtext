@@ -78,7 +78,7 @@ multiline strings <http://stackoverflow.com/a/21699210/660921>`_.
 the multitude of formats and disambiguation rules make *YAML* a difficult 
 language to learn, and the ambiguities creates traps for the user.
 To illustrate these points, the following is a condensation of a YAML document 
-taken from the GitHub documentation that describes host to configure continuous 
+taken from the GitHub documentation that describes how to configure continuous 
 integration using Python:
 
 **YAML**:
@@ -99,7 +99,8 @@ There are a few things to notice about this second version.
 
 1. ``on`` key was inappropriately converted to ``true``.
 2. Python version ``3.10`` was inappropriately converted to ``3.1``.
-3. The multiline strings were converted to an even more obscure format.
+3. Blank lines were added to the multiline string and it was converted to 
+   another format.
 4. Indentation is not an accurate reflection of nesting (notice that 
    ``python-version`` and ``- 3.6`` have the same indentation, but ``- 3.6`` is 
    contained inside ``python-version``).
