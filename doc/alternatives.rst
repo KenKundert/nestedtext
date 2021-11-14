@@ -97,11 +97,13 @@ information conveyed remains unchanged.
 
 There are a few things to notice about this second version.
 
-1. ``on`` key was inappropriately converted to ``true``.
-2. Python version ``3.10`` was inappropriately converted to ``3.1``.
-3. Blank lines were added to the multiline string and it was converted to 
-   another format.
-4. Indentation is not an accurate reflection of nesting (notice that 
+1. ``on`` key was inappropriately converted to ``true``, introducing an error.
+2. Python version ``3.10`` was inappropriately converted to ``3.1``, introducing 
+   an error.
+3. Blank lines were added to the multiline strings and were converted to another 
+   of the 9 possible formats.
+4. Escaping was required for the quotes on ``'requirements.txt'``.
+5. Indentation is not an accurate reflection of nesting (notice that 
    ``python-version`` and ``- 3.6`` have the same indentation, but ``- 3.6`` is 
    contained inside ``python-version``).
 
