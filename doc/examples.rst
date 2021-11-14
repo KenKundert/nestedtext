@@ -146,12 +146,12 @@ to be literal Python code.
 
 The test cases:
 
-.. literalinclude:: ../examples/test-misc.nt
+.. literalinclude:: ../examples/test_misc.nt
    :language: nestedtext
 
 And the corresponding test code:
 
-.. literalinclude:: ../examples/test-misc.py
+.. literalinclude:: ../examples/test_misc.py
    :language: python
 
 
