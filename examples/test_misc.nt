@@ -1,0 +1,23 @@
+# test_expr.nt
+test_substitution:
+  -
+    given:   first  second
+    search: ^\s*(\w+)\s*(\w+)\s*$
+    replace: \2 \1
+    expected: second first
+  -
+    given: 4 * 7
+    search: ^\s*(\d+)\s*([-+*/])\s*(\d+)\s*$
+    replace: \1 \3 \2
+    expected: 4 7 *
+
+test_expression:
+  -
+    given: 1 + 2
+    expected: 3
+  -
+    given: "1" + "2"
+    expected: "12"
+  -
+    given: pathlib.Path("/") / "tmp"
+    expected: pathlib.Path("/tmp")

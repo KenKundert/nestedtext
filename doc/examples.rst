@@ -121,13 +121,37 @@ to *JSON*.  It demonstrates the use of :func:`load()` and
 .. _csv-to-nestedtext:
 
 CSV to NestedText
-==================
+=================
 
 This example implements a command-line utility that converts a *CSV* file to 
 *NestedText*.  It demonstrates the use of the *converters* argument to 
 :func:`dumps()`, which is used to cull empty dictionary fields.
 
 .. literalinclude:: ../examples/csv-to-nestedtext
+   :language: python
+
+
+.. _parametrize-from-file:
+
+PyTest
+======
+
+This example highlights a PyTest_ package parametrize_from_file_ that allows you 
+to neatly separate your test code from your test cases; the test cases being 
+held in a *NestedText* file.  Since test cases often contain code snippets, the 
+ability of *NestedText* to hold arbitrary strings without the need for quoting 
+or escaping results in very clean and simple test case specifications.  Also, 
+use of the *eval* function in the test code allows the fields in the test cases 
+to be literal Python code.
+
+The test cases:
+
+.. literalinclude:: ../examples/test-misc.nt
+   :language: nestedtext
+
+And the corresponding test code:
+
+.. literalinclude:: ../examples/test-misc.py
    :language: python
 
 
@@ -149,7 +173,7 @@ leading multiline string tags if you so desire.
     ...     return re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M)
 
     >>> addresses = nt.load('examples/address.nt')
-    >>> print(strip_nestedtext(nt.dumps(addresses['treasurer'])))
+    >>> print(strip_nestedtext(nt.dumps(addresses['treasurer'], default=repr)))
     name: Fumiko Purvis
     address:
         3636 Buffalo Ave
@@ -274,5 +298,7 @@ Here are the processed settings:
 
 .. _pydantic: https://pydantic-docs.helpmanual.io
 .. _voluptuous: https://github.com/alecthomas/voluptuous
+.. _PyTest: https://docs.pytest.org
+.. _parametrize_from_file: https://parametrize-from-file.readthedocs.io
 .. _PostMortem: https://github.com/kenkundert/postmortem
 .. _pathlib: https://docs.python.org/3/library/pathlib.html
