@@ -157,9 +157,10 @@ Implementations
 
    * - Project
      - Description
+   * - `nestex <https://github.com/npillmayer/nestext>`_
+     - `Go <https://golang.org/>`_ implementation of *NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
    * - `janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
-     - `Janet <https://janet-lang.org/>`_ implementation of *NestedText* 
-       (supports :ref:`NestedText v3.0 <v3.0>`).
+     - `Janet <https://janet-lang.org/>`_ implementation of *NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
    * - `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
      - `Zig <https://ziglang.org>`_ implementation of *NestedText*  (slight 
        subset of :ref:`NestedText v3.0 <v3.0>`).
