@@ -283,3 +283,12 @@ underflows, loss of precision, or compatibility issues.
 All of these issues affect the readability, writeability, and fidelity of the 
 format.  By limiting the leaf values to be only strings, *NestedText* sidesteps 
 all of these issues.
+
+
+.. _json: https://www.json.org/json-en.html
+.. _yaml: https://yaml.org/
+.. _strictyaml: <https://hitchdev.com/strictyaml
+.. _toml: https://toml.io/en/
+.. _ini: https://en.wikipedia.org/wiki/INI_file
+.. _csv: https://en.wikipedia.org/wiki/Comma-separated_values
+.. _tsv: https://en.wikipedia.org/wiki/Tab-separated_values

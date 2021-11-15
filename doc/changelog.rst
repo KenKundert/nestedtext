@@ -24,6 +24,8 @@ v3.1 (2021-07-23)
 - No changes.
 
 
+.. _v3.0:
+
 v3.0 (2021-07-17)
 -----------------
 
@@ -37,6 +39,8 @@ v3.0 (2021-07-17)
     an that contains an empty string, whereas previously it represented an
     empty list.
 
+
+.. _v2.0:
 
 v2.0 (2021-05-28)
 -----------------
@@ -68,6 +72,8 @@ v1.1 (2020-10-13)
 
 - No changes.
 
+
+.. _v1.0:
 
 v1.0 (2020-10-03)
 -----------------

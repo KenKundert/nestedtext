@@ -160,7 +160,8 @@ Implementations
    * - `janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
      - `Janet <https://janet-lang.org/>`_ implementation of *NestedText*.
    * - `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
-     - `Zig <https://ziglang.org>`_ implementation of *NestedText*.
+     - `Zig <https://ziglang.org>`_ implementation of *NestedText*  (slight 
+       subset of :ref:`NestedText v3.0 <v3.0>`).
 
 Utilities
 ~~~~~~~~~
@@ -175,11 +176,11 @@ Utilities
        <https://github.com/kalekundert/parametrize_from_file>`_
      - Separate your test cases, held in *NestedText*, from your `PyTest 
        <https://docs.pytest.org>`_ test code.
-   * - `vim-nestedtext <https://github.com/kalekundert/vim-nestedtext>`_
-     - Vim syntax files for *NestedText*.
+   * - `vim-nestedtext <https://github.com/kenkundert/vim-nestedtext>`_
+     - Vim syntax files for *NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
    * - `visual studio 
        <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_
-     - Syntax files for *Visual Studio*.
+     - Syntax files for *Visual Studio* (supports :ref:`NestedText v1.0 <v1.0>`).
 
 
 Contributing
