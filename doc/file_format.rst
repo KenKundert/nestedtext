@@ -24,8 +24,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **Line types**:
 
     Each line in a *NestedText* document is assigned one of the following types: 
-    *comment*, *blank*, *list item*, *dict item*, *string item*, *key item* or 
-    *inline*.  Any line that does not fit one of these types is an error.
+    *comment*, *blank*, *list item*, *dictionary item*, *string item*, *key 
+    item* or *inline*.  Any line that does not fit one of these types is an 
+    error.
 
 
 **Blank lines**:
@@ -36,7 +37,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Line-type tags**:
 
-    Most remaining lines are identifying by the presence of tags, where a tag is
+    Most remaining lines are identified by the presence of tags, where a tag is
     the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
     a line when followed immediately by a space or line break, or a hash 
     {``#``), left bracket (``[``), or left brace (``{``) as the first non-white 
@@ -80,10 +81,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     If the first non-space character on a line is a dash followed immediately by 
     a space (``-␣``) or a line break, the line is a *list item*.  Adjacent list 
-    items with the same indentation level are combined in order into a list 
-    value.  Each list item has a tag and a value.  The tag is only used to 
-    determine the type of the line and is discarded leaving the value.  The 
-    value takes one of three forms.
+    items with the same indentation level are combined in order into a list.
+    Each list item has a tag and a value.  The tag is only used to determine the 
+    type of the line and is discarded leaving the value.  The value takes one of 
+    three forms.
 
     1. If the line contains further text (characters after the dash-space), then 
        the value is that text.  The text ends at the line break and may contain 
@@ -102,7 +103,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     by a space (``:␣``) or a line break, the line is a *key item*.  After 
     comments and blank lines have been removed, adjacent key items with the same 
     indentation level are combined in order into a multiline key.  The key 
-    value is the multiline string with the tags removed. Any leading white 
+    itself is the multiline string with the tags removed. Any leading white 
     space that follows the tag is retained, as is any trailing white space and 
     all newlines except the last.
 
@@ -110,29 +111,29 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     An indented value must follow a multiline key.  The indented value may be 
     either a multiline string, a list or a dictionary.  The combination of the 
-    key item and its value forms a *dict item*.
+    key item and its value forms a *dictionary item*.
 
 
 **Dictionary items**:
 
     Dictionary items take two possible forms.
 
-    The first is a *dict item with inline key*.  In this case the line does not 
-    start with a tag, but instead contains an interior dict tag: a colon 
-    followed by either a space (``:␣``) or a line break where the colon is not 
-    the first non-space character on the line.  The dict item consists of a key, 
-    the tag, and a value.  Any space between the key and the tag is ignored.
+    The first is a *dictionary item with inline key*.  In this case the line 
+    starts with a key followed by a dictionary tag: a colon followed by either 
+    a space (``:␣``) or a newline.  The dictionary item consists of the key, the 
+    tag, and the trailing value.  Any space between the key and the tag is 
+    ignored.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
 
     1. contain a line break character.
     2. start with a list item, string item or key item tag,
-    3. contain a dict item tag, or
+    3. contain a dictionary item tag, or
     4. contain leading spaces (any spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
-    leaving the value, which follows the tag.  The value takes one of three 
-    forms.
+    leaving the key and the value, which follows the tag.  The value takes one 
+    of three forms.
 
     1. If the line contains further text (characters after the colon-space), 
        then the value is that text.  The text ends at the line break and may 
@@ -144,12 +145,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     3. Otherwise the value is empty; it is taken to be an empty string.
 
-    The second form of *dict item* is the *dict item with multiline key*.  It 
-    consists of a multiline key value followed by an indented multiline 
-    string, list, or dictionary.
+    The second form of *dictionary item* is the *dictionary item with multiline 
+    key*.  It consists of a multiline key value followed by an indented 
+    multiline string, list, or dictionary.
 
-    Adjacent dict items of either form with the same indentation level are 
-    combined in order into a dictionary value.
+    Adjacent dictionary items of either form with the same indentation level are 
+    combined in order into a dictionary.
 
 
 **Inline Lists and Dictionaries**:
@@ -213,8 +214,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     spaces in the indentation represents an indent and a decrease to return to 
     a prior indentation represents a dedent.
 
-    An indented value may only follow a list item or dict item that does not 
-    have a value on the same line.  An indented value must follow a key item.
+    An indented value may only follow a list item or dictionary item that does 
+    not have a value on the same line.  An indented value must follow a key 
+    item.
 
 
 **Escaping and Quoting**:

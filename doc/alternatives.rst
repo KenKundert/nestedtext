@@ -266,7 +266,8 @@ units, such as $20.00 and 47 kΩ).  Rather, these values are treated as strings
 that are later converted to the right type by the end application.  This 
 actually provides substantial benefits.  The end application has context that 
 a general purpose data reader cannot have.  For example, the date 10/07/08 could 
-represent either July 8, 2010 or October 7, 2008: the application would know.
+represent either July 8, 2010 or October 7, 2008: only the user and the 
+application would know which.
 
 There are further issues with natively supported data types.  For example, the 
 type of the value 2 is ambiguous, it may either be integer or real.  This may 

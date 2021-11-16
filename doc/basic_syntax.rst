@@ -47,6 +47,9 @@ on the next line, which must be further indented.
     key 3:
         key 3a: value 3a
         key 3b: value 3b
+    key 4:
+        > first line of value 4
+        > second line of value 4
 
 A second less common form of a dictionary item employs multiline keys.  In this 
 case there are no limitations on the key other than it be a string.  Each line 
@@ -119,8 +122,14 @@ line, which must be further indented.
 
     - value 1
     -
-        key 2a: value 2a
-        key 2b: value 2b
+        - value 2a
+        - value 2b
+    -
+        key 3a: value 3a
+        key 3b: value 3b
+    -
+        > first line of value 4
+        > second line of value 4
 
 Another form of a list is the inline list.  This is a compact form where all the 
 list items are given on the same line.  There is a bit of syntax that defines 
