@@ -1,3 +1,5 @@
+.. _alternatives:
+
 ************
 Alternatives
 ************
@@ -8,6 +10,8 @@ some of these alternatives are discussed next.  *NestedText* is intended to be
 used in situations where people either create, modify, or consume the data 
 directly.  It is this perspective that informs these comparisons.
 
+
+.. _vs_json:
 
 JSON
 ====
@@ -59,6 +63,8 @@ The following examples illustrate the difference between *JSON* and
 
     .. literalinclude:: ../examples/fumiko.nt
         :language: nestedtext
+
+.. _vs_yaml:
 
 YAML
 ====
@@ -126,6 +132,8 @@ file format:
 - safe, no risk of malicious code execution
 
 
+.. _vs_toml:
+
 TOML or INI
 ===========
 
@@ -166,6 +174,8 @@ readable and writable data file format:
 - heavily nested data is represented efficiently
 
 
+.. _vs_csv:
+
 CSV or TSV
 ==========
 
@@ -198,6 +208,8 @@ situation:
 - file representation tends to be tall and skinny rather than short and fat
 - easier to read
 
+
+.. _only_strings:
 
 Really, Only Strings?
 =====================

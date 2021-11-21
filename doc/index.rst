@@ -8,6 +8,7 @@
    alternatives
    basic_syntax
    file_format
+   related_projects
    changelog
 
 .. toctree::
