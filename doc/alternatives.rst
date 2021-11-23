@@ -258,34 +258,45 @@ code more robust with little to no increase in complexity:
     data receptacle being aware the type of each value.  Rather it is very 
     constraining.
 
-.. collapse:: No format supports all possible data types.
+|
+| Supporting native data types raises its own issues:
+
+.. collapse:: No format can support all possible data types.
 
     *NestedText* gains simplicity by jettisoning native support for scalar data 
     types other than strings.  However it is important to recognize that the 
     alternatives must do this as well.  There are an unlimited number of data 
-    types that can be supported and they cannot support all of them.  Common 
-    data types that are generally not supported include dates, times, and 
-    quantities (numbers with units, such as $20.00 and 47 kΩ).  Rather, these 
-    values are treated as strings that are later converted to the right type by 
-    the end application.  This approach actually provides substantial benefits.  
-    The end application has context that a general purpose data reader cannot 
-    have.  For example, the date 10/07/08 could represent either 10 August 2008 
-    or October 7, 2008, or perhaps even July 8, 2010.  Only the user and the 
-    application would know which.
+    types that can be supported and they cannot support them all.  Common data 
+    types that are generally not supported include dates, times, and quantities 
+    (numbers with units, such as $20.00 and 47 kΩ).  With all languages there is 
+    a decision to be made: what types should be supported natively.  Each 
+    additional type increases the complexity of the format.  If only strings are 
+    supported, as with *NestedText*, things are pretty simple.  Adding any other 
+    data type then requires supporting quoting and escaping, which is 
+    a substantial jump up in complexity.
+
+    Data types that are not natively supported are generally passed as strings 
+    that are later converted to the right type by the end application.  This 
+    approach actually provides substantial benefits.  The end application has 
+    context that a general purpose data reader cannot have.  For example, the 
+    date ``10/07/08`` could represent either 10 August 2008 or October 7, 2008, 
+    or perhaps even July 8, 2010.  Only the user and the application would know 
+    which.
 
 .. collapse:: Native data types can be ambiguous.
 
-    The type of the value ``2`` is ambiguous; it may either be integer or real.  
-    This may cause problems when combined into an array, such as ``[1.85, 1.94, 
-    2, 2.09]``.  A casually written program may choke on a non-homogeneous array 
-    that consists of an integer among the floats.  This is the reason that 
-    :ref:`JSON <vs_json>` does not distinguish between integers and reals.
+    The type of the value ``2`` is ambiguous; it may be integer or real.  This 
+    may cause problems when combined into an array, such as ``[1.85, 1.94, 2, 
+    2.09]``.  A casually written program may choke on a non-homogeneous array 
+    that consists of an integer among the floats.  This is the reason that JSON 
+    does not distinguish between integers and reals.
 
-    :ref:`YAML <vs_yaml>` is notorious for ambiguities because it allows 
-    unquoted strings.  ``2`` is a valid integer, real, and string.  Similarly, 
-    ``no`` is a valid Boolean and string.
-
-.. collapse:: Native data types are constrained.
+    YAML is notorious for ambiguities because it allows unquoted strings.  ``2`` 
+    is a valid integer, real, and string.  Similarly, ``no`` is a valid Boolean 
+    and string.  In fact, every single value in YAML that is not quoted is also 
+    a valid string.  Many people that use YAML simply quote every string, but 
+    that does not solve all the problems because things that are not intended to 
+    be strings can be converted to strings, such as ``09``.
 
     There is also the issue of the internal representation of the data.  Is the 
     integer represented using 32 bits, 64 bits, or can the integer by 
@@ -299,15 +310,29 @@ code more robust with little to no increase in complexity:
 .. collapse:: Native data types can lose information.
 
     It is common to format real numbers so as to convey the meaningful precision 
-    of the number.  For example, 2 or 2. represents a number with one digit of 
-    precision, 2.0 represents a number with two digits of precision, 2.00 
-    represents a number with three digits of precision, etc.  This information 
-    on the precision of the number is lost when these numbers are converted to 
-    the float data type.
+    of the number.  For example, ``2`` or ``2.`` represents a number with one 
+    digit of precision, ``2.0`` represents a number with two digits of 
+    precision, ``2.00`` represents a number with three digits of precision, etc.  
+    This information on the precision of the number is lost when these numbers 
+    are converted to the float data type.
 
-    This same issue also causes problem when representing version numbers.  The 
-    number 3.10 is used to represent version three point ten, but when converted 
-    to a float becomes version three point one.
+    This same issue also causes problems when representing version numbers.  The 
+    number ``3.10`` is used to represent version three point ten, but when 
+    converted to a float becomes version three point one.
+
+    There are also cases where multiple formats map to the same underlying data 
+    type.  For example, integers may be given in binary, octal, decimal, or 
+    hexadecimal formats.  YAML provides almost a dozen different ways to specify 
+    strings.  This causes problems when round-tripping, which is where you read 
+    a file, perhaps process it, and then write it back out.  Since the data is 
+    converted to an internal data type, the original formatting is lost, meaning 
+    that the program that writes out the data cannot know how it was originally 
+    specified.  Integers are generally written out as decimal number regardless 
+    of how they were specified.  In YAML, the writer checks to see if a string 
+    contains a newline and if so simply chooses one of the 9 possible multiline 
+    string formats arbitrarily.  This is why in the round-trip :ref:`YAML 
+    example <vs_yaml>` given above the Python script ends up being interleaved 
+    with blank lines.
 
 |
 | Using *NestedText* also makes life easier for your end-users:
@@ -315,16 +340,23 @@ code more robust with little to no increase in complexity:
 .. collapse::
     Native types may be unfamiliar, inconvenient, or confusing for end users.
 
-    Casual users may not understand that 2 is treated differently than 2.0, 
-    which may cause issues in applications that are not carefully written.
+    Casual users may not understand that ``2`` is treated differently than 
+    ``2.0``, which may cause issues in applications that are not carefully 
+    written.
 
-    :ref:`TOML <vs_toml>` natively accepts dates and times, but only in 
-    `ISO-8601 formats <https://en.wikipedia.org/wiki/ISO_8601>`_.  Casual users 
-    are unlikely to be familiar with this format or may find it awkward or 
-    cumbersome.
+    TOML natively accepts dates and times, but only in `ISO-8601 formats 
+    <https://en.wikipedia.org/wiki/ISO_8601>`_.  Casual users are unlikely to be 
+    familiar with this format or may find it awkward or cumbersome.
 
-.. collapse::
-    Data type is an implementation detail that should not concern the end user.
+    YAML natively accepts sexagesimal (base 60) numbers in the form ``2:30:00``, 
+    which YAML converts to 9000.  If this is a duration, it would likely imply 
+    2 hours, 30 minutes and 0 seconds, which totals to 9000 seconds.  It may be 
+    also used for the time of day.  Someone that used twelve hour time 
+    formatting might write ``2:30:00 AM`` and get a string.  Someone that used 
+    twenty-four hours formatting might write ``2:30:00`` and get the integer 
+    9000, or they might write ``02:30:00`` and get a string.  However, if they 
+    entered a time 12 hours later, ``16:30:00``, they would get an integer 
+    again.
 
     Native data types are distinguished from each other by using conventions 
     that are second nature to programmers.  Conventions such as "you must quote 
@@ -333,10 +365,10 @@ code more robust with little to no increase in complexity:
     point" and "real numbers may not contain units".
 
     Casual users are unlikely to know these conventions, which causes 
-    frustration and errors.  Forcing users to know and use these conventions 
+    frustration and errors.  Forcing them to know and use these conventions 
     represents an undesirable and sometimes overwhelming burden.  This is 
-    particularly true for :ref:`YAML <vs_yaml>`, which can be a minefield for 
-    the casual user.  Consider the following:
+    particularly true for YAML, which can be a minefield even for programmers.
+    Consider the following:
 
     | ``Hey there!`` and ``"Hey there!"`` represent the same string.
     | ``She said, "Hey there!"`` is a valid string,
@@ -348,6 +380,9 @@ code more robust with little to no increase in complexity:
     | ``Now`` is a string, but ``No`` is a Boolean.
     | ``(1 + 2)`` is a string, but ``[1 + 2]`` is a list.
     | ``02:30:00`` is a string but ``2:30:00`` is 9000.
+
+    Only programmers with substantial experience with YAML can anticipate or 
+    even understand this behavior.
 
     Other languages have similar, but less extreme challenges, particularly the 
     need for quoting and escaping.
@@ -365,20 +400,21 @@ code more robust with little to no increase in complexity:
     way, there is no need to distinguish the strings from other possible data 
     types.
 
-    The alternatives all distinguish strings by surrounding them with quotes.  This 
-    adds visual clutter and makes them more difficult to type.  This is not 
+    The alternatives all distinguish strings by surrounding them with quotes.  
+    This adds visual clutter and makes them more difficult to type.  This is not 
     generally a problem if there are only a few stings, but it becomes a drag if 
-    there is are many.  However, quoting brings another challenge.  Since a string 
-    can consist of any sequence of characters, it can include the quote characters.  
-    Now the quote characters within the string must be distinguished from the quote 
-    characters that delimit the string; a process referred to as escaping the 
-    character.  This is often done with an special escape character, generally 
-    the backslash, but may be done by duplicating the character to be escaped.  
-    The string may naturally contain escape characters and they would need 
-    escaping as well.  This represents a deep hole.  For example, consider the 
-    following Python dictionary that contains a collection of regular 
-    expressions.  The regular expressions are quoted strings that by their very 
-    nature generally require a large amount of escaping:
+    there is are many.  However, quoting brings another challenge.  Since 
+    a string can consist of any sequence of characters, it can include the quote 
+    characters.  Now the quote characters within the string must be 
+    distinguished from the quote characters that delimit the string; a process 
+    referred to as escaping the character.  This is often done with an special 
+    escape character, generally the backslash, but may be done by duplicating 
+    the character to be escaped.  The string may naturally contain escape 
+    characters and they would need escaping as well.  This represents a deep 
+    hole.  For example, consider the following Python dictionary that contains 
+    a collection of regular expressions.  The regular expressions are quoted 
+    strings that by their very nature generally require a large amount of 
+    escaping:
 
     .. code-block:: python
 
@@ -410,10 +446,24 @@ code more robust with little to no increase in complexity:
         identifier: [a-zA-Z_][a-zA-Z_0-9]*
         number: [+-]?[0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?
 
+.. collapse::
+    Data type is an implementation detail that should not concern the end user.
+
+    In general, users that are expected to read, write, or modify structured 
+    data benefit from formats tailored to their needs.  That only happens when 
+    the values are passed as strings that are interpreted by the end 
+    application.
+
+    Native data types should only be used when both the data generator and the 
+    data consumer are machines, preferably using the same software packages to 
+    both read and write the data files.  In such cases, only programmers would 
+    view or edit the files, and only in unusual cases.
+
 |
-| All of these issues affect the readability, writeability, and fidelity of the 
-  format, and the robustness of the application.  By limiting the scalar values 
-  to be only strings, *NestedText* sidesteps all of these issues.
+| Native data types provide little value but many drawbacks.  By limiting the 
+  scalar values to be only strings, *NestedText* sidesteps all of these issues, 
+  and it is unique in that regard.
+
 
 .. _json: https://www.json.org/json-en.html
 .. _yaml: https://yaml.org/
