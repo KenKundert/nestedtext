@@ -326,7 +326,7 @@ code more robust with little to no increase in complexity:
 .. collapse::
     Data type is an implementation detail that should not concern the end user.
 
-    Native data types are distinguished from each others by using conventions 
+    Native data types are distinguished from each other by using conventions 
     that are second nature to programmers.  Conventions such as "you must quote 
     strings", "quote characters in strings must be escaped", "you escape an 
     escape character by doubling it up", "real numbers must contain a decimal 
@@ -338,17 +338,16 @@ code more robust with little to no increase in complexity:
     particularly true for :ref:`YAML <vs_yaml>`, which can be a minefield for 
     the casual user.  Consider the following:
 
-    | ``Hey there!`` and ``"Hey there!"`` represent the  same string.
+    | ``Hey there!`` and ``"Hey there!"`` represent the same string.
     | ``She said, "Hey there!"`` is a valid string,
         but ``"She said, "Hey there!""`` is an error.
     | ``She said, "Hey there!"`` is a valid string,
-        but ``She said, "Hey there!"`` is an error.
-    | ``She said, "Hey there!"`` is a string,
-        but ``She said: "Hey there!"`` is a dictionary.
-    | ``10`` is 10, but ``010`` is 8.
+        but ``She said: "Hey there!"`` is an error.
     | ``3.10.4`` is a string, but ``3.10`` is a real and ``3`` is an integer.
+    | ``10`` is 10, but ``010`` is 8 and ``09`` is "09", a string.
     | ``Now`` is a string, but ``No`` is a Boolean.
     | ``(1 + 2)`` is a string, but ``[1 + 2]`` is a list.
+    | ``02:30:00`` is a string but ``2:30:00`` is 9000.
 
     Other languages have similar, but less extreme challenges, particularly the 
     need for quoting and escaping.
