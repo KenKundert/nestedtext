@@ -28,9 +28,13 @@ NestedText: A Human Friendly Data Format
 |
 
 
-*NestedText* is a file format for holding structured data to be entered, edited, 
-or viewed by people. It organizes into a nested collection of dictionaries, 
-lists, and strings without the need for quoting or escaping.
+NestedText is a file format for holding structured data to be entered, edited, 
+or viewed by people. It organizes the data into a nested collection of 
+dictionaries, lists, and strings without the need for quoting or escaping.  
+A unique feature of this file format is that it only supports one scalar type: 
+strings.  While the decision to eschew integer, real, date, etc. types may seem 
+counter intuitive, it leads to simpler data files and applications that are 
+:ref:`more robust <only_strings>`.
 
 *NestedText* is convenient for configuration files, address books, account 
 information, and the like.  Because there is no need for quoting or escaping, it 
@@ -64,18 +68,6 @@ that contains a few addresses:
         additional roles:
             - new membership task force
             - accounting task force
-
-*NestedText* is an alternative to *JSON*, *YAML*, and other such languages in 
-that it represents a nested collection of values.  However, it has one very 
-important distinguishing feature that makes it unique: all the leaf values are 
-strings (hence the name).  All the alternatives support many scalar types for 
-the leaf values, such as Booleans, integers, real numbers, strings, etc.  As 
-such, the they must distinguish all these various types by syntax, which 
-complicates the alternatives, typically by requiring the use of quoting and 
-escaping on strings.  Since every leaf value is a string in *NestedText*, the 
-end application becomes responsible for converting values to their final types 
-when needed, but this is the best place to do it because the it generally knows 
-that is expected and how to do the conversion.
 
 
 Contributing

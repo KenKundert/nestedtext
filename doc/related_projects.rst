@@ -1,4 +1,4 @@
-Related Projects
+Related projects
 ================
 
 Reference Material

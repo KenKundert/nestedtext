@@ -2,8 +2,9 @@
 The Zen of *NestedText*
 ***********************
 
-*NestedText* aspires to be a simple dumb vessel that holds peoples' structured 
-data and does so in a way that allows people to easily interact with that data.
+*NestedText* aspires to be a simple dumb receptacle that holds peoples' 
+structured data and does so in a way that allows people to easily interact with 
+that data.
 
 The desire to be simple is an attempt to minimize the effort required to learn 
 and use the language.  Ideally, people can understand it by looking at a few 

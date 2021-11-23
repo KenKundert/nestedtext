@@ -23,6 +23,7 @@ extensions = '''\
     sphinx.ext.napoleon
     sphinx.ext.viewcode
     sphinx_rtd_theme
+    sphinx_toolbox.collapse
 '''.split()
 
 autosummary_generate = True
