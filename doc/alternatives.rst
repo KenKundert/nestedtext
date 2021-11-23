@@ -116,10 +116,9 @@ integration using Python:
    ``python-version`` and ``- 3.6`` have the same indentation, but ``- 3.6`` is 
    contained inside ``python-version``).
 
-One might expect that the format might change a bit but that the underlying 
-information would remain constant.  But that is not the case.  The ambiguities 
-in the format result in both ``on`` and ``3.10`` being changed in value and 
-meaning.
+One might expect that the format might change a bit while the underlying 
+information remains constant.  But that is not the case.  The ambiguities in the 
+format result in both ``on`` and ``3.10`` being changed in value and meaning.
 
 Now consider the *NestedText* version; it is simpler and not subject to 
 misinterpretation.
@@ -414,8 +413,8 @@ code more robust with little to no increase in complexity:
 
 |
 | All of these issues affect the readability, writeability, and fidelity of the 
-  format.  By limiting the scalar values to be only strings, *NestedText* 
-  sidesteps all of these issues.
+  format, and the robustness of the application.  By limiting the scalar values 
+  to be only strings, *NestedText* sidesteps all of these issues.
 
 .. _json: https://www.json.org/json-en.html
 .. _yaml: https://yaml.org/
