@@ -38,7 +38,7 @@ Implementations
 `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 `Zig <https://ziglang.org>`_ implementation of *NestedText*
-(slight subset of :ref:`NestedText v3.0 <v3.0>`).
+(slight subset of :ref:`NestedText v2.0 <v2.0>`).
 
 
 Utilities
