@@ -226,8 +226,8 @@ Here is an example data file in CSV and *NestedText*.
 Really, Only Strings?
 =====================
 
-*NestedText* and its alternatives are all trying to represent structured ASCII
-data.  Of them, only *NestedText* limits you to strings for the scalar values.
+*NestedText* and its alternatives are all trying to represent structured data.  
+Of them, only *NestedText* limits you to strings for the scalar values.
 The alternatives all allow other data types to be represented as well, such as
 integers, reals, Booleans, etc.  Since real applications invariably require
 all these data types, you might think, "if I use *NestedText*, I'll have to
