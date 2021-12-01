@@ -512,7 +512,7 @@ class Location:
     # as_tuple() {{{3
     def as_tuple(self, kind='value'):
         """
-        Returns the location either the value or the key token as a tuple
+        Returns the location of either the value or the key token as a tuple
         that contains the line number and the column number.  The line and
         column numbers are 0 based.
 

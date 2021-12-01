@@ -351,8 +351,8 @@ code more robust with little to no increase in complexity:
     YAML natively accepts sexagesimal (base 60) numbers in the form ``2:30:00``, 
     which YAML converts to 9000.  If this is a duration, it would likely imply 
     2 hours, 30 minutes and 0 seconds, which totals to 9000 seconds.  It may be 
-    also used for the time of day.  Someone that used twelve hour time 
-    formatting might write ``2:30:00 AM`` and get a string.  Someone that used 
+    also used for the time of day.  Someone that normally uses twelve hour time 
+    formatting might write ``2:30:00 AM`` and get a string.  Someone that uses 
     twenty-four hours formatting might write ``2:30:00`` and get the integer 
     9000, or they might write ``02:30:00`` and get a string.  However, if they 
     entered a time 12 hours later, ``16:30:00``, they would get an integer 
