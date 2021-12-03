@@ -293,7 +293,7 @@ class Lines:
     # Line class {{{3
     class Line(Info):
         def render(self, col=None):
-            result = [f'{self.lineno:>4} «{self.text}»']
+            result = [f'{self.lineno+1:>4} «{self.text}»']
             if col is not None:
                 result += ['      ' + (col*' ') + '▲']
             return '\n'.join(result)
@@ -302,7 +302,7 @@ class Lines:
             return self.text
 
         def __repr__(self):
-            return self.__class__.__name__ + f"({self.lineno}: «{self.text}»)"
+            return self.__class__.__name__ + f"({self.lineno+1}: «{self.text}»)"
 
     # read_lines() {{{3
     def read_lines(self):

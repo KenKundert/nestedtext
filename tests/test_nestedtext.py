@@ -695,6 +695,7 @@ def test_load_inline_errors(given, expected, kwargs):
         expected['colno'] = None
     assert result == expected, given
 
+# test_keymaps {{{2
 def test_keymaps():
     document = dedent("""
 
@@ -740,36 +741,36 @@ def test_keymaps():
     """).strip()
 
     cases = """
-        president                           → 2 0 3 4
-        president name                      → 3 4 3 10
-        president address                   → 4 4 5 10
-        president phone                     → 7 4 8 8
-        president phone cell                → 8 8 8 14
-        president phone work                → 9 8 9 14
-        president phone home                → 10 8 10 14
-        president email                     → 12 4 12 11
-        president kids                      → 13 4 14 8
-        president kids 0                    → 14 8 14 10
-        president kids 1                    → 15 8 15 10
-        vice_president                      → 17 0 18 4
-        vice_president name                 → 18 4 18 10
-        vice_president address              → 19 4 20 10
-        vice_president phone                → 22 4 23 8
-        vice_president phone cell           → 23 9 23 15
-        vice_president phone home           → 23 31 23 37
-        vice_president email                → 24 4 24 11
-        vice_president kids                 → 25 4 26 8
-        vice_president kids 0               → 26 9 26 9
-        vice_president kids 1               → 26 16 26 16
-        vice_president kids 2               → 26 22 26 22
-        treasurer                           → 28 0 29 4
-        treasurer 0                         → 29 4 30 8
-        treasurer 0 name                    → 30 8 30 14
-        treasurer 0 address                 → 31 8 32 14
-        treasurer 0 phone                   → 34 8 34 15
-        treasurer 0 email                   → 35 8 35 15
-        treasurer 0 additional_roles        → 36 8 37 12
-        treasurer 0 additional_roles 0      → 37 12 37 14
+        president                           → 2  0   3  4
+        president name                      → 3  4   3  10
+        president address                   → 4  4   5  10
+        president phone                     → 7  4   8  8
+        president phone cell                → 8  8   8  14
+        president phone work                → 9  8   9  14
+        president phone home                → 10 8   10 14
+        president email                     → 12 4   12 11
+        president kids                      → 13 4   14 8
+        president kids 0                    → 14 8   14 10
+        president kids 1                    → 15 8   15 10
+        vice_president                      → 17 0   18 4
+        vice_president name                 → 18 4   18 10
+        vice_president address              → 19 4   20 10
+        vice_president phone                → 22 4   23 8
+        vice_president phone cell           → 23 9   23 15
+        vice_president phone home           → 23 31  23 37
+        vice_president email                → 24 4   24 11
+        vice_president kids                 → 25 4   26 8
+        vice_president kids 0               → 26 9   26 9
+        vice_president kids 1               → 26 16  26 16
+        vice_president kids 2               → 26 22  26 22
+        treasurer                           → 28 0   29 4
+        treasurer 0                         → 29 4   30 8
+        treasurer 0 name                    → 30 8   30 14
+        treasurer 0 address                 → 31 8   32 14
+        treasurer 0 phone                   → 34 8   34 15
+        treasurer 0 email                   → 35 8   35 15
+        treasurer 0 additional_roles        → 36 8   37 12
+        treasurer 0 additional_roles 0      → 37 12  37 14
     """.strip().splitlines()
 
     def fix_key(key):
@@ -793,15 +794,15 @@ def test_keymaps():
         assert location.as_tuple('value') == (lineno, colno), keys
         assert location.as_tuple('key') == (key_lineno, key_colno), keys
 
-        assert location.line.render() == f'{lineno:>4} «{doc_lines[lineno]}»'
-        rendered = f"{lineno:>4} «{doc_lines[lineno]}»\n      {colno*' '}▲"
+        assert location.line.render() == f'{lineno+1:>4} «{doc_lines[lineno]}»'
+        rendered = f"{lineno+1:>4} «{doc_lines[lineno]}»\n      {colno*' '}▲"
         assert location.line.render(colno) == rendered
         assert location.as_line() == rendered
         assert location.as_line('value') == rendered
-        rendered = f"{key_lineno:>4} «{doc_lines[key_lineno]}»\n      {key_colno*' '}▲"
+        rendered = f"{key_lineno+1:>4} «{doc_lines[key_lineno]}»\n      {key_colno*' '}▲"
         assert location.as_line('key') == rendered
         assert str(location.line) == doc_lines[lineno]
-        assert repr(location.line) == f'Line({lineno}: «{doc_lines[lineno]}»)'
+        assert repr(location.line) == f'Line({lineno+1}: «{doc_lines[lineno]}»)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
 
 
