@@ -1202,16 +1202,19 @@ def add_prefix(prefix, suffix):
 
 # Keys class {{{2
 class Keys:
-    def __init__(self, key, dumper):
+    def __init__(self, key, value, dumper):
         self.dumper = dumper
         self.orig_keys = dumper.keys
+        self.orig_values = dumper.values
         dumper.keys = dumper.keys + (key,)
+        dumper.values = dumper.values + (id(value),)
 
     def __enter__(self):
         pass
 
-    def __exit__(self, *exc):
+    def __exit__(self, exc_type, exc_value, traceback):
         self.dumper.keys = self.orig_keys
+        self.dumper.values = self.orig_values
 
 
 # NestedTextDumper class {{{2
@@ -1225,6 +1228,7 @@ class NestedTextDumper:
         self.converters = converters
         self.default = default
         self.keys = ()
+        self.values = ()
 
         # define key sorting function {{{4
         if sort_keys:
@@ -1318,7 +1322,7 @@ class NestedTextDumper:
         exclude = set('\n\r[]{}:,')
         rendered = {}
         for k, v in obj.items():
-            with Keys(k, self):
+            with Keys(k, v, self):
                 v = self.render_inline_value(obj[k], exclude=exclude)
                 k = self.render_inline_scalar(k, exclude=exclude)
                 rendered[k] = v
@@ -1365,6 +1369,15 @@ class NestedTextDumper:
             raise NotSuitableForInline from None
         return value
 
+    # is_cyclic_reference {{{3
+    def check_for_cyclic_reference(self, obj):
+        if id(obj) in self.values[:-1]:
+            raise NestedTextError(
+                obj,
+                template = 'cyclic reference found: cannot be dumped.',
+                culprit=self.keys
+            )
+
     # render content {{{3
     def render_content(self, obj, level):
         assert level >= 0
@@ -1374,6 +1387,7 @@ class NestedTextDumper:
         need_indented_block = is_collection(obj)
 
         if self.is_a_dict(obj):
+            self.check_for_cyclic_reference(obj)
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
@@ -1385,12 +1399,13 @@ class NestedTextDumper:
             except NotSuitableForInline:
                 rendered = {}
                 for k, v in obj.items():
-                    with Keys(k, self):
+                    with Keys(k, v, self):
                         key = self.render_key(k)
                         v = self.render_dict_item(key, obj[k], level)
                         rendered[key] = v
                 content = "\n".join(rendered[k] for k in self.sort_keys(rendered))
         elif self.is_a_list(obj):
+            self.check_for_cyclic_reference(obj)
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
@@ -1402,7 +1417,7 @@ class NestedTextDumper:
             except NotSuitableForInline:
                 content = []
                 for i, v in enumerate(obj):
-                    with Keys(i, self):
+                    with Keys(i, v, self):
                         content.append(
                             add_prefix("-", self.render_content(v, level+1))
                         )
