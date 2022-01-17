@@ -1355,4 +1355,21 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
 def test_dump_width(dump, tmp_path, given, expected, kwargs):
     assert dump(given, tmp_path, **kwargs) == expected
 
+# test_cycle_detection {{{2
+def test_cycle_detection():
+    a = [0, 1, 2]
+    b = [a]
+    a.append(b)
+    A = dict(a=a, b=b)
+
+    with pytest.raises(nt.NestedTextError) as exception:
+        nt.dumps(a)
+    assert exception.value.culprit == (3, 0, 3,)
+    assert 'cyclic reference' in str(exception.value)
+
+    with pytest.raises(nt.NestedTextError) as exception:
+        nt.dumps(A)
+    assert exception.value.culprit == ('a', 3, 0)
+    assert 'cyclic reference' in str(exception.value)
+
 # vim: fdm=marker
