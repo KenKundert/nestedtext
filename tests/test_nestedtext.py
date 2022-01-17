@@ -1365,11 +1365,11 @@ def test_cycle_detection():
     with pytest.raises(nt.NestedTextError) as exception:
         nt.dumps(a)
     assert exception.value.culprit == (3, 0, 3,)
-    assert 'cyclic reference' in str(exception.value)
+    assert 'circular reference' in str(exception.value)
 
     with pytest.raises(nt.NestedTextError) as exception:
         nt.dumps(A)
     assert exception.value.culprit == ('a', 3, 0)
-    assert 'cyclic reference' in str(exception.value)
+    assert 'circular reference' in str(exception.value)
 
 # vim: fdm=marker

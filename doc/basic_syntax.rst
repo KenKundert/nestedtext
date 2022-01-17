@@ -4,9 +4,9 @@ Language introduction
 
 This is a overview of the syntax of a *NestedText* document, which consists of 
 a :ref:`nested collection <nesting>` of :ref:`dictionaries <dictionaries>`, 
-:ref:`lists <lists>`, and :ref:`strings <strings>`.  All leaf values must be 
-simple text or empty. You can find more specifics :ref:`later on <nestedtext 
-file format>`.
+:ref:`lists <lists>`, and :ref:`strings <strings>` where indentation is used to 
+indicate nesting.  All leaf values must be simple text or empty. You can find 
+more specifics :ref:`in the next section <nestedtext file format>`.
 
 
 .. _dictionaries:
@@ -27,9 +27,10 @@ dictionary items in which the keys all begin at the same level of indentation.
 There are several different ways to specify dictionaries.
 
 In the first form, the key and value are separated with a colon (``:``) followed 
-by either a space or a newline.  The key must be a string and must not contain 
-newline characters, leading spaces, or the ``:␣`` character sequence.  Any 
-spaces between the key and the colon are ignored.
+by either a space or a newline.  The key must be a string and must not start 
+with a ``-``, ``>``, ``:``, ``[``, ``{`` or space character; or contain newline 
+characters or the ``:␣`` character sequence.  Any spaces between the key and the 
+colon that separates the key from the value are ignored.
 
 The value of this dictionary item may be a rest-of-line string, a multiline 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
@@ -42,14 +43,15 @@ on the next line, which must be further indented.
 
     key 1: value 1
     key 2:
-        - value 2a
-        - value 2b
     key 3:
-        key 3a: value 3a
-        key 3b: value 3b
+        - value 3a
+        - value 3b
     key 4:
-        > first line of value 4
-        > second line of value 4
+        key 4a: value 4a
+        key 4b: value 4b
+    key 5:
+        > first line of value 5
+        > second line of value 5
 
 A second less common form of a dictionary item employs multiline keys.  In this 
 case there are no limitations on the key other than it be a string.  Each line 
@@ -122,14 +124,15 @@ line, which must be further indented.
 
     - value 1
     -
-        - value 2a
-        - value 2b
     -
-        key 3a: value 3a
-        key 3b: value 3b
+        - value 3a
+        - value 3b
     -
-        > first line of value 4
-        > second line of value 4
+        key 4a: value 4a
+        key 4b: value 4b
+    -
+        > first line of value 5
+        > second line of value 5
 
 Another form of a list is the inline list.  This is a compact form where all the 
 list items are given on the same line.  There is a bit of syntax that defines 
@@ -162,9 +165,10 @@ Strings
 =======
 
 There are three types of strings: rest-of-line strings, multiline strings, and 
-inline strings.  Rest-of-line strings are simply all the remaining characters on 
-the line, including any leading or trailing white space.  They can contain any 
-character other than a newline:
+inline strings.  Rest-of-line strings are simply all the characters on a line 
+that follow a list tag (``-␣``) or dictionary tag (``:␣``), including any 
+leading or trailing white space.  They can contain any character other than 
+a newline:
 
 .. code-block:: nestedtext
 
@@ -202,7 +206,7 @@ retained, along with all newlines except the last.
 
 Inline strings are the string values specified in inline dictionaries and lists.  
 They are somewhat constrained in the characters that they may contain; nothing 
-that might be confused with syntax characters used by the inline list or 
+that might be confused with the syntax characters used by the inline list or 
 dictionary that contains it.  Specifically, inline strings may not contain 
 newlines or any of the following characters: ``[``, ``]``, ``{``, ``}``, or 
 ``,``.  In addition, inline strings that are contained in inline dictionaries 
@@ -282,7 +286,8 @@ NestedText Files
 ================
 
 *NestedText* files should be encoded with `UTF-8 
-<https://en.wikipedia.org/wiki/UTF-8>`_.
+<https://en.wikipedia.org/wiki/UTF-8>`_.  The top-level object must not be 
+indented.
 
 The name used for the file is arbitrary but it is tradition to use a
 .nt suffix.  If you also wish to further distinguish the file type

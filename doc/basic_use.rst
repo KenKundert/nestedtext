@@ -61,6 +61,10 @@ default. You can also specify 'list', 'str', or 'any' (or *dict*, *list*, *str*,
 or *any*).  All but 'any' constrain the data type of the top-level of the 
 *NestedText* content.
 
+The *load* functions provide a *keymap* argument that is useful for adding line 
+numbers to error message.  This feature is demonstrated in :ref:`voluptuous 
+example`.
+
 More advanced usage is described in :meth:`loads`.
 
 NestedText Writer

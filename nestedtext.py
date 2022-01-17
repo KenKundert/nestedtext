@@ -1374,7 +1374,7 @@ class NestedTextDumper:
         if id(obj) in self.values[:-1]:
             raise NestedTextError(
                 obj,
-                template = 'cyclic reference found: cannot be dumped.',
+                template = 'circular reference.',
                 culprit=self.keys
             )
 

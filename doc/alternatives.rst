@@ -238,7 +238,7 @@ code more robust with little to no increase in complexity:
 .. collapse:: Schemas make data conversions easy.
 
     For robustness, all data should be validated when reading it to assure there 
-    are no errors.  This is conveniently and efficiently performed with 
+    are no errors.  This is performed conveniently and efficiently with 
     a :ref:`schema <schemas>`.  Schemas are used to specify the expected type 
     for each value and are easily extended to perform type conversion as needed.  
     For example, if a particular value should be an integer but a string is 

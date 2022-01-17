@@ -37,11 +37,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Line-type tags**:
 
-    Most remaining lines are identified by the presence of tags, where a tag is
-    the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
-    a line when followed immediately by a space or line break, or a hash 
-    {``#``), left bracket (``[``), or left brace (``{``) as the first non-white 
-    space character on a line.
+    Most remaining lines are identified by the presence of tags, where a tag is:
+
+    #.  the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
+        a line when followed immediately by a space or line break;
+    #.  or a hash {``#``), left bracket (``[``), or left brace (``{``) as the 
+        first non-white space character on a line.
 
     Most of these symbols only introduce tags when they are the first non-space 
     character on a line, but colon tags need not start the line.
@@ -86,15 +87,15 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     type of the line and is discarded leaving the value.  The value takes one of 
     three forms.
 
-    1. If the line contains further text (characters after the dash-space), then 
+    #. If the line contains further text (characters after the dash-space), then 
        the value is that text.  The text ends at the line break and may contain 
        any other printing UTF-8 character.
 
-    2. If there is no further text on the line and the next line has greater 
+    #. If there is no further text on the line and the next line has greater 
        indentation, then the next line holds the value, which may be a list, 
        a dictionary, or a multiline string.
 
-    3. Otherwise the value is empty; it is taken to be an empty string.
+    #. Otherwise the value is empty; it is taken to be an empty string.
 
 
 **Key items**:
@@ -126,28 +127,30 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
 
-    1. contain a line break character.
-    2. start with a list item, string item or key item tag,
-    3. contain a dictionary item tag, or
-    4. contain leading spaces (any spaces that follow the key are ignored).
+    #. contain a line break character.
+    #. start with a list item, string item or key item tag,
+    #. start with ``[`` or ``{``,
+    #. contain a dictionary item tag, or
+    #. contain leading spaces (any spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
     leaving the key and the value, which follows the tag.  The value takes one 
     of three forms.
 
-    1. If the line contains further text (characters after the colon-space), 
+    #. If the line contains further text (characters after the colon-space), 
        then the value is that text.  The text ends at the line break and may 
        contain any other printing UTF-8 character.
 
-    2. If there is no further text on the line and the next line has greater 
+    #. If there is no further text on the line and the next line has greater 
        indentation, then the next line holds the value, which may be a list, 
        a dictionary, or a multiline string.
 
-    3. Otherwise the value is empty; it is taken to be an empty string.
+    #. Otherwise the value is empty; it is taken to be an empty string.
 
     The second form of *dictionary item* is the *dictionary item with multiline 
-    key*.  It consists of a multiline key value followed by an indented 
-    multiline string, list, or dictionary.
+    key*.  It consists of a multiline key value followed by an indented value.
+    The value may be a multiline string, list, or dictionary; or an inline list 
+    or dictionary.
 
     Adjacent dictionary items of either form with the same indentation level are 
     combined in order into a dictionary.
@@ -174,13 +177,13 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     *Inline strings* are the string values specified in inline dictionaries and 
     lists.  They are somewhat constrained in the characters that they may 
-    contain; nothing that might be confused with syntax characters used by the 
-    inline list or dictionary that contains it.  Specifically, inline strings 
-    may not contain newlines or any of the following characters: ``[``, ``]``, 
-    ``{``, ``}``, or ``,``.  In addition, inline strings that are contained in 
-    inline dictionaries may not contain ``:``.  Leading and trailing white space 
-    are ignored with inline strings, this includes spaces, tabs, Unicode spaces, 
-    etc.
+    contain; nothing is allowed that might be confused with the syntax 
+    characters used by the inline list or dictionary that contains it.  
+    Specifically, inline strings may not contain newlines or any of the 
+    following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  In addition, 
+    inline strings that are contained in inline dictionaries may not contain 
+    ``:``.  Leading and trailing white space are ignored with inline strings, 
+    this includes spaces, tabs, Unicode spaces, etc.
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 
