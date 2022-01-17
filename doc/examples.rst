@@ -177,7 +177,7 @@ leading multiline string tags if you so desire.
     ...         e.report()
 
     >>> addresses = nt.load('examples/address.nt')
-    >>>
+
     >>> pp(addresses['treasurer'])
     name: Fumiko Purvis
     address:
