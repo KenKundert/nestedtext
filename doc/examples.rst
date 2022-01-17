@@ -169,11 +169,16 @@ leading multiline string tags if you so desire.
     >>> import nestedtext as nt
     >>> import re
     >>>
-    >>> def strip_nestedtext(text):
-    ...     return re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M)
+    >>> def pp(data):
+    ...     try:
+    ...         text = nt.dumps(data, default=repr)
+    ...         print(re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M))
+    ...     except nt.NestedTextError as e:
+    ...         e.report()
 
     >>> addresses = nt.load('examples/address.nt')
-    >>> print(strip_nestedtext(nt.dumps(addresses['treasurer'], default=repr)))
+    >>>
+    >>> pp(addresses['treasurer'])
     name: Fumiko Purvis
     address:
         3636 Buffalo Ave

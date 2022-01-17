@@ -20,7 +20,7 @@ Latest development version
 v3.2 (2022-01-17)
 -----------------
 
-- add cyclic reference detection and reporting.
+- add circular reference detection and reporting.
 
 
 v3.1 (2021-07-23)
