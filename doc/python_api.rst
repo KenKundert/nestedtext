@@ -13,4 +13,5 @@ Python API
    nestedtext.loads
    nestedtext.load
    nestedtext.Location
+   nestedtext.utilities
    nestedtext.NestedTextError

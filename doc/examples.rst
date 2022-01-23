@@ -224,6 +224,13 @@ this:
     50 kXLM = $4.6k @ $92m/XLM     5.5%  ██▉
     Total value = $83.1k.
 
+It is common when reading configuration files to want to normalize the keys.  
+For example, one might wish to ignore case and normalize the white space.  This 
+is done by passing in a key normalizing function into :meth:`load`.  It would 
+also be possible to do so in the schema, but it is better to have :meth:`load` 
+normalize the keys as it will adjust the *keymap* accordingly, which makes error 
+reporting easier.
+
 And finally, the code:
 
 .. literalinclude:: ../examples/cryptocurrency
@@ -237,9 +244,13 @@ PostMortem
 
 This example illustrates how one can implement references in *NestedText*.  
 A reference allows you to define some content once and insert that content 
-multiple places in the document.  The example also demonstrates a slightly 
+multiple places in the document.  This example also demonstrates a slightly 
 different way to implement validation and conversion on a per field basis with 
-voluptuous_.
+voluptuous_.  Finally, it includes key normalization, which allows the keys to 
+be case insensitive and contain white space even though the program that uses 
+the data prefers the keys to be lower case identifiers.  The *normalize_key* 
+function passed to :meth:`load` is used to transform the keys to the desired 
+form.
 
 PostMortem_ is a program that generates a packet of information that is securely 
 shared with your dependents in case of your death.  Only the settings processing 
@@ -282,18 +293,18 @@ Here are the processed settings:
 
     {'my gpg ids': ['odin@norse-gods.com'],
     'name template': '{name}-{now:YYMMDD}',
-    'recipients': {'frigg': {'attach': [PosixPath('.../home/estate/trust.pdf'),
+    'recipients': {'Frigg': {'attach': [PosixPath('.../home/estate/trust.pdf'),
                                         PosixPath('.../home/estate/will.pdf'),
                                         PosixPath('.../home/estate/deed-valhalla.pdf')],
                             'category': 'wife',
                             'email': ['frigg@norse-gods.com'],
                             'networth': 'odin'},
-                    'loki': {'attach': [PosixPath('.../home/estate/trust.pdf'),
+                    'Loki': {'attach': [PosixPath('.../home/estate/trust.pdf'),
                                         PosixPath('.../home/estate/will.pdf'),
                                         PosixPath('.../home/estate/deed-valhalla.pdf')],
                             'category': 'kids',
                             'email': ['loki@norse-gods.com']},
-                    'thor': {'attach': [PosixPath('.../home/estate/trust.pdf'),
+                    'Thor': {'attach': [PosixPath('.../home/estate/trust.pdf'),
                                         PosixPath('.../home/estate/will.pdf'),
                                         PosixPath('.../home/estate/deed-valhalla.pdf')],
                             'category': 'kids',

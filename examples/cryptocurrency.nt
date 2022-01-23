@@ -1,8 +1,7 @@
-holdings:
+Holdings    :
     - 5 BTC
     - 50 ETH
     - 50,000 XLM
-screen width: 90
-date format: h:mm A, dddd MMMM D
-#currency: USD
-currency: USD
+Screen Width: 90
+Date  Format: h:mm A, dddd MMMM D
+Currency    : USD

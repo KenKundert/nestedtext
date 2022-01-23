@@ -8,7 +8,7 @@ from pathlib import Path
 from functools import wraps
 from io import StringIO
 from textwrap import dedent
-from inform import Error, Info, render, indent
+from inform import Error, Info, render, indent, join
 from quantiphy import Quantity
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
@@ -375,10 +375,11 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
             assert e.codicil == (f'{lineno+1:>4} «{line}»',)
         else:
             line = line.replace('\t', '→')
-            assert e.codicil == (
+            assert len(e.codicil) == 1
+            assert e.codicil[0].endswith(
                 (f'{prev_lineno+1:>4} «{prev_line}»\n' if prev_line else '') +
                 f'{lineno+1:>4} «{line}»' +
-                (f'\n      {" "*colno}▲' if colno is not None else ''),
+                (f'\n      {" "*colno}▲' if colno is not None else '')
             )
 
     assert isinstance(e, Error)
@@ -391,6 +392,22 @@ def test_load_api_errors():
 
     with pytest.raises(TypeError):
         nt.load(['path_1.nt', 'path_2.nt'])
+
+# test_load_nones {{{2
+@parametrize(
+    'given, expected, kwargs', [
+        ( '',           {},              dict(top=dict) ),
+        ( '',           [],              dict(top=list) ),
+        ( '',           "",              dict(top=str)  ),
+        ( '',           None,            dict(top=any) ),
+        ( '-',          [''],            dict(top=list) ),
+        ( '-',          [''],            dict(top=any)  ),
+        ( 'key:',       {'key':''},      dict(top=dict) ),
+        ( 'None: val',  {'None':'val'},  dict(top=dict) ),  # ← wrong?
+    ]
+)
+def test_load_nones(given, expected, kwargs):
+    assert nt.loads(given, **kwargs) == expected
 
 # test_load_top {{{2
 def test_load_top():
@@ -739,6 +756,7 @@ def test_keymaps():
                     - accounting task force
 
     """).strip()
+    doc_lines = document.splitlines()
 
     cases = """
         president                           → 2  0   3  4
@@ -773,20 +791,19 @@ def test_keymaps():
         treasurer 0 additional_roles 0      → 37 12  37 14
     """.strip().splitlines()
 
-    def fix_key(key):
+    def fix_key(key, normalize):
         try:
             return int(key)
         except:
-            return key.replace('_', ' ')
+            if normalize:
+                return key.replace('_', ' ')
+            else:
+                return key
 
-    keymap = {}
-    addresses = nt.loads(document, keymap=keymap)
+    def normalize_key(key, parent_keys):
+        return key.replace(' ', '_')
 
-    doc_lines = document.splitlines()
-
-    for case in cases:
-        given, expected = case.split('→')
-        keys = tuple(fix_key(n) for n in given.split())
+    def check_result(given, expected, keys):
         expected = tuple(int(n) for n in expected.split())
         location = keymap[keys]
         key_lineno, key_colno, lineno, colno = expected
@@ -804,6 +821,98 @@ def test_keymaps():
         assert str(location.line) == doc_lines[lineno]
         assert repr(location.line) == f'Line({lineno+1}: «{doc_lines[lineno]}»)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
+
+    # Without key normalization normalizing the keys
+    keymap = {}
+    addresses = nt.loads(document, keymap=keymap)
+    for case in cases:
+        given, expected = case.split('→')
+        keys = tuple(fix_key(n, True) for n in given.split())
+        check_result(given, expected, keys)
+
+    # With key normalization normalizing the keys
+    keymap = {}
+    addresses = nt.loads(document, keymap=keymap, normalize_key= normalize_key)
+    for case in cases:
+        given, expected = case.split('→')
+        keys = tuple(fix_key(n, False) for n in given.split())
+        check_result(given, expected, keys)
+
+
+# test_key_utilities {{{2
+def test_key_utilities():
+    document = dedent("""
+        KEY 1:
+            key 1a: 1
+            KEY 1B: 2
+        user  Names:
+            Anastacia Pickett__Cheek:
+                key 2a: 5
+                KEY-2B: 6
+        Scores:
+            - 8
+    """)
+    expected_normalized_keys = [
+        ('key_1',),
+        ('key_1', 'key_1a'),
+        ('key_1', 'key_1b'),
+        ('user_names',),
+        ('user_names', 'Anastacia Pickett Cheek'),
+        ('user_names', 'Anastacia Pickett Cheek', 'key_2a'),
+        ('user_names', 'Anastacia Pickett Cheek', 'key_2b'),
+        ('scores',),
+        ('scores', 0),
+    ]
+    expected_original_keys = [
+        ('KEY 1',),
+        ('KEY 1', 'key 1a'),
+        ('KEY 1', 'KEY 1B'),
+        ('user  Names',),
+        ('user  Names', 'Anastacia Pickett__Cheek'),
+        ('user  Names', 'Anastacia Pickett__Cheek', 'key 2a'),
+        ('user  Names', 'Anastacia Pickett__Cheek', 'KEY-2B'),
+        ('Scores',),
+        ('Scores', 0),
+    ]
+
+    unknown_norm = ('user_names', 'Anastacia Pickett Cheek', 'unknown key')
+    unknown_orig = ('user  Names', 'Anastacia Pickett__Cheek', 'unknown key')
+    unknown_index = ('scores', 3)
+
+    def normalize_key(key, parent_keys):
+        if parent_keys == ('user_names',):
+            return ' '.join(key.replace('_', ' ').split())
+        else:
+            return '_'.join(key.lower().replace('-', ' ').split())
+
+    keymap = dict()
+    data = nt.loads(document, keymap=keymap, normalize_key=normalize_key)
+    for index, normalized_keys in enumerate(expected_normalized_keys):
+        # check get_original_keys
+        original_keys = nt.get_original_keys(normalized_keys, keymap, strict=True)
+        assert original_keys == expected_original_keys[index]
+        assert unknown_orig == nt.get_original_keys(unknown_norm, keymap, strict=False)
+        with pytest.raises(KeyError) as exception:
+            nt.get_original_keys(unknown_norm, keymap, strict=True)
+        assert exception.value.args[0] == unknown_norm
+
+        # check get_value_from_keys
+        value = nt.get_value_from_keys(data, normalized_keys)
+        print(normalized_keys)
+        try:
+            assert index == int(value)
+        except TypeError:
+            if normalized_keys[0] == 'scores':
+                assert type(value) == list
+            else:
+                assert type(value) == dict
+
+        # check join_keys
+        assert join(*normalized_keys, sep=', ') == nt.join_keys(normalized_keys)
+        assert join(*normalized_keys, sep='.') == nt.join_keys(normalized_keys, sep='.')
+        assert join(*original_keys, sep=', ') == nt.join_keys(normalized_keys, keymap=keymap)
+        assert join(*unknown_norm, sep=', ') == nt.join_keys(unknown_norm)
+        assert join(*unknown_orig, sep=', ') == nt.join_keys(unknown_norm, keymap=keymap)
 
 
 # Test dump {{{1
@@ -899,14 +1008,16 @@ def test_dump_default(dump, tmp_path):
     }
 
     assert dump(data, tmp_path) == dedent('''\
-        None: none
+        :
+            > none
         True: true
         False: false
         3: three
     ''').strip()
 
     assert dump(data, tmp_path, default=repr) == dedent('''\
-        None: none
+        :
+            > none
         True: true
         False: false
         3: three
@@ -1355,17 +1466,35 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
 def test_dump_width(dump, tmp_path, given, expected, kwargs):
     assert dump(given, tmp_path, **kwargs) == expected
 
+# test_dump_nones {{{2
+@parametrize_dump_api
+@parametrize(
+    'given, expected, kwargs', [
+        ( None,          '',             {} ),
+        ( None,          '',             {} ),
+        ( None,          '',             {} ),
+        ( None,          '',             {} ),
+        ( [None],        '-',            {} ),
+        ( [None],        '-',            {} ),
+        ( {'key':None},  'key:',         {} ),
+        ( {None:'val'},  ':\n    > val', {} ),
+    ]
+)
+def test_dump_nones(dump, tmp_path, given, expected, kwargs):
+    assert dump(given, tmp_path, **kwargs) == expected
+
 # test_cycle_detection {{{2
 def test_cycle_detection():
     a = [0, 1, 2]
     b = [a]
     a.append(b)
-    A = dict(a=a, b=b)
 
     with pytest.raises(nt.NestedTextError) as exception:
         nt.dumps(a)
     assert exception.value.culprit == (3, 0, 3,)
     assert 'circular reference' in str(exception.value)
+
+    A = dict(a=a, b=b)
 
     with pytest.raises(nt.NestedTextError) as exception:
         nt.dumps(A)

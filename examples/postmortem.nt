@@ -1,4 +1,4 @@
-my gpg ids: odin@norse-gods.com
+my GPG ids: odin@norse-gods.com
 sign with: @ my gpg ids
 name template: {name}-{now:YYMMDD}
 estate docs:
@@ -7,16 +7,16 @@ estate docs:
     - ~/home/estate/deed-valhalla.pdf
 
 recipients:
-    frigg:
+    Frigg:
         email: frigg@norse-gods.com
         category: wife
         attach: @ estate docs
         networth: odin
-    thor:
+    Thor:
         email: thor@norse-gods.com
         category: kids
         attach: @ estate docs
-    loki:
+    Loki:
         email: loki@norse-gods.com
         category: kids
         attach: @ estate docs

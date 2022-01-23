@@ -33,17 +33,18 @@ understood and used by both programmers and non-programmers.
 
 # Imports {{{1
 from inform import (
+    cull,
     full_stop,
     set_culprit,
     get_culprit,
     is_str,
     is_collection,
     is_mapping,
+    join,
     plural,
     Error,
     Info,
 )
-import textwrap
 import collections.abc
 import re
 import unicodedata
@@ -225,6 +226,7 @@ dict_item_recognizer = re.compile(dict_item_regex, re.VERBOSE)
 def report(message, line, *args, colno=None, **kwargs):
     message = full_stop(message)
     culprits = get_culprit()
+    codicil = [kwargs.get("codicil", "")]
     if culprits:
         kwargs['source'] = culprits[0]
     if line:
@@ -235,16 +237,16 @@ def report(message, line, *args, colno=None, **kwargs):
         if colno is not None:
             # build codicil that shows both the line and the preceding line
             if include_prev_line:
-                codicil = [f'{line.prev_line.lineno+1:>4} «{line.prev_line.text}»']
+                codicil += [f'{line.prev_line.lineno+1:>4} «{line.prev_line.text}»']
             else:
-                codicil = []
+                codicil += []
             # replace tabs with → so that arrow points to right location.
             text = line.text.replace("\t", "→")
             codicil += [
                 f'{line.lineno+1:>4} «{text}»',
                 '      ' + (colno*' ') + '▲',
             ]
-            kwargs['codicil'] = '\n'.join(codicil)
+            kwargs['codicil'] = '\n'.join(cull(codicil))
             kwargs['colno'] = colno
         else:
             kwargs['codicil'] = f'{line.lineno+1:>4} «{line.text}»'
@@ -272,7 +274,8 @@ def unrecognized_line(line):
         report(
             f'invalid character in indentation: {first_non_space!r}{desc}.',
             line,
-            colno = index_of_first_non_space
+            colno = index_of_first_non_space,
+            codicil = 'Only simple spaces are allowed in indentation.'
         )
     else:
         report('unrecognized line.', line, colno=index_of_first_non_space)
@@ -425,6 +428,7 @@ class Lines:
     def indentation_error(self, line, depth):
         assert line.depth != depth
         prev_line = line.prev_line
+        codicil = None
         if not line.prev_line and depth == 0:
             msg = 'top-level content must start in column 1.'
         elif (
@@ -437,11 +441,12 @@ class Lines:
                 obs = ', which in this case consists only of whitespace'
             else:
                 obs = ''
-            msg = ' '.join([
-                'invalid indentation.',
-                'An indent may only follow a dictionary or list item that does',
-                f'not already have a value{obs}.'
-            ])
+            msg = 'invalid indentation.'
+            codicil = join(
+                "An indent may only follow a dictionary or list item that does",
+                f"not already have a value{obs}.",
+                wrap = True
+            )
         elif (
             prev_line and
             prev_line.depth > line.depth
@@ -449,7 +454,7 @@ class Lines:
             msg = 'invalid indentation, partial dedent.'
         else:
             msg = 'invalid indentation.'
-        report(textwrap.fill(msg), line, colno=depth)
+        report(join(msg, wrap=True), line, colno=depth, codicil=codicil)
 
 
 # KeyPolicy class {{{2
@@ -740,10 +745,11 @@ class Inline:
 # NestedTextLoader class {{{2
 class NestedTextLoader:
     # __init__() {{{3
-    def __init__(self, lines, top, source, on_dup, keymap):
+    def __init__(self, lines, top, source, on_dup, keymap, normalize_key):
         KeyPolicy.set_policy(on_dup)
         self.source = source
         self.keymap = {} if keymap is True else keymap
+        self.normalize_key = normalize_key if normalize_key else lambda k, ks: k
 
         with set_culprit(source):
             lines = self.lines = Lines(lines)
@@ -886,12 +892,13 @@ class NestedTextLoader:
             key_col = depth
             if line.kind == "key item":
                 # multiline key
-                key = self._read_key(line, depth)
+                original_key = self._read_key(line, depth)
                 value = None
             else:
                 # key and value on a single line
-                key = line.key
+                original_key = line.key
                 value = line.value
+            key = self.normalize_key(original_key, keys)
 
             new_keys = keys + (key,)
             if value:
@@ -943,7 +950,10 @@ class NestedTextLoader:
 
 
 # loads {{{2
-def loads(content, top='dict', *, source=None, on_dup=None, keymap=None):
+def loads(
+    content, top='dict', *,
+    source=None, on_dup=None, keymap=None, normalize_key=None
+):
     # description {{{3
     r'''
     Loads *NestedText* from string.
@@ -991,6 +1001,11 @@ def loads(content, top='dict', *, source=None, on_dup=None, keymap=None):
             :meth:`Location.as_tuple` method, and the line that contains the
             value annotated with its location using the :meth:`Location.as_line`
             method.
+        normalize_key (func):
+            A function that takes two arguments; the original key for a value
+            and the tuple of normalized keys for its parent values.  It then
+            transforms the given key into the desired normalized form.  Only
+            called on dictionary keys, so the key will always be a string.
 
     Returns:
         The extracted data.  The type of the return value is specified by the
@@ -1085,12 +1100,12 @@ def loads(content, top='dict', *, source=None, on_dup=None, keymap=None):
 
     # code {{{3
     lines = convert_returns(content).split('\n')
-    loader = NestedTextLoader(lines, top, source, on_dup, keymap)
+    loader = NestedTextLoader(lines, top, source, on_dup, keymap, normalize_key)
     return loader.get_decoded()
 
 
 # load {{{2
-def load(f=None, top='dict', *, on_dup=None, keymap=None):
+def load(f=None, top='dict', *, on_dup=None, keymap=None, normalize_key=None):
     # description {{{3
     r'''
     Loads *NestedText* from file or stream.
@@ -1165,12 +1180,12 @@ def load(f=None, top='dict', *, on_dup=None, keymap=None):
 
     if isinstance(f, collections.abc.Iterator):
         source = getattr(f, 'name', None)
-        loader = NestedTextLoader(f, top, source, on_dup, keymap)
+        loader = NestedTextLoader(f, top, source, on_dup, keymap, normalize_key)
         return loader.get_decoded()
     else:
         source = str(f)
         with open(f, encoding='utf-8') as fp:
-            loader = NestedTextLoader(fp, top, source, on_dup, keymap)
+            loader = NestedTextLoader(fp, top, source, on_dup, keymap, normalize_key)
             return loader.get_decoded()
 
 
@@ -1276,7 +1291,10 @@ class NestedTextDumper:
     def render_key(self, key):
         key = self.convert(key)
         if self.is_a_scalar(key):
-            key = str(key)
+            if key is None:
+                key = ""
+            else:
+                key = str(key)
         if not self.is_a_str(key) and callable(self.default):
             key = self.default(key)
         if not self.is_a_str(key):
@@ -1799,3 +1817,162 @@ def dump(obj, f, **kwargs):
 
     with open(f, 'w', encoding='utf-8') as f:
         f.write(content)
+
+
+# NestedText Utilities {{{1
+# Extras that are useful when using NestedText.
+
+# get_value_from_keys {{{2
+def get_value_from_keys(obj, keys):
+    """
+    Get value from keys.
+
+    Args:
+        obj:
+            Your data set as returned by :meth:`load` or :meth:`loads`.
+        keys:
+            A tuple of keys taken from a *keymap*.
+
+    Returns:
+        The value that corresponds to a tuple of keys from a keymap.
+    """
+    for key in keys:
+        obj = obj[key]
+    return obj
+
+
+# get_lines_from_keys {{{2
+def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
+    """
+    Get Lines from normalized keys.
+
+    This function returns the line number or numbers of the value or key
+    selected by keys.
+
+    If *sep* is given, either one line number or both the beginning and ending
+    line numbers are given, joined using the separator.  In this case the line
+    numbers start from line 1.
+
+    If *sep* is not given, the line numbers are returned as a tuple of integers
+    that is tailored to be suitable to be arguments to the Python *slice*
+    function (see example).  The beginning line number and 1 plus the ending
+    line number is returned as a tuple.  In this case the line numbers start at
+    0.  If the value is a composite (a dictionary or list) or a single line
+    string, the value is treated as if it consists of a single line and the
+    second integer returned is simply one plus the beginning line number.
+
+    This function is used when reporting an error in a value that is possibly a
+    multiline string.  If the location contained in a keymap were used the user
+    would only see the line number of the first line, which may confuse some
+    users to to believe the error is actually contained in the first line.
+    Using this function gives both the starting and ending line number so the
+    user focuses on the whole string and not just the first line.
+
+    Args:
+        obj:
+            Your data set as returned by :meth:`load` or :meth:`loads`.
+        keys:
+            The collection of keys that identify a value in the dataset.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`.
+        kind (str):
+            Specify either 'key' or 'value' depending on which token is
+            desired.
+        sep:
+            The separator string. It is inserted between two line numbers.
+
+    Example:
+        >>> import nestedtext as nt
+
+        >>> doc = '''
+        ... key:
+        ...     > this is line 1
+        ...     > this is line 2
+        ...     > this is line 3
+        ... '''
+
+        >>> data = nt.loads(doc, keymap=(keymap:={}))
+        >>> keys = ("key",)
+        >>> lines = nt.get_lines_from_keys(data, keys, keymap, sep="-")
+        >>> text = doc.splitlines()
+        >>> print(
+        ...     f"Lines {lines}:",
+        ...     *text[slice(*nt.get_lines_from_keys(data, keys, keymap))],
+        ...     sep="\\n"
+        ... )
+        Lines 3-5:
+            > this is line 1
+            > this is line 2
+            > this is line 3
+
+    """
+    line, col = keymap[keys].as_tuple()
+    value = get_value_from_keys(obj, keys)
+    num_lines = len(value.splitlines()) if is_str(value) else 1
+    if sep:
+        if num_lines > 1:
+            return join(line+1, line+num_lines, sep=sep)
+        else:
+            return str(line+1)
+    return (line, line+num_lines)
+
+
+# get_original_keys {{{2
+def get_original_keys(keys, keymap, strict=False):
+    """
+    Get original keys from normalized keys.
+
+    Args:
+        keys:
+            The collection of keys that identify a value in the dataset.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`.
+        strict:
+            If true, a KeyError will be raised if the given keys are not found
+            in the keymap.  Otherwise, the given key will be returned rather
+            than the original key.  This is helpful when reporting errors on
+            required keys that do not exist in the data set.  Since they are
+            not in the dataset, no original key is available.
+
+    Returns:
+        A tuple containing the original keys names.
+    """
+    original_keys = []
+    for i in range(len(keys)):
+        try:
+            loc = keymap[tuple(keys[:i+1])]
+            line = loc.key_line
+            original_keys.append(line.key)
+        except AttributeError:
+            # this occurs normally for list indexes
+            original_keys.append(keys[i])
+        except (KeyError, IndexError):
+            if strict:
+                raise
+            original_keys.append(keys[i])
+    return tuple(original_keys)
+
+
+# join_keys {{{2
+def join_keys(keys, sep=', ', keymap=None):
+    """
+    Joins the keys into a string.
+
+    Args:
+        keys:
+            A tuple of keys.
+        sep:
+            The separator string. It is inserted between each key during the join.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`. It is
+            optional. If given the given keys are converted to the original keys
+            before the joining.
+
+    Returns:
+        A string containing the joined keys.
+    """
+    if keymap:
+        keys = get_original_keys(keys, keymap, strict=False)
+    return sep.join(str(k) for k in keys)
+
+# vim: set sw=4 sts=4 tw=80 fo=croqj foldmethod=marker et spell:

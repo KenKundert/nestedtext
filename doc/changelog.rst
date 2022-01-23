@@ -7,7 +7,7 @@ Language changes
 .. currentmodule:: nestedtext
 
 Currently the language and the :ref:`Python implementation <implementation 
-changes>`  share version numbers.  Since the language is more stable than the 
+changes>` share version numbers.  Since the language is more stable than the 
 implementation, you will see versions that include no changes to the language.
 
 
@@ -16,6 +16,12 @@ Latest development version
 
 | Version: 3.2.0
 | Released: 2022-01-17
+
+
+v3.2 (2022-01-17)
+-----------------
+
+- No changes.
 
 
 v3.1 (2021-07-23)

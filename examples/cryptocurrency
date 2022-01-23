@@ -2,15 +2,19 @@
 
 import nestedtext as nt
 from voluptuous import Schema, Required, All, Length, Invalid, Coerce
-from inform import display, fatal, is_collection, os_error, render_bar, full_stop
+from inform import (
+    codicil, display, fatal, is_collection, os_error, render_bar, full_stop
+)
 import arrow
 import requests
 from quantiphy import Quantity
 from pathlib import Path
 
-# configure preferences
 Quantity.set_prefs(prec=2, ignore_sf = True)
 currency_symbols = dict(USD='$', EUR='€', JPY='¥', GBP='£')
+
+def normalize_key(key, parent_keys):
+    return ' '.join(key.lower().split())
 
 try:
     # read settings
@@ -21,7 +25,14 @@ try:
         'date format': str,
         'screen width': Coerce(int)
     })
-    settings = settings_schema(nt.load(settings_file, top='dict', keymap=(keymap:={})))
+    settings = settings_schema(
+        nt.load(
+            settings_file,
+            top = 'dict',
+            keymap = (keymap:={}),
+            normalize_key = normalize_key
+        )
+    )
     currency = settings.get('currency', 'USD')
     currency_symbol = currency_symbols.get(currency, currency)
     screen_width = settings.get('screen width', 80)
@@ -38,7 +49,7 @@ try:
             r.raise_for_status()
     except Exception as e:
         raise Error('cannot access cryptocurrency prices:', codicil=str(e))
-    prices = {k: Quantity(v['USD'], currency_symbol) for k, v in r.json().items()}
+    prices = {k: Quantity(v[currency], currency_symbol) for k, v in r.json().items()}
 
     # compute total
     total = Quantity(0, currency_symbol)
@@ -63,12 +74,15 @@ except nt.NestedTextError as e:
     e.terminate()
 except Invalid as e:
     kind = 'key' if 'key' in e.msg else 'value'
-    loc = keymap[tuple(e.path)]
+    keys = nt.join_keys(e.path, keymap=keymap)
     fatal(
         full_stop(e.msg),
-        culprit = [settings_file] + e.path,
-        codicil=loc.as_line(kind)
+        culprit = (settings_file, keys)
     )
+    try:
+        codicil(keymap[tuple(e.path)].as_line(kind))
+    except KeyError:
+        pass  # required key is missing
 except OSError as e:
     fatal(os_error(e))
 except KeyboardInterrupt:

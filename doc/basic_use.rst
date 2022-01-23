@@ -63,9 +63,11 @@ or *any*).  All but 'any' constrain the data type of the top-level of the
 
 The *load* functions provide a *keymap* argument that is useful for adding line 
 numbers to error message.  This feature is demonstrated in :ref:`voluptuous 
-example`.
+example`.  They also provide a *normalize_key* argument that can be used to 
+ignore insignificant variation in keys, such as character case, or to convert 
+keys to a desired form, such as to identifiers.  These features are described in 
+:meth:`loads`.
 
-More advanced usage is described in :meth:`loads`.
 
 NestedText Writer
 -----------------
@@ -96,4 +98,6 @@ The :func:`dump` function writes *NestedText* to a file or stream.
     ... except OSError as e:
     ...     fatal(os_error(e))
 
-More advanced usage is described in :meth:`dumps`.
+The *dump* functions provide arguments that can control the output format and 
+can control the conversion of data types into forms that can be dumped. These
+features are described in :meth:`dumps`.

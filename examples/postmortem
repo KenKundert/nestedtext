@@ -14,9 +14,9 @@ def to_str(arg):
 
 def to_ident(arg):
     arg = to_str(arg)
-    if len(arg.split()) > 1:
-        raise Invalid('expected simple identifier')
-    return arg
+    if arg.isidentifier():
+        return arg
+    raise Invalid('expected simple identifier')
 
 def to_list(arg):
     if isinstance(arg, str):
@@ -30,7 +30,7 @@ def to_paths(arg):
 
 def to_email(arg):
     user, _, host = arg.partition('@')
-    if '.' in host:
+    if '.' in host and '@' not in host:
         return arg
     raise Invalid('expected email address')
 
@@ -51,19 +51,22 @@ def to_gpg_id(arg):
 def to_gpg_ids(arg):
     return [to_gpg_id(i) for i in to_list(arg)]
 
+def to_snake_case(key):
+    return '_'.join(key.strip().lower().split())
+
 # define the schema for the settings file
 schema = Schema(
     {
-        Required('my gpg ids'): to_gpg_ids,
+        Required('my_gpg_ids'): to_gpg_ids,
         'sign with': to_gpg_id,
-        'avendesora gpg passphrase account': to_str,
-        'avendesora gpg passphrase field': to_str,
+        'avendesora_gpg_passphrase_account': to_str,
+        'avendesora_gpg_passphrase_field': to_str,
         'name template': to_str,
         Required('recipients'): {
             Extra: {
                 Required('category'): to_ident,
                 Required('email'): to_emails,
-                'gpg id': to_gpg_id,
+                'gpg_id': to_gpg_id,
                 'attach': to_paths,
                 'networth': to_ident,
             }
@@ -79,7 +82,7 @@ def expand_settings(value):
     if isinstance(value, str):
         value = value.strip()
         if value[:1] == '@':
-            value = settings[value[1:].strip()]
+            value = settings[to_snake_case(value[1:])]
         return value
     if isinstance(value, dict):
         return {k:expand_settings(v) for k, v in value.items()}
@@ -87,13 +90,23 @@ def expand_settings(value):
         return [expand_settings(v) for v in value]
     raise NotImplementedError(value)
 
+def normalize_key(key, parent_keys):
+    if parent_keys != ('recipients',):
+        # normalize all keys except the recipient names
+        return to_snake_case(key)
+    return key
+
 try:
     # Read settings
     config_filepath = Path('postmortem.nt')
     if config_filepath.exists():
 
         # load from file
-        settings = nt.load(config_filepath, keymap=(keymap:={}))
+        settings = nt.load(
+            config_filepath,
+            keymap = (keymap:={}),
+            normalize_key = normalize_key
+        )
 
         # expand references
         settings = expand_settings(settings)
@@ -108,9 +121,11 @@ except nt.NestedTextError as e:
     e.report()
 except Invalid as e:
     kind = 'key' if 'key' in e.msg else 'value'
-    loc = keymap[tuple(e.path)]
-    culprit = '.'.join(str(p) for p in [config_filepath] + e.path)
-    print(f"ERROR: {culprit}: {e.msg}.")
-    print(loc.as_line(kind))
+    culprit = nt.join_keys(e.path, keymap=keymap)
+    print(f"ERROR: {config_filepath!s}: {culprit}: {e.msg}.")
+    try:
+        print(keymap[tuple(e.path)].as_line(kind))
+    except KeyError:
+        pass
 except OSError as e:
     print(f"ERROR: {config_filepath!s}: {e!s}")
