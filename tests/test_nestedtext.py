@@ -755,6 +755,10 @@ def test_keymaps():
                 additional roles:
                     - accounting task force
 
+        : multiline
+        : key
+            > it's value
+
     """).strip()
     doc_lines = document.splitlines()
 
@@ -789,9 +793,11 @@ def test_keymaps():
         treasurer 0 email                   → 35 8   35 15
         treasurer 0 additional_roles        → 36 8   37 12
         treasurer 0 additional_roles 0      → 37 12  37 14
+        multiline↲key                       → 39 0   41 6
     """.strip().splitlines()
 
     def fix_key(key, normalize):
+        key = key.replace('↲', '\n')
         try:
             return int(key)
         except:
@@ -849,8 +855,10 @@ def test_key_utilities():
             Anastacia Pickett__Cheek:
                 key 2a: 5
                 KEY-2B: 6
-        Scores:
-            - 8
+        : Scores :
+            : Day One:
+            :   25 Jan 2022
+                - 9
     """)
     expected_normalized_keys = [
         ('key_1',),
@@ -860,8 +868,9 @@ def test_key_utilities():
         ('user_names', 'Anastacia Pickett Cheek'),
         ('user_names', 'Anastacia Pickett Cheek', 'key_2a'),
         ('user_names', 'Anastacia Pickett Cheek', 'key_2b'),
-        ('scores',),
-        ('scores', 0),
+        ("scores",),
+        ("scores", "day_one_25_jan_2022"),
+        ("scores", "day_one_25_jan_2022", 0),
     ]
     expected_original_keys = [
         ('KEY 1',),
@@ -871,8 +880,9 @@ def test_key_utilities():
         ('user  Names', 'Anastacia Pickett__Cheek'),
         ('user  Names', 'Anastacia Pickett__Cheek', 'key 2a'),
         ('user  Names', 'Anastacia Pickett__Cheek', 'KEY-2B'),
-        ('Scores',),
-        ('Scores', 0),
+        ("Scores :",),
+        ("Scores :", "Day One:\n  25 Jan 2022"),
+        ("Scores :", "Day One:\n  25 Jan 2022", 0),
     ]
 
     unknown_norm = ('user_names', 'Anastacia Pickett Cheek', 'unknown key')
@@ -883,11 +893,14 @@ def test_key_utilities():
         if parent_keys == ('user_names',):
             return ' '.join(key.replace('_', ' ').split())
         else:
-            return '_'.join(key.lower().replace('-', ' ').split())
+            return '_'.join(key.lower().replace('-', ' ').replace(':', ' ').split())
 
     keymap = dict()
     data = nt.loads(document, keymap=keymap, normalize_key=normalize_key)
+    print('KEYMAP:', keymap)
     for index, normalized_keys in enumerate(expected_normalized_keys):
+        print(normalized_keys)
+
         # check get_original_keys
         original_keys = nt.get_original_keys(normalized_keys, keymap, strict=True)
         assert original_keys == expected_original_keys[index]
@@ -898,11 +911,10 @@ def test_key_utilities():
 
         # check get_value_from_keys
         value = nt.get_value_from_keys(data, normalized_keys)
-        print(normalized_keys)
         try:
             assert index == int(value)
         except TypeError:
-            if normalized_keys[0] == 'scores':
+            if normalized_keys == ('scores', 'day_one_25_jan_2022'):
                 assert type(value) == list
             else:
                 assert type(value) == dict

@@ -11,7 +11,7 @@ understood and used by both programmers and non-programmers.
 """
 
 # MIT License {{{1
-# Copyright (c) 2020-21 Ken and Kale Kundert
+# Copyright (c) 2020-22 Ken and Kale Kundert
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -74,36 +74,36 @@ class NestedTextError(Error, ValueError):
 
     All exceptions provide the following attributes:
 
-    .args:
+    args:
         The exception arguments.  A tuple that usually contains the problematic
         value.
 
-    .template:
+    template:
         The possibly parameterized text used for the error message.
 
     Exceptions raised by the :func:`loads()` or :func:`load()` functions provide
     the following additional attributes:
 
-    .source:
+    source:
         The source of the *NestedText* content, if given. This is often a
         filename.
 
-    .line:
+    line:
         The text of the line of *NestedText* content where the problem was found.
 
-    .prev_line:
+    prev_line:
         The text of the meaningful line immediately before where the problem was
         found.  This would not be a comment or blank line.
 
-    .lineno:
+    lineno:
         The number of the line where the problem was found.  Line numbers are
         zero based except when included in messages to the end user.
 
-    .colno:
+    colno:
         The number of the character where the problem was found on *line*.
         Column numbers are zero based.
 
-    .codicil:
+    codicil:
         The line that contains the error decorated with the location of the
         error.
 
@@ -310,6 +310,7 @@ class Lines:
     # read_lines() {{{3
     def read_lines(self):
         prev_line = None
+        last_line = None
         for lineno, line in enumerate(self.lines):
             key = None
             value = None
@@ -354,7 +355,7 @@ class Lines:
                     value = line
 
             # bundle information about line
-            the_line = self.Line(
+            this_line = self.Line(
                 text = line,
                 lineno = lineno,
                 kind = kind,
@@ -364,17 +365,31 @@ class Lines:
                 prev_line = prev_line,
             )
             if kind.endswith(' item'):
-                # Do not include the_line.prev_line in the prev_line to avoid
-                # keeping the chain of all previous lines.
+                # Create prev_line, which differs from last_line in that it
+                # is a copy of the line without a prev_line attribute of its
+                # own. This avoids keeping a chain of all previous lines. In
+                # contrast, last line is the actual this_line from the previous
+                # iteration.
                 prev_line = self.Line(
-                    text = the_line.text,
-                    value = the_line.value,
-                    kind = the_line.kind,
-                    depth = the_line.depth,
-                    lineno = the_line.lineno,
+                    text = this_line.text,
+                    value = this_line.value,
+                    kind = this_line.kind,
+                    depth = this_line.depth,
+                    lineno = this_line.lineno,
                 )
 
-            yield the_line
+                # add this line as next_line in prev_line if this is a continued
+                # multiline string.
+                if (
+                    last_line and
+                    depth == last_line.depth and
+                    kind == last_line.kind and
+                    kind in ['key item', 'string item']
+                ):
+                    last_line.next_line = this_line
+
+            last_line = this_line
+            yield this_line
 
     # type_of_next() {{{3e
     def type_of_next(self):
@@ -1409,10 +1424,10 @@ class NestedTextDumper:
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
-                if obj and not (self.width > 0 and len(obj) <= self.width/6):
+                if obj and (self.width <= 0 or len(obj) > self.width/5):
                     raise NotSuitableForInline from None
                 content = self.render_inline_dict(obj)
-                if obj and len(content) > self.width:
+                if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 rendered = {}
@@ -1427,10 +1442,10 @@ class NestedTextDumper:
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
-                if obj and not (self.width > 0 and len(obj) <= self.width/6):
+                if obj and (self.width <= 0 or len(obj) > self.width/3):
                     raise NotSuitableForInline from None
                 content = self.render_inline_list(obj)
-                if obj and len(content) > self.width:
+                if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 content = []
@@ -1942,9 +1957,18 @@ def get_original_keys(keys, keymap, strict=False):
         try:
             loc = keymap[tuple(keys[:i+1])]
             line = loc.key_line
-            original_keys.append(line.key)
+            if line.kind == 'key item':
+                # is multiline key (key fragment is actually held in line.text)
+                key = [line.text[line.depth+2:]]
+                while line.next_line:
+                    line = line.next_line
+                    key.append(line.text[line.depth+2:])
+                key = '\n'.join(key)
+            else:
+                key = line.key
+            original_keys.append(key)
         except AttributeError:
-            # this occurs normally for list indexes
+            # this occurs for list indexes
             original_keys.append(keys[i])
         except (KeyError, IndexError):
             if strict:
