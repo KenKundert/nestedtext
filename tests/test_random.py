@@ -12,6 +12,9 @@ from random import randint
 import re
 import sys
 
+max_examples = 1000  # takes several minutes
+max_examples = 100
+
 def normalize_line_breaks(s):
     return s.replace('\r\n', '\n').replace('\r', '\n')
 
@@ -42,13 +45,13 @@ def add_spaces(content, targets):
     return re.sub(f'[{re.escape(targets)}]', pad_randomly, content).lstrip(' ')
 
 
-@settings(max_examples=1000)
+@settings(max_examples=max_examples)
 @given(st.text())
 def test_strings(s):
     assert nt.loads(nt.dumps(s), top=str) == normalize_line_breaks(s)
 
 
-@settings(max_examples=1000)
+@settings(max_examples=max_examples)
 @given(
     st.dictionaries(
         keys = st.text(
@@ -79,7 +82,7 @@ def test_dicts(data):
         assert nt.loads(spacey_content, top=dict) == expected
 
 
-@settings(max_examples=1000)
+@settings(max_examples=max_examples)
 @given(
     st.lists(
         st.text(

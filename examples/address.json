@@ -1,6 +1,6 @@
 {
-    "president": {
-        "name": "Katheryn McDaniel",
+    "Katheryn McDaniel": {
+        "position": "president",
         "address": "138 Almond Street\nTopeka, Kansas 20697",
         "phone": {
             "cell": "1-210-555-5297",
@@ -11,8 +11,8 @@
             "board member"
         ]
     },
-    "vice president": {
-        "name": "Margaret Hodge",
+    "Margaret Hodge": {
+        "position": "vice president",
         "address": "2586 Marigold Lane\nTopeka, Kansas 20682",
         "phone": "1-470-555-0398",
         "email": "margaret.hodge@ku.edu",
@@ -21,12 +21,12 @@
             "accounting task force"
         ]
     },
-    "treasurer": {
-        "name": "Fumiko Purvis",
-        "address": "3636 Buffalo Ave\nTopeka, Kansas 20692",
-        "phone": "1-268-555-0280",
-        "email": "fumiko.purvis@hotmail.com",
-        "additional roles": [
+    "Fumiko Purvis": {
+        "Position": "treasurer",
+        "Address": "3636 Buffalo Ave\nTopeka, Kansas 20692",
+        "Phone": "1-268-555-0280",
+        "EMail": "fumiko.purvis@hotmail.com",
+        "Additional  Roles": [
             "accounting task force"
         ]
     }

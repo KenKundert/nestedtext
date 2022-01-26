@@ -45,8 +45,8 @@ that contains a few addresses:
 
     # Contact information for our officers
 
-    president:
-        name: Katheryn McDaniel
+    Katheryn McDaniel:
+        position: president
         address:
             > 138 Almond Street
             > Topeka, Kansas 20697
@@ -58,8 +58,8 @@ that contains a few addresses:
         additional roles:
             - board member
 
-    vice president:
-        name: Margaret Hodge
+    Margaret Hodge:
+        position: vice president
         address:
             > 2586 Marigold Lane
             > Topeka, Kansas 20682

@@ -44,8 +44,11 @@ Validate with *Voluptuous*
 ==========================
 
 This example shows how to use voluptuous_ to validate and parse a *NestedText* 
-file.  The input file is the same as in the previous example, i.e. deployment 
-settings for a web server:
+file and it demonstrates how to use the *keymap* argument from :func:`loads` or 
+:func:`load` to add location information to *Voluptuous* error messages.
+
+The input file is the same as in the previous example, i.e. deployment settings 
+for a web server:
 
 .. literalinclude:: ../examples/deploy.nt
    :language: nestedtext
@@ -58,21 +61,8 @@ it would simply check that the input matches the given type:
 .. literalinclude:: ../examples/deploy_voluptuous.py
    :language: python
 
-This produces the following data structure:
+This produces the same result as in the previous example.
 
-.. code-block:: python
-
-    {'allowed_hosts': ['www.example.com'],
-     'database': {'engine': 'django.db.backends.mysql',
-                  'host': 'db.example.com',
-                  'port': 3306,
-                  'user': 'www'},
-     'debug': False,
-     'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
-     'webmaster_email': 'admin@example.com'}
-
-This example demonstrates how to use the *keymap* argument from :func:`loads` or 
-:func:`load` to add location information to Voluptuous error messages.
 
 .. _json-to-nestedtext:
 
@@ -161,8 +151,8 @@ Pretty Printing
 ===============
 
 Besides being a readable file format, *NestedText* makes a reasonable display 
-format for structured data.  You can further simplify the output by stripping 
-leading multiline string tags if you so desire.
+format for structured data.  This example further simplifies the output by 
+stripping leading multiline string tags.
 
 .. code-block:: python
 
@@ -178,79 +168,82 @@ leading multiline string tags if you so desire.
 
     >>> addresses = nt.load('examples/address.nt')
 
-    >>> pp(addresses['treasurer'])
-    name: Fumiko Purvis
+    >>> pp(addresses['Katheryn McDaniel'])
+    position: president
     address:
-        3636 Buffalo Ave
-        Topeka, Kansas 20692
-    phone: 1-268-555-0280
-    email: fumiko.purvis@hotmail.com
+        138 Almond Street
+        Topeka, Kansas 20697
+    phone:
+        cell: 1-210-555-5297
+        home: 1-210-555-8470
+    email: KateMcD@aol.com
     additional roles:
-        - accounting task force
+        - board member
 
 
-.. _cryptocurrency example:
+.. _normalizing keys:
 
-Cryptocurrency holdings
-=======================
+Normalizing keys
+================
 
-This example implements a command-line utility that displays the current value 
-of cryptocurrency holdings.  The program starts by reading a settings file held 
-in ``~/.config/cc`` that in this case holds:
+With data files created by non-programmers it is often desirable to allow 
+a certain amount of flexibility in the keys.  For example, you may wish to 
+ignore case and be tolerant of extra spacing.  However, the end applications 
+often needs the keys to be specific values.  It is possible to normalize the 
+keys using a schema, but this can interfere with error reporting.  Imagine there 
+is an error in the value associated with a set of keys, if the keys have been 
+changed by the schema the *keymap* can no longer be used to convert the keys 
+into a line number for an error message.  *NestedText* provides the 
+*normalize_key* argument to :func:`load` and :func:`loads` to address this 
+issue.  It allows you to pass in a function that normalizes the keys before the 
+*keymap* is created, releasing the schema from that task.
 
-.. code-block:: nestedtext
+The following contact look-up program demonstrates both the normalization of 
+keys and the associated error reporting.  In this case, the first level of keys 
+contains the names of the contacts and should not be normalized. Keys at all 
+other levels are considered keywords and so should be normalized.
 
-    holdings:
-        - 5 BTC
-        - 50 ETH
-        - 50,000 XLM
-    currency: USD
-    date format: h:mm A, dddd MMMM D
-    screen width: 90
-
-This file, of course, is in *NestedText* format.  After being read by 
-:func:`load()` it is processed by a voluptuous_ schema that does some checking 
-on the form of the values specified and then converts the holdings to a list of 
-`QuantiPhy <https://quantiphy.readthedocs.io>`_ quantities.  The latest prices 
-are then downloaded from `cryptocompare <https://www.cryptocompare.com>`_, the 
-value of the holdings are computed, and then displayed. The result looks like 
-this:
-
-.. code-block:: text
-
-    Holdings as of 11:18 AM, Wednesday September 2.
-    5 BTC = $56.8k @ $11.4k/BTC    68.4% ████████████████████████████████████▏
-    50 ETH = $21.7k @ $434/ETH     26.1% █████████████▊
-    50 kXLM = $4.6k @ $92m/XLM     5.5%  ██▉
-    Total value = $83.1k.
-
-It is common when reading configuration files to want to normalize the keys.  
-For example, one might wish to ignore case and normalize the white space.  This 
-is done by passing in a key normalizing function into :meth:`load`.  It would 
-also be possible to do so in the schema, but it is better to have :meth:`load` 
-normalize the keys as it will adjust the *keymap* accordingly, which makes error 
-reporting easier.
-
-And finally, the code:
-
-.. literalinclude:: ../examples/cryptocurrency
+.. literalinclude:: ../examples/address
    :language: python
+
+This program takes a name as a command line argument and prints out the 
+corresponding address.  It uses the pretty print idea from the previous section 
+to render the contact information.  *Voluptuous* checks the validity of the 
+contacts database, which is shown next. Notice the variability in the keys given 
+in Fumiko's entry:
+
+.. literalinclude:: ../examples/address.nt
+   :language: nestedtext
+
+Now, requesting Fumiko's contact information gives::
+
+    Fumiko Purvis
+        position: treasurer
+        address:
+            3636 Buffalo Ave
+            Topeka, Kansas 20692
+        phone: 1-268-555-0280
+        email: fumiko.purvis@hotmail.com
+        additional roles:
+            - accounting task force
+
+Notice that other than Fumiko's name, the displayed keys are all normalized.
 
 
 .. _postmortem example:
 
-PostMortem
+References
 ==========
 
-This example illustrates how one can implement references in *NestedText*.  
-A reference allows you to define some content once and insert that content 
-multiple places in the document.  This example also demonstrates a slightly 
-different way to implement validation and conversion on a per field basis with 
-voluptuous_.  Finally, it includes key normalization, which allows the keys to 
-be case insensitive and contain white space even though the program that uses 
-the data prefers the keys to be lower case identifiers.  The *normalize_key* 
-function passed to :meth:`load` is used to transform the keys to the desired 
-form.
+This example illustrates how one can implement references or macros in 
+*NestedText*.  A reference allows you to define some content once and insert 
+that content multiple places in the document.  This example also demonstrates 
+a slightly different way to implement validation and conversion on a per field 
+basis with voluptuous_.  Finally, it includes key normalization, which allows 
+the keys to be case insensitive and contain white space even though the program 
+that uses the data prefers the keys to be lower case identifiers.  The 
+*normalize_key* function passed to :meth:`load` is used to transform the keys to 
+the desired form.
 
 PostMortem_ is a program that generates a packet of information that is securely 
 shared with your dependents in case of your death.  Only the settings processing 

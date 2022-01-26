@@ -30,9 +30,9 @@ Implementations
 
 
 `nestedtext-ruby <https://github.com/erikw/nestedtext-ruby>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 `Ruby <https://www.ruby-lang.org/en/>`_ implementation of *NestedText*
-(supports :ref:`NestedText v3.1 <v3.1>`).
+(supports :ref:`NestedText v3.0 <v3.0>`).
 
 
 `janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_

@@ -82,6 +82,23 @@ def test_deploy_voluptuous():
         dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
         assert dv.stdout.strip() == expected.strip()
 
+def test_address():
+     if sys.version_info < (3, 8):
+         return  # address example uses walrus operator
+     with cd(tests_dir):
+        cc = Run('./address fumiko', modes='sOEW')
+        assert cc.stdout.strip() == dedent("""
+            Fumiko Purvis
+                position: treasurer
+                address:
+                    3636 Buffalo Ave
+                    Topeka, Kansas 20692
+                phone: 1-268-555-0280
+                email: fumiko.purvis@hotmail.com
+                additional roles:
+                    - accounting task force
+        """).strip()
+
 def test_cryptocurrency():
      if sys.version_info < (3, 8):
          return  # cryptocurrency example uses walrus operator
