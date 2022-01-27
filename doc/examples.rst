@@ -284,25 +284,23 @@ Here are the processed settings:
 
 .. code-block:: python
 
-    {'my gpg ids': ['odin@norse-gods.com'],
-    'name template': '{name}-{now:YYMMDD}',
-    'recipients': {'Frigg': {'attach': [PosixPath('.../home/estate/trust.pdf'),
-                                        PosixPath('.../home/estate/will.pdf'),
-                                        PosixPath('.../home/estate/deed-valhalla.pdf')],
-                            'category': 'wife',
-                            'email': ['frigg@norse-gods.com'],
-                            'networth': 'odin'},
-                    'Loki': {'attach': [PosixPath('.../home/estate/trust.pdf'),
-                                        PosixPath('.../home/estate/will.pdf'),
-                                        PosixPath('.../home/estate/deed-valhalla.pdf')],
-                            'category': 'kids',
-                            'email': ['loki@norse-gods.com']},
-                    'Thor': {'attach': [PosixPath('.../home/estate/trust.pdf'),
-                                        PosixPath('.../home/estate/will.pdf'),
-                                        PosixPath('.../home/estate/deed-valhalla.pdf')],
-                            'category': 'kids',
-                            'email': ['thor@norse-gods.com']}},
-    'sign with': 'odin@norse-gods.com'}
+    {'my_gpg_ids': ['odin@norse-gods.com'],
+     'recipients': {'Frigg': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                         PosixPath('/home/ken/home/estate/will.pdf'),
+                                         PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                              'category': 'wife',
+                              'email': ['frigg@norse-gods.com'],
+                              'networth': 'odin'},
+                    'Loki': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                        PosixPath('/home/ken/home/estate/will.pdf'),
+                                        PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                             'category': 'kids',
+                             'email': ['loki@norse-gods.com']},
+                     'Thor': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
+                                         PosixPath('/home/ken/home/estate/will.pdf'),
+                                         PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
+                              'category': 'kids',
+                              'email': ['thor@norse-gods.com']}}}
 
 
 .. _pydantic: https://pydantic-docs.helpmanual.io
