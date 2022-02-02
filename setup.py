@@ -5,7 +5,7 @@ with open('README.rst', encoding='utf-8') as f:
 
 setup(
     name = 'nestedtext',
-    version = '3.2.2',
+    version = '3.2.3',
     description = 'human readable and writable data interchange format',
     long_description = readme,
     long_description_content_type = 'text/x-rst',

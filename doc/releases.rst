@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.2.2
-| Released: 2022-01-26
+| Version: 3.2.3
+| Released: 2022-02-01
 
 - add *normalize_key* argument to :meth:`load` and :meth:`loads`.
 - added utility functions for operating on keys and keymaps:
