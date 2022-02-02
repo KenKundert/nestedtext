@@ -369,16 +369,16 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     else:
         prev_line = None
     if lineno is None:
-        assert e.codicil == (f'«{line}»',)
+        assert e.codicil == (f'⦉{line}⦊',)
     else:
         if colno is None:
-            assert e.codicil == (f'{lineno+1:>4} «{line}»',)
+            assert e.codicil == (f'{lineno+1:>4} ⦉{line}⦊',)
         else:
             line = line.replace('\t', '→')
             assert len(e.codicil) == 1
             assert e.codicil[0].endswith(
-                (f'{prev_lineno+1:>4} «{prev_line}»\n' if prev_line else '') +
-                f'{lineno+1:>4} «{line}»' +
+                (f'{prev_lineno+1:>4} ⦉{prev_line}⦊\n' if prev_line else '') +
+                f'{lineno+1:>4} ⦉{line}⦊' +
                 (f'\n      {" "*colno}▲' if colno is not None else '')
             )
 
@@ -714,86 +714,92 @@ def test_load_inline_errors(given, expected, kwargs):
 
 # test_keymaps {{{2
 def test_keymaps():
-    document = dedent("""
-
-        # Contact information for our officers
-
-        president:
-            name: Katheryn McDaniel
-            address:
-                > 138 Almond Street
-                > Topeka, Kansas 20697
-            phone:
-                cell: 1-210-555-5297
-                work: 1-210-555-3423
-                home: 1-210-555-8470
-                    # Katheryn prefers that we always call her on her cell phone.
-            email: KateMcD@aol.com
-            kids:
-                - Joanie
-                - Terrance
-
-        vice president:
-            name: Margaret Hodge
-            address:
-                > 2586 Marigold Lane
-                > Topeka, Kansas 20697
-            phone:
-                {cell: 1-470-555-0398, home: 1-470-555-7570}
-            email: margaret.hodge@ku.edu
-            kids:
-                [Arnie, Zach, Maggie]
-
-        treasurer:
-            -
-                name: Fumiko Purvis
-                address:
-                    > 3636 Buffalo Ave
-                    > Topeka, Kansas 20692
-                phone: 1-268-555-0280
-                email: fumiko.purvis@hotmail.com
-                additional roles:
-                    - accounting task force
-
-        : multiline
-        : key
-            > it's value
+    document_with_linenos = dedent("""
+        0   # Contact information for our officers
+        1
+        2   president:
+        3       name: Katheryn McDaniel
+        4       address:
+        5           > 138 Almond Street
+        6           > Topeka, Kansas 20697
+        7       phone:
+        8           cell: 1-210-555-5297
+        9           work: 1-210-555-3423
+        10          home: 1-210-555-8470
+        11              # Katheryn prefers that we always call her on her cell phone.
+        12      email: KateMcD@aol.com
+        13      kids:
+        14          - Joanie
+        15          - Terrance
+        16
+        17  vice president:
+        18      name: Margaret Hodge
+        19      address:
+        20          > 2586 Marigold Lane
+        21          > Topeka, Kansas 20697
+        22      phone:
+        23          {cell: 1-470-555-0398, home: 1-470-555-7570}
+        24      email: margaret.hodge@ku.edu
+        25      kids:
+        26          [Arnie, Zach, Maggie]
+        27
+        28  treasurer:
+        29      -
+        30          name: Fumiko Purvis
+        31          address:
+        32              > 3636 Buffalo Ave
+        33              > Topeka, Kansas 20692
+        34          phone: 1-268-555-0280
+        35          email: fumiko.purvis@hotmail.com
+        36          additional roles:
+        37              - accounting task force
+        38
+        39  : multiline
+        40  : key
+        41      > it's value
 
     """).strip()
-    doc_lines = document.splitlines()
 
+    # remove line numbers from NestedText document
+    doc_lines = [l[4:] for l in document_with_linenos.splitlines()]
+    document = '\n'.join(doc_lines)
+    print(document)
+
+
+    #   keys                                  key    value    lines
+    #                                         r  c    r  c    k       v
     cases = """
-        president                           → 2  0   3  4
-        president name                      → 3  4   3  10
-        president address                   → 4  4   5  10
-        president phone                     → 7  4   8  8
-        president phone cell                → 8  8   8  14
-        president phone work                → 9  8   9  14
-        president phone home                → 10 8   10 14
-        president email                     → 12 4   12 11
-        president kids                      → 13 4   14 8
-        president kids 0                    → 14 8   14 10
-        president kids 1                    → 15 8   15 10
-        vice_president                      → 17 0   18 4
-        vice_president name                 → 18 4   18 10
-        vice_president address              → 19 4   20 10
-        vice_president phone                → 22 4   23 8
-        vice_president phone cell           → 23 9   23 15
-        vice_president phone home           → 23 31  23 37
-        vice_president email                → 24 4   24 11
-        vice_president kids                 → 25 4   26 8
-        vice_president kids 0               → 26 9   26 9
-        vice_president kids 1               → 26 16  26 16
-        vice_president kids 2               → 26 22  26 22
-        treasurer                           → 28 0   29 4
-        treasurer 0                         → 29 4   30 8
-        treasurer 0 name                    → 30 8   30 14
-        treasurer 0 address                 → 31 8   32 14
-        treasurer 0 phone                   → 34 8   34 15
-        treasurer 0 email                   → 35 8   35 15
-        treasurer 0 additional_roles        → 36 8   37 12
-        treasurer 0 additional_roles 0      → 37 12  37 14
-        multiline↲key                       → 39 0   41 6
+        president                           → 2  0    3  4    2  3    3  4
+        president name                      → 3  4    3  10   3  4    3  4
+        president address                   → 4  4    5  10   4  5    5  7
+        president phone                     → 7  4    8  8    7  8    8  9
+        president phone cell                → 8  8    8  14   8  9    8  9
+        president phone work                → 9  8    9  14   9  10   9  10
+        president phone home                → 10 8    10 14   10 11   10 11
+        president email                     → 12 4    12 11   12 13   12 13
+        president kids                      → 13 4    14 8    13 14   14 15
+        president kids 0                    → 14 8    14 10   14 15   14 15
+        president kids 1                    → 15 8    15 10   15 16   15 16
+        vice_president                      → 17 0    18 4    17 18   18 19
+        vice_president name                 → 18 4    18 10   18 19   18 19
+        vice_president address              → 19 4    20 10   19 20   20 22
+        vice_president phone                → 22 4    23 8    22 23   23 24
+        vice_president phone cell           → 23 9    23 15   23 24   23 24
+        vice_president phone home           → 23 31   23 37   23 24   23 24
+        vice_president email                → 24 4    24 11   24 25   24 25
+        vice_president kids                 → 25 4    26 8    25 26   26 27
+        vice_president kids 0               → 26 9    26 9    26 27   26 27
+        vice_president kids 1               → 26 16   26 16   26 27   26 27
+        vice_president kids 2               → 26 22   26 22   26 27   26 27
+        treasurer                           → 28 0    29 4    28 29   29 30
+        treasurer 0                         → 29 4    30 8    29 30   30 31
+        treasurer 0 name                    → 30 8    30 14   30 31   30 31
+        treasurer 0 address                 → 31 8    32 14   31 32   32 34
+        treasurer 0 phone                   → 34 8    34 15   34 35   34 35
+        treasurer 0 email                   → 35 8    35 15   35 36   35 36
+        treasurer 0 additional_roles        → 36 8    37 12   36 37   37 38
+        treasurer 0 additional_roles 0      → 37 12   37 14   37 38   37 38
+        multiline↲key                       → 39 0    41 6    39 41   41 42
     """.strip().splitlines()
 
     def fix_key(key, normalize):
@@ -809,24 +815,46 @@ def test_keymaps():
     def normalize_key(key, parent_keys):
         return key.replace(' ', '_')
 
-    def check_result(given, expected, keys):
-        expected = tuple(int(n) for n in expected.split())
+    def check_result(keys, expected, addresses):
         location = keymap[keys]
-        key_lineno, key_colno, lineno, colno = expected
+
+        # separate expected into 8 expected values
+        key_lineno, key_colno, lineno, colno, \
+        key_first_line, key_last_line, value_first_line, value_last_line \
+            = tuple(int(n) for n in expected.split())
+
+        # check raw row and column numbers
         assert location.as_tuple() == (lineno, colno), keys
         assert location.as_tuple('value') == (lineno, colno), keys
         assert location.as_tuple('key') == (key_lineno, key_colno), keys
 
-        assert location.line.render() == f'{lineno+1:>4} «{doc_lines[lineno]}»'
-        rendered = f"{lineno+1:>4} «{doc_lines[lineno]}»\n      {colno*' '}▲"
+        # check rendered row and column numbers
+        assert location.line.render() == f'{lineno+1:>4} ⦉{doc_lines[lineno]}⦊'
+        rendered = f"{lineno+1:>4} ⦉{doc_lines[lineno]}⦊\n      {colno*' '}▲"
         assert location.line.render(colno) == rendered
         assert location.as_line() == rendered
         assert location.as_line('value') == rendered
-        rendered = f"{key_lineno+1:>4} «{doc_lines[key_lineno]}»\n      {key_colno*' '}▲"
+        rendered = f"{key_lineno+1:>4} ⦉{doc_lines[key_lineno]}⦊\n      {key_colno*' '}▲"
         assert location.as_line('key') == rendered
         assert str(location.line) == doc_lines[lineno]
-        assert repr(location.line) == f'Line({lineno+1}: «{doc_lines[lineno]}»)'
+        assert repr(location.line) == f'Line({lineno+1}: ⦉{doc_lines[lineno]}⦊)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
+
+        # check line numbers as tuples
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key') == (key_first_line, key_last_line), keys
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value') == (value_first_line, value_last_line), keys
+
+        # check line numbers as strings
+        if key_first_line+1 != key_last_line:
+            key_lines = f"{key_first_line+1}-{key_last_line}"
+        else:
+            key_lines = str(key_last_line)
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key', sep='-') == key_lines, keys
+        if value_first_line+1 != value_last_line:
+            value_lines = f"{value_first_line+1}-{value_last_line}"
+        else:
+            value_lines = str(value_last_line)
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
 
     # Without key normalization normalizing the keys
     keymap = {}
@@ -834,7 +862,7 @@ def test_keymaps():
     for case in cases:
         given, expected = case.split('→')
         keys = tuple(fix_key(n, True) for n in given.split())
-        check_result(given, expected, keys)
+        check_result(keys, expected, addresses)
 
     # With key normalization normalizing the keys
     keymap = {}
@@ -842,7 +870,7 @@ def test_keymaps():
     for case in cases:
         given, expected = case.split('→')
         keys = tuple(fix_key(n, False) for n in given.split())
-        check_result(given, expected, keys)
+        check_result(keys, expected, addresses)
 
 
 # test_key_utilities {{{2

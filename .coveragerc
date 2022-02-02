@@ -2,7 +2,11 @@
 exclude_lines =
     pragma: no cover
     raise NotImplementedError
+precision=2
+show_missing=yes
 
 [run]
 source = nestedtext
-omit = */.tox/*
+omit = */.tox/*,*/.local/*
+    # the doctests use the installed version of nestedtext, which suppressess 
+    # the coverage percentage

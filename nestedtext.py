@@ -142,7 +142,7 @@ class NestedTextError(Error, ValueError):
         .. except nt.NestedTextError as e:
         ..     e.report()
         error: 2: duplicate key: name1.
-            «name1: value2»
+            ⦉name1: value2⦊
              ▲
 
     The *terminate* method prints the message directly and exits::
@@ -152,7 +152,7 @@ class NestedTextError(Error, ValueError):
         .. except nt.NestedTextError as e:
         ..     e.terminate()
         error: 2: duplicate key: name1.
-            «name1: value2»
+            ⦉name1: value2⦊
              ▲
 
     With exceptions generated from :func:`load` or :func:`loads` you may see
@@ -172,11 +172,11 @@ class NestedTextError(Error, ValueError):
         ...     print(e.get_message())
         ...     print(*e.get_codicil(), sep="\n")
         duplicate key: name1.
-           1 «name1: value1»
-           2 «name1: value2»
+           1 ⦉name1: value1⦊
+           2 ⦉name1: value2⦊
               ▲
 
-    Note the « and » characters in the codicil. They delimit the extent of the
+    Note the ⦉ and ⦊ characters in the codicil. They delimit the extent of the
     text on each line and help you see troublesome leading or trailing white
     space.
 
@@ -237,19 +237,19 @@ def report(message, line, *args, colno=None, **kwargs):
         if colno is not None:
             # build codicil that shows both the line and the preceding line
             if include_prev_line:
-                codicil += [f'{line.prev_line.lineno+1:>4} «{line.prev_line.text}»']
+                codicil += [f'{line.prev_line.lineno+1:>4} ⦉{line.prev_line.text}⦊']
             else:
                 codicil += []
             # replace tabs with → so that arrow points to right location.
             text = line.text.replace("\t", "→")
             codicil += [
-                f'{line.lineno+1:>4} «{text}»',
+                f'{line.lineno+1:>4} ⦉{text}⦊',
                 '      ' + (colno*' ') + '▲',
             ]
             kwargs['codicil'] = '\n'.join(cull(codicil))
             kwargs['colno'] = colno
         else:
-            kwargs['codicil'] = f'{line.lineno+1:>4} «{line.text}»'
+            kwargs['codicil'] = f'{line.lineno+1:>4} ⦉{line.text}⦊'
         kwargs['culprit'] = get_culprit(line.lineno+1)
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
@@ -296,7 +296,7 @@ class Lines:
     # Line class {{{3
     class Line(Info):
         def render(self, col=None):
-            result = [f'{self.lineno+1:>4} «{self.text}»']
+            result = [f'{self.lineno+1:>4} ⦉{self.text}⦊']
             if col is not None:
                 result += ['      ' + (col*' ') + '▲']
             return '\n'.join(result)
@@ -305,7 +305,7 @@ class Lines:
             return self.text
 
         def __repr__(self):
-            return self.__class__.__name__ + f"({self.lineno+1}: «{self.text}»)"
+            return self.__class__.__name__ + f"({self.lineno+1}: ⦉{self.text}⦊)"
 
     # read_lines() {{{3
     def read_lines(self):
@@ -411,11 +411,10 @@ class Lines:
 
     # still_within_key() {{{3
     def still_within_key(self, depth):
-        if self.next_line:
-            return (
-                self.next_line.kind == "key item" and
-                self.next_line.depth == depth
-            )
+        return (
+            self.next_line.kind == "key item" and
+            self.next_line.depth == depth
+        )
 
     # depth_of_next() {{{3
     def depth_of_next(self):
@@ -425,19 +424,18 @@ class Lines:
 
     # get_next() {{{3
     def get_next(self):
-        this_line = self.next_line
+        line = self.next_line
+        if line.kind == "unrecognized":
+            unrecognized_line(line)
 
         # queue up the next useful line
         # this is needed so type_of_next() and still_within_level() can easily
-        # access the next upcoming line.
-        while self.next_line:
+        # access the next line that contains actual data.
+        self.next_line = next(self.generator, None)
+        while self.next_line and self.next_line.kind in ["blank", "comment"]:
             self.next_line = next(self.generator, None)
-            if not self.next_line or self.next_line.kind not in ["blank", "comment"]:
-                break
 
-        if this_line and this_line.kind == "unrecognized":
-            unrecognized_line(this_line)
-        return this_line
+        return line
 
     # indentation_error {{{3
     def indentation_error(self, line, depth):
@@ -723,8 +721,7 @@ class Inline:
 
     # location() {{{3
     def location(self, index, **kwargs):
-        if self.line:
-            kwargs['line'] = self.line
+        kwargs['line'] = self.line
         return Location(col=index + self.starting_col, **kwargs)
 
     # add_key_location() {{{3
@@ -749,7 +746,7 @@ class Inline:
 
     # render {{{3
     def render(self, index):  # pragma: no cover
-        return f"«{self.text}»\n {index*' '}▲"
+        return f"⦉{self.text}⦊\n {index*' '}▲"
 
     # __repr__ {{{3
     def __repr__(self):  # pragma: no cover
@@ -1070,8 +1067,8 @@ def loads(
             ...     print(e.render())
             ...     print(*e.get_codicil(), sep="\n")
             examples/duplicate-keys.nt, 5: duplicate key: name.
-               4 «name:»
-               5 «name:»
+               4 ⦉name:⦊
+               5 ⦉name:⦊
                   ▲
 
         Notice in the above example the encoding is explicitly specified as
@@ -1859,29 +1856,31 @@ def get_value_from_keys(obj, keys):
 # get_lines_from_keys {{{2
 def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
     """
-    Get Lines from normalized keys.
+    Get line numbers from normalized keys.
 
-    This function returns the line number or numbers of the value or key
-    selected by keys.
-
-    If *sep* is given, either one line number or both the beginning and ending
-    line numbers are given, joined using the separator.  In this case the line
-    numbers start from line 1.
-
-    If *sep* is not given, the line numbers are returned as a tuple of integers
-    that is tailored to be suitable to be arguments to the Python *slice*
-    function (see example).  The beginning line number and 1 plus the ending
-    line number is returned as a tuple.  In this case the line numbers start at
-    0.  If the value is a composite (a dictionary or list) or a single line
-    string, the value is treated as if it consists of a single line and the
-    second integer returned is simply one plus the beginning line number.
-
-    This function is used when reporting an error in a value that is possibly a
+    This function returns the line numbers of the key or value selected by
+    *keys*.  It is used when reporting an error in a value that is possibly a
     multiline string.  If the location contained in a keymap were used the user
     would only see the line number of the first line, which may confuse some
-    users to to believe the error is actually contained in the first line.
+    users into believing the error is actually contained in the first line.
     Using this function gives both the starting and ending line number so the
     user focuses on the whole string and not just the first line.
+
+    If *sep* is given, either one line number or both the beginning and ending
+    line numbers are given, joined with the separator.  In this case the line
+    numbers start from line 1.
+
+    If *sep* is not given, the line numbers are returned as a tuple containing a
+    pair of integers that is tailored to be suitable to be arguments to the
+    Python *slice* function (see example).  The beginning line number and 1 plus
+    the ending line number is returned as a tuple.  In this case the line
+    numbers start at 0.
+
+    If the value is requested and it is a composite (a dictionary or list), the
+    line on which it ends cannot be easily determined, so the value is treated
+    as if it consists of a single line.  This is considered tolerable as it is
+    expected that this function is primarily used to return the line number of
+    leaf values, which are always strings.
 
     Args:
         obj:
@@ -1894,7 +1893,8 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
             Specify either 'key' or 'value' depending on which token is
             desired.
         sep:
-            The separator string. It is inserted between two line numbers.
+            The separator string. If given a string is returned and *sep* is
+            inserted between two line numbers.  Otherwise a tuple is returned.
 
     Example:
         >>> import nestedtext as nt
@@ -1921,15 +1921,19 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
             > this is line 3
 
     """
-    line, col = keymap[keys].as_tuple()
+    line, col = keymap[keys].as_tuple(kind)
     value = get_value_from_keys(obj, keys)
-    num_lines = len(value.splitlines()) if is_str(value) else 1
-    if sep:
-        if num_lines > 1:
-            return join(line+1, line+num_lines, sep=sep)
-        else:
-            return str(line+1)
-    return (line, line+num_lines)
+    if kind == 'value':
+        num_lines = len(value.splitlines()) if is_str(value) else 1
+    else:
+        key = keys[-1]
+        num_lines = len(key.splitlines()) if is_str(key) else 1
+    if sep is None:
+        return (line, line+num_lines)
+    if num_lines > 1:
+        return join(line+1, line+num_lines, sep=sep)
+    else:
+        return str(line+1)
 
 
 # get_original_keys {{{2
