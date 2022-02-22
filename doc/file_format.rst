@@ -31,8 +31,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Blank lines**:
 
-    Blank lines are lines that are empty or consist only of white space 
-    characters (spaces or tabs).  Blank lines are ignored.
+    Blank lines are lines that are empty or consist only of ASCII space 
+    characters.  Blank lines are ignored.
 
 
 **Line-type tags**:
@@ -40,12 +40,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Most remaining lines are identified by the presence of tags, where a tag is:
 
     #.  the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
-        a line when followed immediately by a space or line break;
+        a line when followed immediately by an ASCII space or line break;
     #.  or a hash {``#``), left bracket (``[``), or left brace (``{``) as the 
-        first non-white space character on a line.
+        first non-space character on a line.
 
-    Most of these symbols only introduce tags when they are the first non-space 
-    character on a line, but colon tags need not start the line.
+    All these symbols except the colon will introduce tags only when they are
+    the first non-ASCII-space character on a line.
 
     The first (left-most) tag on a line determines the line type.  Once the 
     first tag has been found on the line, any subsequent occurrences of any of 
@@ -61,14 +61,14 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Comments**:
 
-    Comments are lines that have ``#`` as the first non-white-space character on 
+    Comments are lines that have ``#`` as the first non-ASCII-space character on 
     the line.  Comments are ignored.
 
 
 **String items**:
 
     If the first non-space character on a line is a greater-than symbol followed 
-    immediately by a space (``>␣``) or a line break, the line is a *string 
+    immediately by an ASCII space (``>␣``) or a line break, the line is a *string 
     item*.  After comments and blank lines have been removed, adjacent string 
     items with the same indentation level are combined in order into 
     a multiline string.  The string value is the multiline string with the 
@@ -81,7 +81,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **List items**:
 
     If the first non-space character on a line is a dash followed immediately by 
-    a space (``-␣``) or a line break, the line is a *list item*.  Adjacent list 
+    an ASCII space (``-␣``) or a line break, the line is a *list item*.  Adjacent list 
     items with the same indentation level are combined in order into a list.
     Each list item has a tag and a value.  The tag is only used to determine the 
     type of the line and is discarded leaving the value.  The value takes one of 
@@ -100,8 +100,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Key items**:
 
-    If the first non-space character on a line is a colon followed immediately 
-    by a space (``:␣``) or a line break, the line is a *key item*.  After 
+    If the first non-ASCII-space character on a line is a colon followed immediately 
+    by an ASCII space (``:␣``) or a line break, the line is a *key item*.  After 
     comments and blank lines have been removed, adjacent key items with the same 
     indentation level are combined in order into a multiline key.  The key 
     itself is the multiline string with the tags removed. Any leading white 
@@ -121,8 +121,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     The first is a *dictionary item with inline key*.  In this case the line 
     starts with a key followed by a dictionary tag: a colon followed by either 
-    a space (``:␣``) or a newline.  The dictionary item consists of the key, the 
-    tag, and the trailing value.  Any space between the key and the tag is 
+    an ASCII space (``:␣``) or a newline.  The dictionary item consists of the key, the 
+    tag, and the trailing value.  Any Unicode white-space between the key and the tag is 
     ignored.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
@@ -131,7 +131,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     #. start with a list item, string item or key item tag,
     #. start with ``[`` or ``{``,
     #. contain a dictionary item tag, or
-    #. contain leading spaces (any spaces that follow the key are ignored).
+    #. contain Unicode leading spaces (any Unicode spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
     leaving the key and the value, which follows the tag.  The value takes one 
@@ -158,9 +158,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Inline Lists and Dictionaries**:
 
-    If the first character on a line is either a left bracket (``[``) or a left 
-    brace (``{``) the line is an *inline structure*.  A bracket introduces an 
-    inline list and a brace introduces an inline dictionary.
+    If the first non-ASCII-space character on a line is either a left bracket (``[``) 
+    or a left brace (``{``) the line is an *inline structure*.  A bracket
+    introduces an inline list and a brace introduces an inline dictionary.
 
     An *inline list* starts with an open bracket (``[``), ends with a matching 
     closed bracket (``]``), contains inline values separated by commas (``,``), 
@@ -182,8 +182,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Specifically, inline strings may not contain newlines or any of the 
     following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  In addition, 
     inline strings that are contained in inline dictionaries may not contain 
-    ``:``.  Leading and trailing white space are ignored with inline strings, 
-    this includes spaces, tabs, Unicode spaces, etc.
+    ``:``.  Both leading and trailing ASCII spaces and ASCII tabs are ignored
+    with inline strings.
+    
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 
@@ -233,7 +234,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     A document may be empty. A document is empty if it consists only of
     comments and blank lines.  An empty document corresponds to an empty value 
-    of unknown type.
+    of unknown type. Implementations may allow a default type of to be set.
 
 
 **Result**:
