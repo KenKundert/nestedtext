@@ -42,10 +42,11 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     #.  the first dash (``-``), colon (``:``), or greater-than symbol (``>``) on 
         a line when followed immediately by an ASCII space or line break;
     #.  or a hash {``#``), left bracket (``[``), or left brace (``{``) as the 
-        first non-space character on a line.
+        first non-ASCII-space character on a line.
 
-    All these symbols except the colon will introduce tags only when they are
-    the first non-ASCII-space character on a line.
+    These symbols can only introduce tags when they are the first
+    non-ASCII-space character on a line, except for the colon (``:``) which can
+    introduce a dictionary item with an inline key midway through a line.
 
     The first (left-most) tag on a line determines the line type.  Once the 
     first tag has been found on the line, any subsequent occurrences of any of 
