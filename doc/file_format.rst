@@ -235,7 +235,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     A document may be empty. A document is empty if it consists only of
     comments and blank lines.  An empty document corresponds to an empty value 
-    of unknown type. Implementations may allow a default type of to be set.
+    of unknown type. Implementations may allow a default top-level type of
+    dictionary, list, or string to be specified.
 
 
 **Result**:
