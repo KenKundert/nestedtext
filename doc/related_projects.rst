@@ -46,6 +46,8 @@ Implementations
 `Zig <https://ziglang.org>`_ implementation of *NestedText*
 (slight subset of :ref:`NestedText v2.0 <v2.0>`).
 
+`nodejs <https://www.npmjs.com/package/@rmw/nestedtext>`__
+use https://github.com/npillmayer/nestext wasm for nestedtext decode in nodejs ( es module )
 
 Utilities
 ---------
