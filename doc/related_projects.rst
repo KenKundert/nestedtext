@@ -47,7 +47,9 @@ Implementations
 (slight subset of :ref:`NestedText v2.0 <v2.0>`).
 
 `nodejs <https://www.npmjs.com/package/@rmw/nestedtext>`__
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 use https://github.com/npillmayer/nestext wasm for nestedtext decode in nodejs ( es module )
+(supports :ref:`NestedText v3.0 <v3.0>`).
 
 Utilities
 ---------
