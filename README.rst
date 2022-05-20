@@ -77,3 +77,6 @@ This package contains a Python reference implementation of *NestedText* and
 a test suite.  Implementation in many languages is required for *NestedText* to 
 catch on widely.  If you like the format, please consider contributing 
 additional implementations.
+
+Also, please consider using *NestedText* for any applications you create.  It is 
+especially suitable for configuration files.

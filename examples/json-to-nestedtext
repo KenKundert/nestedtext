@@ -85,7 +85,7 @@ except json.JSONDecodeError as e:
         for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
             lines.append(f'{i+1:>4}> {l}')
         lines_after = '\n'.join(lines)
-        codicil = f"{lines_before}\n     {colno*' '}▲\n{lines_after}"
+        codicil = f"{lines_before}\n     {colno*' '}△\n{lines_after}"
     except Exception:
         pass
     fatal(full_stop(msg), culprit=culprit, codicil=codicil)

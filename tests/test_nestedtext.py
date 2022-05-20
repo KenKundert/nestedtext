@@ -369,17 +369,17 @@ def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_pat
     else:
         prev_line = None
     if lineno is None:
-        assert e.codicil == (f'⦉{line}⦊',)
+        assert e.codicil == (f'❬{line}❭',)
     else:
         if colno is None:
-            assert e.codicil == (f'{lineno+1:>4} ⦉{line}⦊',)
+            assert e.codicil == (f'{lineno+1:>4} ❬{line}❭',)
         else:
             line = line.replace('\t', '→')
             assert len(e.codicil) == 1
             assert e.codicil[0].endswith(
-                (f'{prev_lineno+1:>4} ⦉{prev_line}⦊\n' if prev_line else '') +
-                f'{lineno+1:>4} ⦉{line}⦊' +
-                (f'\n      {" "*colno}▲' if colno is not None else '')
+                (f'{prev_lineno+1:>4} ❬{prev_line}❭\n' if prev_line else '') +
+                f'{lineno+1:>4} ❬{line}❭' +
+                (f'\n      {" "*colno}△' if colno is not None else '')
             )
 
     assert isinstance(e, Error)
@@ -829,15 +829,15 @@ def test_keymaps():
         assert location.as_tuple('key') == (key_lineno, key_colno), keys
 
         # check rendered row and column numbers
-        assert location.line.render() == f'{lineno+1:>4} ⦉{doc_lines[lineno]}⦊'
-        rendered = f"{lineno+1:>4} ⦉{doc_lines[lineno]}⦊\n      {colno*' '}▲"
+        assert location.line.render() == f'{lineno+1:>4} ❬{doc_lines[lineno]}❭'
+        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭\n      {colno*' '}△"
         assert location.line.render(colno) == rendered
         assert location.as_line() == rendered
         assert location.as_line('value') == rendered
-        rendered = f"{key_lineno+1:>4} ⦉{doc_lines[key_lineno]}⦊\n      {key_colno*' '}▲"
+        rendered = f"{key_lineno+1:>4} ❬{doc_lines[key_lineno]}❭\n      {key_colno*' '}△"
         assert location.as_line('key') == rendered
         assert str(location.line) == doc_lines[lineno]
-        assert repr(location.line) == f'Line({lineno+1}: ⦉{doc_lines[lineno]}⦊)'
+        assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
 
         # check line numbers as tuples

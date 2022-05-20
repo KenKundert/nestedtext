@@ -26,11 +26,11 @@ A dictionary item is a single key value pair.  A dictionary is all adjacent
 dictionary items in which the keys all begin at the same level of indentation.
 There are several different ways to specify dictionaries.
 
-In the first form, the key and value are separated with a colon (``:``) followed 
-by either a space or a newline.  The key must be a string and must not start 
-with a ``-``, ``>``, ``:``, ``[``, ``{`` or space character; or contain newline 
-characters or the ``:␣`` character sequence.  Any spaces between the key and the 
-colon that separates the key from the value are ignored.
+In the first form, the key and value are separated by a dictionary tag, which is 
+a colon followed by a space or newline (``:␣`` or  ``:↵``).  The key must be 
+a string and must not start with a ``-␣``, ``>␣``, ``:␣``, ``[``, ``{``, ``#``, 
+or white space character; or contain newline characters or the ``:␣`` character 
+sequence.  Any spaces between the key and the tag are ignored.
 
 The value of this dictionary item may be a rest-of-line string, a multiline 
 string, a list, or a dictionary. If it is a rest-of-line string, it contains all 
@@ -53,10 +53,28 @@ on the next line, which must be further indented.
         > first line of value 5
         > second line of value 5
 
+Which is equivalent to the following JSON code:
+
+.. code-block:: json
+
+    {
+        "key 1": "value 1",
+        "key 2": "",
+        "key 3": [
+            "value 3a",
+            "value 3b"
+        ],
+        "key 4": {
+            "key 4a": "value 4a",
+            "key 4b": "value 4b"
+        },
+        "key 5": "first line of value 5\nsecond line of value 5"
+    }
+
 A second less common form of a dictionary item employs multiline keys.  In this 
-case there are no limitations on the key other than it be a string.  Each line 
-of a multiline key is introduced with a colon (``:``) followed by a space or 
-newline.  The key is all adjacent lines at the same level that start with 
+case there are no limitations on the key other than it being a string.  Each 
+line of a multiline key is introduced with a colon (``:``) followed by a space 
+or newline.  The key is all adjacent lines at the same level that start with 
 a colon tag with the tags removed but leading and trailing white space retained, 
 including all newlines except the last.
 
@@ -84,7 +102,7 @@ and value separated by a colon (``:``).  A space need not follow the colon.  The
 keys are inline strings and the values may be inline strings, inline lists, and 
 inline dictionaries.  An empty dictionary is represented with ``{}`` (there can 
 be no space between the opening and closing braces).  Leading and trailing 
-spaces are stripped from keys and string values.
+spaces are stripped from keys and string values within inline dictionaries.
 
 For example:
 
@@ -110,13 +128,13 @@ A list is an ordered collection of values:
     - value 2
     - value 3
 
-A list item is introduced with a dash followed by a space or a newline at the 
-start of a line.  All adjacent list items at the same level of indentation form 
-the list.
+A list item is introduced with a list tag: a dash followed by a space or 
+a newline at the start of a line (``-␣`` or ``-↵``).  All adjacent list items at 
+the same level of indentation form the list.
 
 The value of a list item may be a rest-of-line string, a multiline string, 
 a list, or a dictionary. If it is a rest-of-line string, it contains all 
-characters that follow the ``-␣`` that introduces the list item.  For all other 
+characters that follow the tag that introduces the list item.  For all other 
 values, the rest of the line must be empty, with the value given on the next 
 line, which must be further indented.
 
@@ -134,6 +152,24 @@ line, which must be further indented.
         > first line of value 5
         > second line of value 5
 
+Which is equivalent to the following JSON code:
+
+.. code-block:: json
+
+    [
+        "value 1",
+        "",
+        [
+            "value 3a",
+            "value 3b"
+        ],
+        {
+            "key 4a": "value 4a",
+            "key 4b": "value 4b"
+        },
+        "first line of value 5\nsecond line of value 5"
+    ]
+
 Another form of a list is the inline list.  This is a compact form where all the 
 list items are given on the same line.  There is a bit of syntax that defines 
 the list, so the values are constrained to avoid ambiguities in the syntax.  An 
@@ -141,7 +177,8 @@ inline list starts with an opening bracket (``[``), ends with a matching closing
 bracket (``]``), and contains inline values separated by commas.  The values may 
 be inline strings, inline lists, and inline dictionaries.  An empty list is 
 represented by ``[]`` (there should be no space between the opening and closing 
-brackets).  Leading and trailing spaces are stripped from string values.
+brackets).  Leading and trailing spaces are stripped from string values within 
+inline lists.
 
 For example:
 
@@ -168,7 +205,8 @@ There are three types of strings: rest-of-line strings, multiline strings, and
 inline strings.  Rest-of-line strings are simply all the characters on a line 
 that follow a list tag (``-␣``) or dictionary tag (``:␣``), including any 
 leading or trailing white space.  They can contain any character other than 
-a newline:
+a newline.  The content of the rest-of-line string starts after the first space 
+that follows the dash or colon of the tag:
 
 .. code-block:: nestedtext
 
@@ -177,9 +215,10 @@ a newline:
     math   : $x = \frac{{-b \pm \sqrt {b^2 - 4ac}}}{2a}$
     unicode: José and François
 
-Multi-line strings are specified on lines prefixed with the greater-than symbol 
-followed by a space or a newline.  The content of each line starts after the 
-first space that follows the greater-than symbol:
+Multi-line strings are all adjacent lines that are prefixed with a string tag; 
+the greater-than symbol followed by a space or a newline (``>␣`` or ``>↵``).  
+The content of each line starts after the first space that follows the 
+greater-than symbol:
 
 .. code-block:: nestedtext
 
@@ -198,11 +237,11 @@ symbol alone on a line:
     >                                                — Erik Jonsson
     >
 
-The multiline string is all adjacent lines that start with a greater than tag 
-with the tags removed and the lines joined together with newline characters 
-inserted between each line.  Except for the space that separates the tag from 
-the text, white space from both the beginning and the end of each line is 
-retained, along with all newlines except the last.
+The multiline string is all adjacent lines that start with a string tag with the 
+tags removed and the lines joined together with newline characters inserted 
+between each line.  Except for the space that follows the ``>`` in the tag,
+white space from both the beginning and the end of each line is retained, along 
+with all newlines except the last.
 
 Inline strings are the string values specified in inline dictionaries and lists.  
 They are somewhat constrained in the characters that they may contain; nothing 
@@ -228,6 +267,16 @@ Indentation is not significant on comment lines.
     # this line is ignored
 
     # this line is also ignored, as is the blank line above.
+
+Comment lines are ignored when determining whether adjacent lines belong to the 
+same dictionary, list, or string.  For example, the following represents one 
+multiline string:
+
+.. code-block:: nestedtext
+
+    > this is the first line of a multiline string
+    # this line is ignored
+    > this is the second line of the multiline string
 
 
 .. _nesting:

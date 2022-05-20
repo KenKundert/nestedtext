@@ -62,6 +62,18 @@ def convert_returns(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
+# Unspecified {{{2
+# class that is used as a default in functions to signal nothing was given
+class _Unspecified:
+    def __bool__(self):  # pragma: no cover
+        return False
+
+
+# OnDupCallback {{{2
+class _OnDupCallback(_Unspecified):
+    pass
+
+
 # Exceptions {{{1
 # NestedTextError {{{2
 class NestedTextError(Error, ValueError):
@@ -142,8 +154,8 @@ class NestedTextError(Error, ValueError):
         .. except nt.NestedTextError as e:
         ..     e.report()
         error: 2: duplicate key: name1.
-            ⦉name1: value2⦊
-             ▲
+            ❬name1: value2❭
+             △
 
     The *terminate* method prints the message directly and exits::
 
@@ -152,8 +164,8 @@ class NestedTextError(Error, ValueError):
         .. except nt.NestedTextError as e:
         ..     e.terminate()
         error: 2: duplicate key: name1.
-            ⦉name1: value2⦊
-             ▲
+            ❬name1: value2❭
+             △
 
     With exceptions generated from :func:`load` or :func:`loads` you may see
     extra lines at the end of the message that show the problematic lines if
@@ -172,11 +184,11 @@ class NestedTextError(Error, ValueError):
         ...     print(e.get_message())
         ...     print(*e.get_codicil(), sep="\n")
         duplicate key: name1.
-           1 ⦉name1: value1⦊
-           2 ⦉name1: value2⦊
-              ▲
+           1 ❬name1: value1❭
+           2 ❬name1: value2❭
+              △
 
-    Note the ⦉ and ⦊ characters in the codicil. They delimit the extent of the
+    Note the ❬ and ❭ characters in the codicil. They delimit the extent of the
     text on each line and help you see troublesome leading or trailing white
     space.
 
@@ -237,19 +249,19 @@ def report(message, line, *args, colno=None, **kwargs):
         if colno is not None:
             # build codicil that shows both the line and the preceding line
             if include_prev_line:
-                codicil += [f'{line.prev_line.lineno+1:>4} ⦉{line.prev_line.text}⦊']
+                codicil += [f'{line.prev_line.lineno+1:>4} ❬{line.prev_line.text}❭']
             else:
                 codicil += []
             # replace tabs with → so that arrow points to right location.
             text = line.text.replace("\t", "→")
             codicil += [
-                f'{line.lineno+1:>4} ⦉{text}⦊',
-                '      ' + (colno*' ') + '▲',
+                f'{line.lineno+1:>4} ❬{text}❭',
+                '      ' + (colno*' ') + '△',
             ]
             kwargs['codicil'] = '\n'.join(cull(codicil))
             kwargs['colno'] = colno
         else:
-            kwargs['codicil'] = f'{line.lineno+1:>4} ⦉{line.text}⦊'
+            kwargs['codicil'] = f'{line.lineno+1:>4} ❬{line.text}❭'
         kwargs['culprit'] = get_culprit(line.lineno+1)
         kwargs['line'] = line.text
         kwargs['lineno'] = line.lineno
@@ -296,16 +308,16 @@ class Lines:
     # Line class {{{3
     class Line(Info):
         def render(self, col=None):
-            result = [f'{self.lineno+1:>4} ⦉{self.text}⦊']
+            result = [f'{self.lineno+1:>4} ❬{self.text}❭']
             if col is not None:
-                result += ['      ' + (col*' ') + '▲']
+                result += ['      ' + (col*' ') + '△']
             return '\n'.join(result)
 
         def __str__(self):
             return self.text
 
         def __repr__(self):
-            return self.__class__.__name__ + f"({self.lineno+1}: ⦉{self.text}⦊)"
+            return self.__class__.__name__ + f"({self.lineno+1}: ❬{self.text}❭)"
 
     # read_lines() {{{3
     def read_lines(self):
@@ -478,7 +490,7 @@ class KeyPolicy:
         if callable(on_dup):
             # if on_dup is a function, convert it to a data structure that will
             # hold state during the load
-            on_dup = dict(_callback_func=on_dup)
+            on_dup = {_OnDupCallback: on_dup}
         cls.on_dup = on_dup
 
     @classmethod
@@ -490,7 +502,7 @@ class KeyPolicy:
             if cls.on_dup == 'ignore':
                 return
             if isinstance(cls.on_dup, dict):
-                key = cls.on_dup['_callback_func'](
+                key = cls.on_dup[_OnDupCallback](
                     key, value, dictionary, cls.on_dup
                 )
                 assert key not in dictionary
@@ -746,7 +758,7 @@ class Inline:
 
     # render {{{3
     def render(self, index):  # pragma: no cover
-        return f"⦉{self.text}⦊\n {index*' '}▲"
+        return f"❬{self.text}❭\n {index*' '}△"
 
     # __repr__ {{{3
     def __repr__(self):  # pragma: no cover
@@ -998,10 +1010,23 @@ def loads(
             1. The new key (duplicates an existing key).
             2. The new value.
             3. The entire dictionary as it is at the moment the duplicate key is
-               found.
-            4. The state; a dictionary that is created as the *loads* is called
+               found.  You should not change it.
+            4. The state; a dictionary that is created as *loads* is called
                and deleted as it returns. Values placed in this dictionary are
                retained between multiple calls to this call back function.
+
+            This function should return a new key that is unique (not found in
+            the dictionary).
+
+            It may be that the number of arguments will grow in the future.
+            To remain forward compatible it is recommended that add ``*args`` to
+            the end of your argument list to capture any new arguments as shown
+            in the example below.
+
+            Be aware that de-duplication does not play nicely with keymaps
+            as a keymap cannot distinguish between the duplicate key-sets.
+            If an error occurs in the value of one of the duplicates, it may be
+            reported as occurring in one of the others.
         keymap (dict):
             Specify an empty dictionary or nothing at all for the value of
             this argument.  If you give an empty dictionary it will be filled
@@ -1067,9 +1092,9 @@ def loads(
             ...     print(e.render())
             ...     print(*e.get_codicil(), sep="\n")
             examples/duplicate-keys.nt, 5: duplicate key: name.
-               4 ⦉name:⦊
-               5 ⦉name:⦊
-                  ▲
+               4 ❬name:❭
+               5 ❬name:❭
+                  △
 
         Notice in the above example the encoding is explicitly specified as
         'utf-8'.  *NestedText* files should always be read and written using
@@ -1099,7 +1124,7 @@ def loads(
             >>> print(nt.loads(content, on_dup='replace'))
             {'key': 'value 3', 'name': 'value 5'}
 
-            >>> def de_dup(key, value, data, state):
+            >>> def de_dup(key, value, data, state, *args):
             ...     if key not in state:
             ...         state[key] = 1
             ...     state[key] += 1
