@@ -7,9 +7,9 @@ Usage:
 """
 
 from docopt import docopt
-from inform import codicil, display, fatal, full_stop, indent, os_error
+from inform import codicil, display, error, full_stop, indent, os_error, terminate
 import nestedtext as nt
-from voluptuous import Schema, Required, Any, Invalid
+from voluptuous import Schema, Required, Any, MultipleInvalid
 import re
 
 contacts_file = "address.nt"
@@ -55,15 +55,17 @@ try:
             display(indent(render_contact(contact_info)))
 
 except nt.NestedTextError as e:
-    e.terminate()
-except Invalid as e:
-    kind = 'key' if 'key' in e.msg else 'value'
-    keys = tuple(e.path)
-    codicil = keymap[keys].as_line(kind) if keys in keymap else None
-    fatal(
-        full_stop(e.msg),
-        culprit = (contacts_file, nt.join_keys(keys, keymap=keymap)),
-        codicil = codicil
-    )
+    e.report()
+except MultipleInvalid as e:
+    for err in e.errors:
+        kind = 'key' if 'key' in err.msg else 'value'
+        keys = tuple(err.path)
+        codicil = keymap[keys].as_line(kind) if keys in keymap else None
+        error(
+            full_stop(err.msg),
+            culprit = (contacts_file, nt.join_keys(keys, keymap=keymap)),
+            codicil = codicil
+        )
 except OSError as e:
-    fatal(os_error(e))
+    error(os_error(e))
+terminate()

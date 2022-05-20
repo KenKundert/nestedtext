@@ -2,7 +2,9 @@
 
 import nestedtext as nt
 from pathlib import Path
-from voluptuous import Schema, Invalid, Extra, Required, REMOVE_EXTRA
+from voluptuous import (
+    Schema, Invalid, MultipleInvalid, Extra, Required, REMOVE_EXTRA
+)
 from pprint import pprint
 
 # Settings schema
@@ -119,13 +121,14 @@ try:
 
 except nt.NestedTextError as e:
     e.report()
-except Invalid as e:
-    kind = 'key' if 'key' in e.msg else 'value'
-    culprit = nt.join_keys(e.path, keymap=keymap)
-    print(f"ERROR: {config_filepath!s}: {culprit}: {e.msg}.")
-    try:
-        print(keymap[tuple(e.path)].as_line(kind))
-    except KeyError:
-        pass
+except MultipleInvalid as e:
+    for err in e.errors:
+        kind = 'key' if 'key' in err.msg else 'value'
+        culprit = nt.join_keys(err.path, keymap=keymap)
+        print(f"ERROR: {config_filepath!s}: {culprit}: {err.msg}.")
+        try:
+            print(keymap[tuple(err.path)].as_line(kind))
+        except KeyError:
+            pass
 except OSError as e:
     print(f"ERROR: {config_filepath!s}: {e!s}")

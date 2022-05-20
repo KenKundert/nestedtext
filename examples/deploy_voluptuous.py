@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import nestedtext as nt
-from voluptuous import Schema, Coerce, Invalid
-from inform import fatal, full_stop
+from voluptuous import Schema, Coerce, MultipleInvalid
+from inform import error, full_stop, terminate
 from pprint import pprint
 
 schema = Schema({
@@ -23,9 +23,11 @@ try:
     config = schema(raw)
 except nt.NestedTextError as e:
     e.terminate()
-except Invalid as e:
-    kind = 'key' if 'key' in e.msg else 'value'
-    loc = keymap[tuple(e.path)]
-    fatal(full_stop(e.msg), culprit=e.path, codicil=loc.as_line(kind))
+except MultipleInvalid as e:
+    for err in e.errors:
+        kind = 'key' if 'key' in err.msg else 'value'
+        loc = keymap[tuple(err.path)]
+        error(full_stop(err.msg), culprit=err.path, codicil=loc.as_line(kind))
+    terminate()
 
 pprint(config)
