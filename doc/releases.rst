@@ -19,6 +19,7 @@ Latest development version
 - add *normalize_key* argument to :meth:`load` and :meth:`loads`.
 - added utility functions for operating on keys and keymaps:
   - :func:`get_value_from_keys`
+  - :func:`get_lines_from_keys`
   - :func:`get_original_keys`
   - :func:`join_keys`
 - None passed as key is now converted to an empty string rather than "None".
