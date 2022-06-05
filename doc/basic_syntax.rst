@@ -335,8 +335,8 @@ NestedText Files
 ================
 
 *NestedText* files should be encoded with `UTF-8 
-<https://en.wikipedia.org/wiki/UTF-8>`_.  The top-level object must not be 
-indented.
+<https://en.wikipedia.org/wiki/UTF-8>`_ and should end with a newline.  The 
+top-level object must not be indented.
 
 The name used for the file is arbitrary but it is tradition to use a
 .nt suffix.  If you also wish to further distinguish the file type

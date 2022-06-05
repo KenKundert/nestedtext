@@ -1,7 +1,7 @@
 examples/access.nt
 
 # version info
-.bump.cfg
+.bump.cfg.nt
 data.nt
 
 # Byte-compiled / optimized / DLL files

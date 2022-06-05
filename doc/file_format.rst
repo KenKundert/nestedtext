@@ -236,6 +236,11 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     of unknown type.
 
 
+**End of file**:
+
+    The last character in a *NestedText* document file is a newline.
+
+
 **Result**:
 
     When a document is converted from *NestedText* the result is a hierarchical 

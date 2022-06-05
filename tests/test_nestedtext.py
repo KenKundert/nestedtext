@@ -186,7 +186,7 @@ def parametrize_dump_api(f):
 
     @param
     def dumps(x, tmp_path, **kwargs):
-        return nt.dumps(x, **kwargs)
+        return nt.dumps(x, **kwargs) + '\n'
 
     @param
     def dump_str(x, tmp_path, **kwargs):
@@ -879,6 +879,9 @@ def test_key_utilities():
         KEY 1:
             key 1a: 1
             KEY 1B: 2
+            Key-1c:
+                - a
+                - b
         user  Names:
             Anastacia Pickett__Cheek:
                 key 2a: 5
@@ -886,12 +889,20 @@ def test_key_utilities():
         : Scores :
             : Day One:
             :   25 Jan 2022
-                - 9
+                -
+                    Sabercats : 63
+                    Rattlers: 49
+                -
+                    Predators : 42
+                    Storm: 35
     """)
     expected_normalized_keys = [
         ('key_1',),
         ('key_1', 'key_1a'),
         ('key_1', 'key_1b'),
+        ('key_1', 'key_1c'),
+        ('key_1', 'key_1c', 0),
+        ('key_1', 'key_1c', 1),
         ('user_names',),
         ('user_names', 'Anastacia Pickett Cheek'),
         ('user_names', 'Anastacia Pickett Cheek', 'key_2a'),
@@ -899,11 +910,19 @@ def test_key_utilities():
         ("scores",),
         ("scores", "day_one_25_jan_2022"),
         ("scores", "day_one_25_jan_2022", 0),
+        ("scores", "day_one_25_jan_2022", 0, 'sabercats'),
+        ("scores", "day_one_25_jan_2022", 0, 'rattlers'),
+        ("scores", "day_one_25_jan_2022", 1),
+        ("scores", "day_one_25_jan_2022", 1, 'predators'),
+        ("scores", "day_one_25_jan_2022", 1, 'storm'),
     ]
     expected_original_keys = [
         ('KEY 1',),
         ('KEY 1', 'key 1a'),
         ('KEY 1', 'KEY 1B'),
+        ('KEY 1', 'Key-1c'),
+        ('KEY 1', 'Key-1c', 0),
+        ('KEY 1', 'Key-1c', 1),
         ('user  Names',),
         ('user  Names', 'Anastacia Pickett__Cheek'),
         ('user  Names', 'Anastacia Pickett__Cheek', 'key 2a'),
@@ -911,7 +930,32 @@ def test_key_utilities():
         ("Scores :",),
         ("Scores :", "Day One:\n  25 Jan 2022"),
         ("Scores :", "Day One:\n  25 Jan 2022", 0),
+        ("Scores :", "Day One:\n  25 Jan 2022", 0, 'Sabercats'),
+        ("Scores :", "Day One:\n  25 Jan 2022", 0, 'Rattlers'),
+        ("Scores :", "Day One:\n  25 Jan 2022", 1),
+        ("Scores :", "Day One:\n  25 Jan 2022", 1, 'Predators'),
+        ("Scores :", "Day One:\n  25 Jan 2022", 1, 'Storm'),
     ]
+    expected_values = {
+        ('key_1',): dict,
+        ('key_1', 'key_1a'): '1',
+        ('key_1', 'key_1b'): '2',
+        ('key_1', 'key_1c'): list,
+        ('key_1', 'key_1c', 0): 'a',
+        ('key_1', 'key_1c', 1): 'b',
+        ('user_names',): dict,
+        ('user_names', 'Anastacia Pickett Cheek'): dict,
+        ('user_names', 'Anastacia Pickett Cheek', 'key_2a'): '5',
+        ('user_names', 'Anastacia Pickett Cheek', 'key_2b'): '6',
+        ("scores",): dict,
+        ("scores", "day_one_25_jan_2022"): list,
+        ("scores", "day_one_25_jan_2022", 0): dict,
+        ("scores", "day_one_25_jan_2022", 0, 'sabercats'): '63',
+        ("scores", "day_one_25_jan_2022", 0, 'rattlers'): '49',
+        ("scores", "day_one_25_jan_2022", 1): dict,
+        ("scores", "day_one_25_jan_2022", 1, 'predators'): '42',
+        ("scores", "day_one_25_jan_2022", 1, 'storm'): '35',
+    }
 
     unknown_norm = ('user_names', 'Anastacia Pickett Cheek', 'unknown key')
     unknown_orig = ('user  Names', 'Anastacia Pickett__Cheek', 'unknown key')
@@ -925,7 +969,7 @@ def test_key_utilities():
 
     keymap = dict()
     data = nt.loads(document, keymap=keymap, normalize_key=normalize_key)
-    print('KEYMAP:', keymap)
+    #print('KEYMAP:', keymap)
     for index, normalized_keys in enumerate(expected_normalized_keys):
         print(normalized_keys)
 
@@ -939,13 +983,23 @@ def test_key_utilities():
 
         # check get_value_from_keys
         value = nt.get_value_from_keys(data, normalized_keys)
+        expected_value = expected_values[normalized_keys]
         try:
-            assert index == int(value)
+            assert isinstance(value, expected_value)
         except TypeError:
-            if normalized_keys == ('scores', 'day_one_25_jan_2022'):
-                assert type(value) == list
-            else:
-                assert type(value) == dict
+            assert value == expected_value
+
+        # print(value)
+        # try:
+        #     assert index == int(value)
+        # except (TypeError, ValueError):
+        #     if normalized_keys[:2] == ('key_1', 'key_1c'):
+        #         assert type(value) == list
+        #     elif normalized_keys == ('scores', 'day_one_25_jan_2022'):
+        #         assert type(value) == list
+        #     elif normalized_keys == ('scores', 'day_one_25_jan_2022', 0):
+        #     else:
+        #         assert type(value) == dict
 
         # check join_keys
         assert join(*normalized_keys, sep=', ') == nt.join_keys(normalized_keys)
@@ -960,7 +1014,7 @@ def test_key_utilities():
 @parametrize_dump_api
 @parametrize_dump_success_cases
 def test_dump_success_cases(dump, data_in, path_out, tmp_path):
-    assert dump(data_in, tmp_path, default='strict') == path_out.read_text().rstrip('\n')
+    assert dump(data_in, tmp_path, default='strict') == path_out.read_text()
 
 # test_dump_error_cases {{{2
 @parametrize_dump_api
@@ -1004,7 +1058,7 @@ def test_dump_default(dump, tmp_path):
         empty_list:
             []
         zero: 0
-    ''').strip()
+    ''').lstrip()
     assert dump(data, tmp_path) == expected
     assert dump(data, tmp_path, default=repr) == expected
 
@@ -1053,7 +1107,7 @@ def test_dump_default(dump, tmp_path):
         True: true
         False: false
         3: three
-    ''').strip()
+    ''').lstrip()
 
     assert dump(data, tmp_path, default=repr) == dedent('''\
         :
@@ -1061,7 +1115,7 @@ def test_dump_default(dump, tmp_path):
         True: true
         False: false
         3: three
-    ''').strip()
+    ''').lstrip()
 
 
 # test_dump_sort_keys {{{2
@@ -1073,23 +1127,23 @@ def test_dump_sort_keys(dump, tmp_path):
             cc: 3
             aaa: 1
             b: 2
-    ''').strip()
+    ''').lstrip()
 
     assert dump(data, tmp_path, sort_keys=True) == dedent('''\
             aaa: 1
             b: 2
             cc: 3
-    ''').strip()
+    ''').lstrip()
 
     assert dump(data, tmp_path, sort_keys=len) == dedent('''\
             b: 2
             cc: 3
             aaa: 1
-    ''').strip()
+    ''').lstrip()
 
-    assert dump(data, tmp_path, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}'
-    assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}'
-    assert dump(data, tmp_path, sort_keys=len, width=80) == '{b: 2, cc: 3, aaa: 1}'
+    assert dump(data, tmp_path, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}\n'
+    assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}\n'
+    assert dump(data, tmp_path, sort_keys=len, width=80) == '{b: 2, cc: 3, aaa: 1}\n'
 
 # test_dump_indent {{{2
 @parametrize_dump_api
@@ -1099,10 +1153,10 @@ def test_dump_indent(dump, tmp_path):
     with pytest.raises(AssertionError):
         dump(x, tmp_path, indent=0)
 
-    assert dump(x, tmp_path, indent=1) == "A:\n - B"
-    assert dump(x, tmp_path, indent=2) == "A:\n  - B"
-    assert dump(x, tmp_path, indent=3) == "A:\n   - B"
-    assert dump(x, tmp_path, indent=4) == "A:\n    - B"
+    assert dump(x, tmp_path, indent=1) == "A:\n - B\n"
+    assert dump(x, tmp_path, indent=2) == "A:\n  - B\n"
+    assert dump(x, tmp_path, indent=3) == "A:\n   - B\n"
+    assert dump(x, tmp_path, indent=4) == "A:\n    - B\n"
 
 # test_dump_converters {{{2
 @parametrize_dump_api
@@ -1113,15 +1167,15 @@ def test_dump_converters(dump, tmp_path):
         int: 1
         float: 1.0
         str: A
-    ''').strip()
+    ''').lstrip()
 
     converters = {str: lambda x: x.lower()}
     assert dump(x, tmp_path, default=str, converters=converters) == dedent('''\
         int: 1
         float: 1.0
         str: a
-    ''').strip()
-    assert dump(x, tmp_path, default=str, converters=converters, width=80) == '{int: 1, float: 1.0, str: a}'
+    ''').lstrip()
+    assert dump(x, tmp_path, default=str, converters=converters, width=80) == '{int: 1, float: 1.0, str: a}\n'
 
     y = {'info': Info(val=42)}
     converters = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
@@ -1130,22 +1184,22 @@ def test_dump_converters(dump, tmp_path):
             > Info(
             >     val=42
             > )
-    ''').strip()
+    ''').lstrip()
     assert dump(y, tmp_path, converters=converters, width=80) == dedent('''
         info:
             > Info(
             >     val=42
             > )
-    ''').strip()
+    ''').lstrip()
 
     converters = {Info: lambda v: v.__dict__}
     result = dump(y, tmp_path, converters=converters, width=80)
-    expected = '{info: {val: 42}}'
+    expected = '{info: {val: 42}}\n'
     assert result == expected
 
     y = dict(info=Info(vals=Info(pair=(42,64))))
     result = dump(y, tmp_path, converters=converters, width=80)
-    expected = '{info: {vals: {pair: [42, 64]}}' + '}'
+    expected = '{info: {vals: {pair: [42, 64]}}' + '}\n'
     assert result == expected
 
     y = dict(info=Info(vals=Info(pair=((1,2), (3,4)))))
@@ -1159,8 +1213,8 @@ def test_dump_converters(dump, tmp_path):
                     -
                         - 3
                         - 4
-    ''').strip()
-    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}' + '}'
+    ''').lstrip()
+    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}' + '}\n'
 
     result = dump(y, tmp_path, converters=converters)
     assert result == full_expected
@@ -1185,7 +1239,7 @@ def test_dump_converters(dump, tmp_path):
 
     y = {'info': ntInfo(val=42)}
     result = dump(y, tmp_path, width=80)
-    expected = '{info: {val: 42}}'
+    expected = '{info: {val: 42}}\n'
     assert result == expected
 
     # assure that converters dominates over __nestedtext_converter__
@@ -1203,31 +1257,31 @@ def test_dump_converters(dump, tmp_path):
     # arrow object as value
     y = {'date': given}
     result = dump(y, tmp_path, converters=converters)
-    expected = 'date: 1969-07-20'
+    expected = 'date: 1969-07-20\n'
     assert result == expected
     result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{date: 1969-07-20}'
+    expected = '{date: 1969-07-20}\n'
     assert result == expected
     result = dump(y, tmp_path, default=str)
-    expected = 'date: 1969-07-20T00:00:00+00:00'
+    expected = 'date: 1969-07-20T00:00:00+00:00\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99)
-    expected = 'date: 1969-07-20T00:00:00+00:00'
+    expected = 'date: 1969-07-20T00:00:00+00:00\n'
     assert result == expected
 
     # arrow object as key
     y = {given: 'moon landing'}
     result = dump(y, tmp_path, converters=converters)
-    expected = '1969-07-20: moon landing'
+    expected = '1969-07-20: moon landing\n'
     assert result == expected
     result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{1969-07-20: moon landing}'
+    expected = '{1969-07-20: moon landing}\n'
     assert result == expected
     result = dump(y, tmp_path, default=str)
-    expected = '1969-07-20T00:00:00+00:00: moon landing'
+    expected = '1969-07-20T00:00:00+00:00: moon landing\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99)
-    expected = '1969-07-20T00:00:00+00:00: moon landing'
+    expected = '1969-07-20T00:00:00+00:00: moon landing\n'
     assert result == expected
 
     # converting quantity object
@@ -1236,46 +1290,46 @@ def test_dump_converters(dump, tmp_path):
     # arrow object as value
     y = {'c': Quantity('c')}
     result = dump(y, tmp_path, converters=converters)
-    expected = 'c: 299.792458 Mm/s'
+    expected = 'c: 299.792458 Mm/s\n'
     assert result == expected
     result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{c: 299.792458 Mm/s}'
+    expected = '{c: 299.792458 Mm/s}\n'
     assert result == expected
     result = dump(y, tmp_path, default=str)
-    expected = 'c: 299.79 Mm/s'
+    expected = 'c: 299.79 Mm/s\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99)
-    expected = '{c: 299.79 Mm/s}'
+    expected = '{c: 299.79 Mm/s}\n'
     assert result == expected
 
     # arrow object as key
     y = {Quantity('c'): 'c'}
     result = dump(y, tmp_path, converters=converters)
-    expected = '299.792458 Mm/s: c'
+    expected = '299.792458 Mm/s: c\n'
     assert result == expected
     result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{299.792458 Mm/s: c}'
+    expected = '{299.792458 Mm/s: c}\n'
     assert result == expected
     result = dump(y, tmp_path, default=str)
-    expected = '299.79 Mm/s: c'
+    expected = '299.79 Mm/s: c\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99)
-    expected = '{299.79 Mm/s: c}'
+    expected = '{299.79 Mm/s: c}\n'
     assert result == expected
 
     # integer object as key
     y = {0: 'zero', 'one': 'one', 'four': 'four'}
     result = dump(y, tmp_path, default=str)
-    expected = '0: zero\none: one\nfour: four'
+    expected = '0: zero\none: one\nfour: four\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99)
-    expected = '{0: zero, one: one, four: four}'
+    expected = '{0: zero, one: one, four: four}\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, sort_keys=True)
-    expected = '0: zero\nfour: four\none: one'
+    expected = '0: zero\nfour: four\none: one\n'
     assert result == expected
     result = dump(y, tmp_path, default=str, width=99, sort_keys=True)
-    expected = '{0: zero, four: four, one: one}'
+    expected = '{0: zero, four: four, one: one}\n'
     assert result == expected
 
 
@@ -1504,7 +1558,7 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
     ]
 )
 def test_dump_width(dump, tmp_path, given, expected, kwargs):
-    assert dump(given, tmp_path, **kwargs) == expected
+    assert dump(given, tmp_path, **kwargs) == expected + '\n'
 
 # test_dump_nones {{{2
 @parametrize_dump_api
@@ -1521,7 +1575,7 @@ def test_dump_width(dump, tmp_path, given, expected, kwargs):
     ]
 )
 def test_dump_nones(dump, tmp_path, given, expected, kwargs):
-    assert dump(given, tmp_path, **kwargs) == expected
+    assert dump(given, tmp_path, **kwargs) == expected + '\n'
 
 # test_cycle_detection {{{2
 def test_cycle_detection():

@@ -1568,7 +1568,10 @@ def dumps(
             is use internally and should not be specified by the user.
 
     Returns:
-        The *NestedText* content.
+        The *NestedText* content without a trailing newline.  *NestedText* files
+        should end with a newline, but unlike :func:`dump`, this function does
+        not output that newline.  You will need to explicitly add that newline
+        when writing the output :func:`dumps` to a file.
 
     Raises:
         NestedTextError: if there is a problem in the input data.
@@ -1769,14 +1772,14 @@ def dumps(
 
 
 # dump {{{2
-def dump(obj, f, **kwargs):
+def dump(obj, dest, **kwargs):
     # description {{{3
     """Write the *NestedText* representation of the given object to the given file.
 
     Args:
         obj:
             The object to convert to *NestedText*.
-        f (str, os.PathLike, io.TextIOBase):
+        dest (str, os.PathLike, io.TextIOBase):
             The file to write the *NestedText* content to.  The file can be
             specified either as a path (e.g. a string or a `pathlib.Path`) or
             as a text IO instance (e.g. an open file).  If a path is given, the
@@ -1795,7 +1798,8 @@ def dump(obj, f, **kwargs):
             See :func:`dumps` for optional arguments.
 
     Returns:
-        The *NestedText* content.
+        The *NestedText* content with a trailing newline.  This differs from
+        :func:`dumps`, which does not add the trailing newline.
 
     Raises:
         NestedTextError: if there is a problem in the input data.
@@ -1843,7 +1847,7 @@ def dump(obj, f, **kwargs):
     content = dumps(obj, **kwargs)
 
     try:
-        f.write(content)
+        dest.write(content + '\n')
     except AttributeError:
         # Avoid nested try-except blocks, since they lead to chained exceptions
         # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
@@ -1852,8 +1856,8 @@ def dump(obj, f, **kwargs):
     else:
         return
 
-    with open(f, 'w', encoding='utf-8') as f:
-        f.write(content)
+    with open(dest, 'w', encoding='utf-8') as f:
+        f.write(content + '\n')
 
 
 # NestedText Utilities {{{1
@@ -1994,7 +1998,10 @@ def get_original_keys(keys, keymap, strict=False):
                     key.append(line.text[line.depth+2:])
                 key = '\n'.join(key)
             else:
-                key = line.key
+                if line.kind == 'list item':
+                    key = keys[i]
+                else:
+                    key = line.key
             original_keys.append(key)
         except AttributeError:
             # this occurs for list indexes

@@ -77,14 +77,13 @@ except MultipleInvalid as e:
     for err in e.errors:
         kind = 'key' if 'key' in err.msg else 'value'
         keys = nt.join_keys(err.path, keymap=keymap)
+        loc = keymap.get(tuple(err.path))
+        codicil = loc.as_line(kind) if loc else None
         error(
             full_stop(err.msg),
-            culprit = (settings_file, keys)
+            culprit = (settings_file, keys),
+            codicil = codicil
         )
-        try:
-            codicil(keymap[tuple(err.path)].as_line(kind))
-        except KeyError:
-            pass  # required key is missing
 except OSError as e:
     error(os_error(e))
 except KeyboardInterrupt:

@@ -8,6 +8,7 @@
    alternatives
    basic_syntax
    file_format
+   minimal-nestedtext
    related_projects
    changelog
 
