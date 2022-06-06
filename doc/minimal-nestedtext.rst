@@ -4,24 +4,24 @@
 Minimal NestedText
 ******************
 
-*Minimal NestedText* is a subset of *NestedText* that foregoes some of the 
-complications of *NestedText*.  It sacrifices the completeness of *NestedText* 
-for an even simpler data file format that is still appropriate for 
-a surprisingly wide variety of applications, such as most configuration files.  
-The simplicity of *Minimal NestedText* makes it very easy to create readers and 
-writers.  Indeed, writing such functions is good programming exercise for people 
+*Minimal NestedText* is a subset of *NestedText* that foregoes some of the
+complications of *NestedText*.  It sacrifices the completeness of *NestedText*
+for an even simpler data file format that is still appropriate for
+a surprisingly wide variety of applications, such as most configuration files.
+The simplicity of *Minimal NestedText* makes it very easy to create readers and
+writers.  Indeed, writing such functions is good programming exercise for people
 new to recursion.
 
-*Minimal NestedText* is *NestedText* without support for multi-line keys and 
+*Minimal NestedText* is *NestedText* without support for multi-line keys and
 inline dictionaries and lists.
 
-If you choose to create a *Minimal NestedText* reader or writer it is important 
-to code it in such a way as to discourage the creation *Minimal NestedText* 
-documents that are invalid *NestedText*.  Thus, your implementation should 
-disallow keys that start with ``:␣``, ``[`` or ``{``.  Also, please clearly 
+If you choose to create a *Minimal NestedText* reader or writer it is important
+to code it in such a way as to discourage the creation *Minimal NestedText*
+documents that are invalid *NestedText*.  Thus, your implementation should
+disallow keys that start with ``: ``, ``[`` or ``{``.  Also, please clearly
 indicate that is only supports *Minimal NestedText* to avoid any confusion.
 
-Many of the examples given in this document conform to the *Minimal NestedText* 
+Many of the examples given in this document conform to the *Minimal NestedText*
 subset.  For convenience, here is another:
 
 .. code-block:: nestedtext
@@ -31,18 +31,8 @@ subset.  For convenience, here is another:
     description:
         > Chili with meat and beans.
         >
-        > Takes a little over an hour from start to finish while starting with 
+        > Takes a little over an hour from start to finish while starting with
         > dried beans that have not be pre-soaked.
-
-    comments:
-        > This instant pot chili assumes dried beans.
-        >
-        > It takes TWO 30 minute cycles.
-        > One with just the beans and one with all the ingredients together.
-        >
-        > If you are not using dried beans, you can skip the first cycle and simply
-        > add all of the ingredients to the pot and cook for 30 minutes at high
-        > pressure.
 
     source: https://thefreerangelife.com/instant-pot-chili
 
@@ -84,22 +74,24 @@ subset.  For convenience, here is another:
 
     comments:
         > This instant pot chili assumes dried beans.
+        >
         > It takes TWO 30 minute cycles.
         > One with just the beans and one with all the ingredients together.
-        > If you are not using dried beans, you can skip the first cycle and simply
-        > add all of the ingredients to the pot and cook for 30 minutes at high
-        > pressure.
+        >
+        > If you are not using dried beans, you can skip the first cycle and
+        > simply add all of the ingredients to the pot and cook for 30 minutes
+        > at high pressure.
 
-*Minimal NestedText* is powerful enough to satisfy most needs.  It is only 
-necessary to use the extended capabilities of *NestedText* if you have keys that 
-start with reserved characters or contain newlines or if your document contains 
-lots of short lists or dictionaries.  In the later situation, being constrained 
+*Minimal NestedText* is powerful enough to satisfy most needs.  It is only
+necessary to use the extended capabilities of *NestedText* if you have keys that
+start with reserved characters or contain newlines or if your document contains
+lots of short lists or dictionaries.  In the later situation, being constrained
 to use *Minimal NestedText* might make entry tedious.
 
-Here is another example of *Minimal NestedText* that shows off a particular 
-strength of *NestedText*, its ability to hold code fragments without the need 
-for quoting or escaping.  It holds some `Parametrize From File 
-<https://parametrize-from-file.readthedocs.io>`_ test cases for `pytest 
+Here is another example of *Minimal NestedText* that shows off a particular
+strength of *NestedText*, its ability to hold code fragments without the need
+for quoting or escaping.  It holds some `Parametrize From File
+<https://parametrize-from-file.readthedocs.io>`_ test cases for `pytest
 <https://docs.pytest.org>`_:
 
 .. code-block:: nestedtext
