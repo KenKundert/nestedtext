@@ -17,6 +17,7 @@ Latest development version
 | Version: 3.2.5
 | Released: 2022-06-05
 
+- Defined *Minimal NestedText*, a subset of *NestedText*.
 - *NestedText* document files should end with a newline.
 
 
