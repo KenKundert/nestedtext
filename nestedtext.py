@@ -51,8 +51,8 @@ import unicodedata
 
 
 # Globals {{{1
-__version__ = "3.2.4"
-__released__ = "2022-05-19"
+__version__ = "3.2.5"
+__released__ = "2022-06-05"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 
 

@@ -14,8 +14,8 @@ implementation, you will see versions that include no changes to the language.
 Latest development version
 --------------------------
 
-| Version: 3.2.4
-| Released: 2022-05-19
+| Version: 3.2.5
+| Released: 2022-06-05
 
 - *NestedText* document files should end with a newline.
 
