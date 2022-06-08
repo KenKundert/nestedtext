@@ -16,6 +16,10 @@ Latest development version
 | Version: 3.2.5
 | Released: 2022-06-05
 
+
+v3.3 (2022-06-07)
+-----------------
+
 - add *normalize_key* argument to :meth:`load` and :meth:`loads`.
 - added utility functions for operating on keys and keymaps:
   - :func:`get_value_from_keys`
