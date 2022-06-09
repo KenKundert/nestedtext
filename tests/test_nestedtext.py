@@ -589,25 +589,45 @@ def test_load_top_default():
 
 # test_load_duplicates {{{2
 def test_load_duplicates():
-    def de_dup(key, value, data, state):
+    def de_dup(key, state):
         if key not in state:
             state[key] = 1
         state[key] += 1
-        return f"{key}#{state[key]}"
+        return f"{key} — #{state[key]}"
+
+    def ignore_dup(key, state):
+        return None
+
+    def replace_dup(key, state):
+        return key
+
+    def dup_is_error(key, state):
+        raise KeyError(key)
 
     content = 'key: hello\nkey: goodbye'
 
     data = nt.loads(content, on_dup='ignore')
     assert data == {'key': 'hello'}
 
+    data = nt.loads(content, on_dup=ignore_dup)
+    assert data == {'key': 'hello'}
+
     data = nt.loads(content, on_dup='replace')
     assert data == {'key': 'goodbye'}
 
+    data = nt.loads(content, on_dup=replace_dup)
+    assert data == {'key': 'goodbye'}
+
     data = nt.loads(content, on_dup=de_dup)
-    assert data == {'key': 'hello', 'key#2': 'goodbye'}
+    assert data == {'key': 'hello', 'key — #2': 'goodbye'}
 
     with pytest.raises(nt.NestedTextError) as e:
         nt.loads(content)
+    assert e.value.get_message() == 'duplicate key: key.'
+    assert e.value.source == None
+
+    with pytest.raises(nt.NestedTextError) as e:
+        nt.loads(content, on_dup='error')
     assert e.value.get_message() == 'duplicate key: key.'
     assert e.value.source == None
 
@@ -723,9 +743,9 @@ def test_keymaps():
         5           > 138 Almond Street
         6           > Topeka, Kansas 20697
         7       phone:
-        8           cell: 1-210-555-5297
-        9           work: 1-210-555-3423
-        10          home: 1-210-555-8470
+        8           cell phone: 1-210-555-5297
+        9           work phone: 1-210-555-3423
+        10          home phone: 1-210-555-8470
         11              # Katheryn prefers that we always call her on her cell phone.
         12      email: KateMcD@aol.com
         13      kids:
@@ -738,7 +758,7 @@ def test_keymaps():
         20          > 2586 Marigold Lane
         21          > Topeka, Kansas 20697
         22      phone:
-        23          {cell: 1-470-555-0398, home: 1-470-555-7570}
+        23          {cell phone: 1-470-555-0398, home phone: 1-470-555-7570}
         24      email: margaret.hodge@ku.edu
         25      kids:
         26          [Arnie, Zach, Maggie]
@@ -773,9 +793,9 @@ def test_keymaps():
         president name                      → 3  4    3  10   3  4    3  4
         president address                   → 4  4    5  10   4  5    5  7
         president phone                     → 7  4    8  8    7  8    8  9
-        president phone cell                → 8  8    8  14   8  9    8  9
-        president phone work                → 9  8    9  14   9  10   9  10
-        president phone home                → 10 8    10 14   10 11   10 11
+        president phone cell_phone          → 8  8    8  20   8  9    8  9
+        president phone work_phone          → 9  8    9  20   9  10   9  10
+        president phone home_phone          → 10 8    10 20   10 11   10 11
         president email                     → 12 4    12 11   12 13   12 13
         president kids                      → 13 4    14 8    13 14   14 15
         president kids 0                    → 14 8    14 10   14 15   14 15
@@ -784,8 +804,8 @@ def test_keymaps():
         vice_president name                 → 18 4    18 10   18 19   18 19
         vice_president address              → 19 4    20 10   19 20   20 22
         vice_president phone                → 22 4    23 8    22 23   23 24
-        vice_president phone cell           → 23 9    23 15   23 24   23 24
-        vice_president phone home           → 23 31   23 37   23 24   23 24
+        vice_president phone cell_phone     → 23 9    23 21   23 24   23 24
+        vice_president phone home_phone     → 23 37   23 49   23 24   23 24
         vice_president email                → 24 4    24 11   24 25   24 25
         vice_president kids                 → 25 4    26 8    25 26   26 27
         vice_president kids 0               → 26 9    26 9    26 27   26 27
@@ -856,7 +876,7 @@ def test_keymaps():
             value_lines = str(value_last_line)
         assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
 
-    # Without key normalization normalizing the keys
+    # Without key normalization
     keymap = {}
     addresses = nt.loads(document, keymap=keymap)
     for case in cases:
@@ -864,7 +884,7 @@ def test_keymaps():
         keys = tuple(fix_key(n, True) for n in given.split())
         check_result(keys, expected, addresses)
 
-    # With key normalization normalizing the keys
+    # With key normalization
     keymap = {}
     addresses = nt.loads(document, keymap=keymap, normalize_key= normalize_key)
     for case in cases:

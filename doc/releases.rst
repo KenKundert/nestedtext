@@ -16,6 +16,13 @@ Latest development version
 | Version: 3.3.0
 | Released: 2022-06-07
 
+- refined the *on_dup* parameter to to :meth:`load` and :meth:`loads`.
+
+.. warning::
+
+    Be aware that the new version of the *on_dup* parameter are not compatible 
+    with previous versions.
+
 
 v3.3 (2022-06-07)
 -----------------

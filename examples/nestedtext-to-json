@@ -23,11 +23,11 @@ sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
 
 
-def de_dup(key, value, data, state):
+def de_dup(key, state):
     if key not in state:
         state[key] = 1
     state[key] += 1
-    return f"{key}#{state[key]}"
+    return f"{key} — #{state[key]}"
 
 
 cmdline = docopt(__doc__)

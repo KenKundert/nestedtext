@@ -494,18 +494,25 @@ class KeyPolicy:
         cls.on_dup = on_dup
 
     @classmethod
-    def add_to_dictionary(cls, dictionary, key, value, line=None, colno=None):
+    def add_to_dictionary(cls, dictionary, key, value, keys, line=None, colno=None):
         if key in dictionary:
             # found duplicate key
-            if cls.on_dup is None:
+            if cls.on_dup is None or cls.on_dup == 'error':
                 report('duplicate key: {}.', line, key, colno=colno)
             if cls.on_dup == 'ignore':
                 return
             if isinstance(cls.on_dup, dict):
-                key = cls.on_dup[_OnDupCallback](
-                    key, value, dictionary, cls.on_dup
+                dup_handler = cls.on_dup.pop(_OnDupCallback)
+                cls.on_dup.update(
+                    dict(value=value, dictionary=dictionary, keys=keys)
                 )
-                assert key not in dictionary
+                try:
+                    key = dup_handler(key=key, state=cls.on_dup)
+                    if key is None:
+                        return
+                except KeyError:
+                    report('duplicate key: {}.', line, key, colno=colno)
+                cls.on_dup[_OnDupCallback] = dup_handler  # restore dup_handler
             elif cls.on_dup != 'replace':
                 raise NotImplementedError(f'{cls.on_dup}: unknown value for on_dup.')
         dictionary[key] = value
@@ -633,8 +640,9 @@ class Inline:
 
         while self.text[index] != '}':
             prev_index = index
-            key, value, location, index = self.parse_inline_dict_item(keys, index)
-            KeyPolicy.add_to_dictionary(values, key, value, self.line, prev_index)
+            orig_key, value, location, index = self.parse_inline_dict_item(keys, index)
+            key = self.loader.normalize_key(orig_key, keys)
+            KeyPolicy.add_to_dictionary(values, key, value, keys, self.line, prev_index)
             self.loader._add_keymap(keys + (key,), location)
             need_another = False
             if self.text[index] not in ',}':
@@ -937,7 +945,7 @@ class NestedTextLoader:
                 else:
                     report('multiline key requires a value.', line, None, colno=depth)
 
-            KeyPolicy.add_to_dictionary(values, key, value, line, depth)
+            KeyPolicy.add_to_dictionary(values, key, value, keys, line, depth)
             loc.key_line = key_line
             loc.key_col = key_col
             self._add_keymap(new_keys, loc)
@@ -1000,33 +1008,42 @@ def loads(
             culprit. It is otherwise unused. Is often the name of the file that
             originally contained the NestedText content.
         on_dup (str or func):
-            Indicates how duplicate keys in dictionaries should be handled. By
-            default they raise exceptions. Specifying 'ignore' causes them to be
-            ignored (first wins). Specifying 'replace' results in them replacing
-            earlier items (last wins). By specifying a function, the keys can be
+            Indicates how duplicate keys in dictionaries should be handled.
+            Specifying "error" causes them to raise exceptions (the default
+            behavior). Specifying "ignore" causes them to be ignored (first
+            wins). Specifying "replace" results in them replacing earlier items
+            (last wins). By specifying a function, the keys can be
             de-duplicated.  This call-back function returns a new key and takes
-            four arguments:
+            two arguments:
 
-            1. The new key (duplicates an existing key).
-            2. The new value.
-            3. The entire dictionary as it is at the moment the duplicate key is
-               found.  You should not change it.
-            4. The state; a dictionary that is created as *loads* is called
-               and deleted as it returns. Values placed in this dictionary are
-               retained between multiple calls to this call back function.
+            key:
+                The new key (duplicates an existing key).
 
-            This function should return a new key that is unique (not found in
-            the dictionary).
+            state:
+                A dictionary containing other possibly helpful information:
 
-            It may be that the number of arguments will grow in the future.
-            To remain forward compatible it is recommended that add ``*args`` to
-            the end of your argument list to capture any new arguments as shown
-            in the example below.
+                value:
+                    The value associated with the duplicate key.
+                dictionary:
+                    The entire dictionary as it is at the moment the duplicate
+                    key is found.  You should not change it.
+                keys:
+                    The keys that identify the dictionary.
 
-            Be aware that de-duplication does not play nicely with keymaps
-            as a keymap cannot distinguish between the duplicate key-sets.
-            If an error occurs in the value of one of the duplicates, it may be
-            reported as occurring in one of the others.
+                This dictionary is created as *loads* is called and deleted as
+                it returns. Any values placed in it are retained and available
+                on subsequent calls to this function.
+
+            This function should return a new key.  If the key duplicates an
+            existing key, the value associated with that key is replaced.  If
+            *None* is returned, this key is ignored.  If a *KeyError* is
+            raised, the duplicate key is reported as an error.
+
+            Be aware that de-duplication does not play nicely with keymaps when
+            used to access values using the original keys as it is not possible
+            to use the original keys to distinguish between the duplicate
+            key-sets.  If an error occurs in the value of one of the duplicates,
+            it may be reported as occurring in one of the others.
         keymap (dict):
             Specify an empty dictionary or nothing at all for the value of
             this argument.  If you give an empty dictionary it will be filled
@@ -1124,14 +1141,14 @@ def loads(
             >>> print(nt.loads(content, on_dup='replace'))
             {'key': 'value 3', 'name': 'value 5'}
 
-            >>> def de_dup(key, value, data, state, *args):
+            >>> def de_dup(key, state):
             ...     if key not in state:
             ...         state[key] = 1
             ...     state[key] += 1
-            ...     return f"{key}#{state[key]}"
+            ...     return f"{key} — #{state[key]}"
 
             >>> print(nt.loads(content, on_dup=de_dup))
-            {'key': 'value 1', 'key#2': 'value 2', 'key#3': 'value 3', 'name': 'value 4', 'name#2': 'value 5'}
+            {'key': 'value 1', 'key — #2': 'value 2', 'key — #3': 'value 3', 'name': 'value 4', 'name — #2': 'value 5'}
 
     '''
 
@@ -1865,7 +1882,7 @@ def dump(obj, dest, **kwargs):
 
 # get_value_from_keys {{{2
 def get_value_from_keys(obj, keys):
-    """
+    '''
     Get value from keys.
 
     Args:
@@ -1876,7 +1893,24 @@ def get_value_from_keys(obj, keys):
 
     Returns:
         The value that corresponds to a tuple of keys from a keymap.
-    """
+
+    Examples:
+
+        .. code-block:: python
+
+            >>> import nestedtext as nt
+
+            >>> contents = """
+            ... names:
+            ...     given: Fumiko
+            ... """
+
+            >>> data = nt.loads(contents, 'dict')
+
+            >>> get_value_from_keys(data, ('names', 'given'))
+            'Fumiko'
+
+    '''
     for key in keys:
         obj = obj[key]
     return obj
@@ -1967,7 +2001,7 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
 
 # get_original_keys {{{2
 def get_original_keys(keys, keymap, strict=False):
-    """
+    '''
     Get original keys from normalized keys.
 
     Args:
@@ -1980,11 +2014,39 @@ def get_original_keys(keys, keymap, strict=False):
             in the keymap.  Otherwise, the given key will be returned rather
             than the original key.  This is helpful when reporting errors on
             required keys that do not exist in the data set.  Since they are
-            not in the dataset, no original key is available.
+            not in the dataset, the original keys are not available.
 
     Returns:
         A tuple containing the original keys names.
-    """
+
+    Examples:
+
+        .. code-block:: python
+
+            >>> import nestedtext as nt
+
+            >>> contents = """
+            ... Names:
+            ...     Given: Fumiko
+            ... """
+
+            >>> def normalize_key(key, keys):
+            ...     return key.lower()
+
+            >>> data = nt.loads(contents, 'dict', normalize_key=normalize_key, keymap=(keymap:={}))
+
+            >>> print(get_original_keys(('names', 'given'), keymap))
+            ('Names', 'Given')
+
+            >>> print(get_original_keys(('names', 'surname'), keymap))
+            ('Names', 'surname')
+
+            >>> keys = get_original_keys(('names', 'surname'), keymap, strict=True)
+            Traceback (most recent call last):
+            ...
+            KeyError: ('names', 'surname')
+
+    '''
     original_keys = []
     for i in range(len(keys)):
         try:
@@ -2015,7 +2077,7 @@ def get_original_keys(keys, keymap, strict=False):
 
 # join_keys {{{2
 def join_keys(keys, sep=', ', keymap=None):
-    """
+    '''
     Joins the keys into a string.
 
     Args:
@@ -2030,7 +2092,33 @@ def join_keys(keys, sep=', ', keymap=None):
 
     Returns:
         A string containing the joined keys.
-    """
+
+    Examples:
+
+        .. code-block:: python
+
+            >>> import nestedtext as nt
+
+            >>> contents = """
+            ... Names:
+            ...     Given: Fumiko
+            ... """
+
+            >>> def normalize_key(key, keys):
+            ...     return key.lower()
+
+            >>> data = nt.loads(contents, 'dict', normalize_key=normalize_key, keymap=(keymap:={}))
+
+            >>> join_keys(('names', 'given'))
+            'names, given'
+
+            >>> join_keys(('names', 'given'), sep='.')
+            'names.given'
+
+            >>> join_keys(('names', 'given'), keymap=keymap)
+            'Names, Given'
+
+    '''
     if keymap:
         keys = get_original_keys(keys, keymap, strict=False)
     return sep.join(str(k) for k in keys)
