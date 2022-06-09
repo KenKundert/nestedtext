@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.3.0
-| Released: 2022-06-07
+| Version: 3.4.0-beta.0
+| Released: 2022-06-09
 
 - refined the *on_dup* parameter to to :meth:`load` and :meth:`loads`.
 
