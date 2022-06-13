@@ -18,7 +18,7 @@ inline dictionaries and lists.
 If you choose to create a *Minimal NestedText* reader or writer it is important
 to code it in such a way as to discourage the creation *Minimal NestedText*
 documents that are invalid *NestedText*.  Thus, your implementation should
-disallow keys that start with ``: ``, ``[`` or ``{``.  Also, please clearly
+disallow keys that start with ``:␣``, ``[`` or ``{``.  Also, please clearly
 indicate that is only supports *Minimal NestedText* to avoid any confusion.
 
 Many of the examples given in this document conform to the *Minimal NestedText*

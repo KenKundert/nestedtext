@@ -4,6 +4,32 @@ Examples
 
 .. currentmodule:: nestedtext
 
+.. _voluptuous example:
+
+Validate with *Voluptuous*
+==========================
+
+This example shows how to use voluptuous_ to validate and parse a *NestedText* 
+file and it demonstrates how to use the *keymap* argument from :func:`loads` or 
+:func:`load` to add location information to *Voluptuous* error messages.
+
+The input file is the same as in the previous example, i.e. deployment settings 
+for a web server:
+
+.. literalinclude:: ../examples/deploy.nt
+   :language: nestedtext
+
+Below is the code to parse this file.  Note how the structure of the data is 
+specified using basic Python objects.  The :func:`Coerce()` function is 
+necessary to have voluptuous convert string input to the given type; otherwise 
+it would simply check that the input matches the given type:
+
+.. literalinclude:: ../examples/deploy_voluptuous.py
+   :language: python
+
+This produces the same result as in the previous example.
+
+
 .. _pydantic example:
 
 Validate with *Pydantic*
@@ -37,31 +63,6 @@ This produces the following data structure:
      'debug': False,
      'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
      'webmaster_email': 'admin@example.com'}
-
-.. _voluptuous example:
-
-Validate with *Voluptuous*
-==========================
-
-This example shows how to use voluptuous_ to validate and parse a *NestedText* 
-file and it demonstrates how to use the *keymap* argument from :func:`loads` or 
-:func:`load` to add location information to *Voluptuous* error messages.
-
-The input file is the same as in the previous example, i.e. deployment settings 
-for a web server:
-
-.. literalinclude:: ../examples/deploy.nt
-   :language: nestedtext
-
-Below is the code to parse this file.  Note how the structure of the data is 
-specified using basic Python objects.  The :func:`Coerce()` function is 
-necessary to have voluptuous convert string input to the given type; otherwise 
-it would simply check that the input matches the given type:
-
-.. literalinclude:: ../examples/deploy_voluptuous.py
-   :language: python
-
-This produces the same result as in the previous example.
 
 
 .. _json-to-nestedtext:
@@ -162,7 +163,7 @@ stripping leading multiline string tags.
     >>> def pp(data):
     ...     try:
     ...         text = nt.dumps(data, default=repr)
-    ...         print(re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M))
+    ...         print(re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M))
     ...     except nt.NestedTextError as e:
     ...         e.report()
 
@@ -179,6 +180,44 @@ stripping leading multiline string tags.
     email: KateMcD@aol.com
     additional roles:
         - board member
+
+
+.. _long lines example:
+
+Long Lines
+==========
+
+One of the benefits of *NestedText* is that no escaping of special characters is 
+ever needed.  However, you might find it helpful to add your own support for 
+removing escaped newlines in multi-line strings.  Doing so would allow you to 
+keep your lines short in the source document so as to make them easier to 
+interpret in windows of limited width.
+
+This example uses the pretty-print function from the previous example.
+
+.. code-block:: python
+
+    >>> import nestedtext as nt
+    >>> from textwrap import dedent
+    >>> from voluptuous import Schema
+
+    >>> document = dedent(r"""
+    ...     lorum ipsum:
+    ...         > Lorem ipsum dolor sit amet, \
+    ...         > consectetur adipiscing elit.
+    ...         > Sed do eiusmod tempor incididunt \
+    ...         > ut labore et dolore magna aliqua.
+    ... """)
+
+    >>> def reverse_escaping(text):
+    ...     return text.replace("\\\n", "")
+
+    >>> schema = Schema({str: reverse_escaping})
+    >>> data = schema(nt.loads(document))
+    >>> pp(data)
+    lorum ipsum:
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
 
 .. _normalizing keys:
@@ -303,8 +342,8 @@ Here are the processed settings:
                               'email': ['thor@norse-gods.com']}}}
 
 
-.. _pydantic: https://pydantic-docs.helpmanual.io
 .. _voluptuous: https://github.com/alecthomas/voluptuous
+.. _pydantic: https://pydantic-docs.helpmanual.io
 .. _PyTest: https://docs.pytest.org
 .. _parametrize_from_file: https://parametrize-from-file.readthedocs.io
 .. _PostMortem: https://github.com/kenkundert/postmortem

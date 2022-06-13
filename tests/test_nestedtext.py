@@ -632,6 +632,11 @@ def test_load_duplicates():
     assert e.value.source == None
 
     with pytest.raises(nt.NestedTextError) as e:
+        nt.loads(content, on_dup=dup_is_error)
+    assert e.value.get_message() == 'duplicate key: key.'
+    assert e.value.source == None
+
+    with pytest.raises(nt.NestedTextError) as e:
         nt.loads(content, source='nantucket')
     assert e.value.get_message() == 'duplicate key: key.'
     assert e.value.source == 'nantucket'

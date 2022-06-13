@@ -19,8 +19,8 @@ data such as those parsed by *NestedText*.  Because different libraries may be
 more or less appropriate in different scenarios, *NestedText* avoids favoring 
 any one library specifically:
 
-- pydantic_: Define schema using type annotations
 - voluptuous_: Define schema using objects
+- pydantic_: Define schema using type annotations
 - schema_: Define schema using objects
 - colander_: Define schema using classes
 - schematics_: Define schema using classes
@@ -45,8 +45,8 @@ entered.  It does not make sense for this decision to be made by the user
 instead of the application.
 
 
-.. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _voluptuous: https://github.com/alecthomas/voluptuous
+.. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _cerebus: https://docs.python-cerberus.org/en/stable/
 .. _colander: https://docs.pylonsproject.org/projects/colander/en/latest/
 .. _jsonschema: https://python-jsonschema.readthedocs.io/en/latest/

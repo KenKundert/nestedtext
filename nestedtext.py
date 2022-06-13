@@ -2,9 +2,10 @@
 """
 NestedText: A Human Readable and Writable Data Format
 
-NestedText is a file format for holding data that is intended to be entered,
-edited, or viewed by people.  It allows data to be organized into a nested
-collection of dictionaries, lists, and strings.
+NestedText is a file format for holding structured data that is intended to be
+entered, edited, or viewed by people.  It allows data to be organized into a
+nested collection of itemized lists (dictionaries), ordered lists (lists), and
+scalar text (strings).
 
 It is easily created, modified, or viewed with a text editor and easily
 understood and used by both programmers and non-programmers.
@@ -54,6 +55,10 @@ import unicodedata
 __version__ = "3.4.0-beta.0"
 __released__ = "2022-06-09"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
+support_inlines = True
+    # By disabling inlines it is possible to have keys that start with [ or {,
+    # but the resulting NestedText files are not compliant with the spec.
+    # Use of this feature is highly discouraged.
 
 
 # Utility functions {{{1
@@ -105,7 +110,7 @@ class NestedTextError(Error, ValueError):
 
     prev_line:
         The text of the meaningful line immediately before where the problem was
-        found.  This would not be a comment or blank line.
+        found.  This will not be a comment or blank line.
 
     lineno:
         The number of the line where the problem was found.  Line numbers are
@@ -350,7 +355,7 @@ class Lines:
             elif stripped == ':' or stripped.startswith(': '):
                 kind = "key item"
                 value = line[depth+2:]
-            elif stripped[0:1] in ['[', '{']:
+            elif stripped[0:1] in ['[', '{'] and support_inlines:
                 tag = stripped[0:1]
                 kind = 'inline dict' if tag == '{' else 'inline list'
                 value = line[depth:]
@@ -554,8 +559,9 @@ class Location:
         column numbers are 0 based.
 
         Args:
+
             kind (str):
-                Specify either 'key' or 'value' depending on which token is
+                Specify either “key” or “value” depending on which token is
                 desired.
         """
         if kind == 'key':
@@ -579,8 +585,9 @@ class Location:
         token.
 
         Args:
+
             kind (str):
-                Specify either 'key' or 'value' depending on which token is
+                Specify either “key” or “value” depending on which token is
                 desired.
         """
         if kind == 'key':
@@ -983,7 +990,7 @@ class NestedTextLoader:
 
 # loads {{{2
 def loads(
-    content, top='dict', *,
+    content, top="dict", *,
     source=None, on_dup=None, keymap=None, normalize_key=None
 ):
     # description {{{3
@@ -991,22 +998,26 @@ def loads(
     Loads *NestedText* from string.
 
     Args:
+
         content (str):
             String that contains encoded data.
+
         top (str):
             Top-level data type. The NestedText format allows for a dictionary,
             a list, or a string as the top-level data container.  By specifying
-            top as 'dict', 'list', or 'str' you constrain both the type of
+            top as “dict”, “list”, or “str” you constrain both the type of
             top-level container and the return value of this function. By
-            specifying 'any' you enable support for all three data types, with
+            specifying “any” you enable support for all three data types, with
             the type of the returned value matching that of top-level container
             in content. As a short-hand, you may specify the *dict*, *list*,
             *str*, and *any* built-ins rather than specifying *top* with a
             string.
+
         source (str or Path):
             If given, this string is attached to any error messages as the
             culprit. It is otherwise unused. Is often the name of the file that
             originally contained the NestedText content.
+
         on_dup (str or func):
             Indicates how duplicate keys in dictionaries should be handled.
             Specifying "error" causes them to raise exceptions (the default
@@ -1032,7 +1043,7 @@ def loads(
 
                 This dictionary is created as *loads* is called and deleted as
                 it returns. Any values placed in it are retained and available
-                on subsequent calls to this function.
+                on subsequent calls to this function during the load operation.
 
             This function should return a new key.  If the key duplicates an
             existing key, the value associated with that key is replaced.  If
@@ -1044,17 +1055,19 @@ def loads(
             to use the original keys to distinguish between the duplicate
             key-sets.  If an error occurs in the value of one of the duplicates,
             it may be reported as occurring in one of the others.
+
         keymap (dict):
             Specify an empty dictionary or nothing at all for the value of
             this argument.  If you give an empty dictionary it will be filled
             with location information for the values that are returned.  Upon
             return the dictionary maps a tuple containing the keys for the value
-            of interest to the location of that value in the NestedText source
+            of interest to the location of that value in the *NestedText* source
             document. The location is contained in a :class:`Location` object.
             You can access the line and column number using the
             :meth:`Location.as_tuple` method, and the line that contains the
             value annotated with its location using the :meth:`Location.as_line`
             method.
+
         normalize_key (func):
             A function that takes two arguments; the original key for a value
             and the tuple of normalized keys for its parent values.  It then
@@ -1063,13 +1076,13 @@ def loads(
 
     Returns:
         The extracted data.  The type of the return value is specified by the
-        top argument.  If top is 'any', then the return value will match that of
+        top argument.  If top is “any”, then the return value will match that of
         top-level data container in the input content. If content is empty, an
         empty data value of the type specified by top is returned. If top is
-        'any' None is returned.
+        “any” None is returned.
 
     Raises:
-        NestedTextError: if there is a problem in the *NextedText* content.
+        NestedTextError: if there is a problem in the *NextedText* document.
 
     Examples:
 
@@ -1086,7 +1099,7 @@ def loads(
             ... """
 
             >>> try:
-            ...     data = nt.loads(contents, 'dict')
+            ...     data = nt.loads(contents, "dict")
             ... except nt.NestedTextError as e:
             ...     e.terminate()
 
@@ -1095,9 +1108,9 @@ def loads(
 
         *loads()* takes an optional argument, *source*. If specified, it is
         added to any error messages. It is often used to designate the source
-        of *contents*. For example, if *contents* were read from a file,
-        *source* would be the file name.  Here is a typical example of reading
-        *NestedText* from a file:
+        of *NestedText* document. For example, if *contents* were read from a
+        file, *source* would be the file name.  Here is a typical example of
+        reading *NestedText* from a file:
 
         .. code-block:: python
 
@@ -1159,7 +1172,7 @@ def loads(
 
 
 # load {{{2
-def load(f=None, top='dict', *, on_dup=None, keymap=None, normalize_key=None):
+def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
     # description {{{3
     r'''
     Loads *NestedText* from file or stream.
@@ -1170,6 +1183,7 @@ def load(f=None, top='dict', *, on_dup=None, keymap=None, normalize_key=None):
     files.
 
     Args:
+
         f (str, os.PathLike, io.TextIOBase, collections.abc.Iterator):
             The file to read the *NestedText* content from.  This can be
             specified either as a path (e.g. a string or a `pathlib.Path`),
@@ -1187,7 +1201,7 @@ def load(f=None, top='dict', *, on_dup=None, keymap=None, normalize_key=None):
         See :func:`loads` description of the return value.
 
     Raises:
-        NestedTextError: if there is a problem in the *NextedText* content.
+        NestedTextError: if there is a problem in the *NextedText* document.
         OSError: if there is a problem opening the file.
 
     Examples:
@@ -1245,7 +1259,6 @@ def load(f=None, top='dict', *, on_dup=None, keymap=None, normalize_key=None):
 
 # NestedText Writer {{{1
 # Converts Python data hierarchies to NestedText.
-
 
 # add_leader {{{2
 def add_leader(s, leader):
@@ -1365,7 +1378,7 @@ class NestedTextDumper:
             not key
             or '\n' in key
             or key.strip() != key
-            or key[:1] in "#[{"
+            or (key[:1] in "#[{" and support_inlines)
             or key[:2] in ["- ", "> ", ": "]
             or ': ' in key
         )
@@ -1541,20 +1554,26 @@ def dumps(
     """Recursively convert object to *NestedText* string.
 
     Args:
+
         obj:
             The object to convert to *NestedText*.
+
         width (int):
             Enables inline lists and dictionaries if greater than zero and if
             resulting line would be less than or equal to given width.
+
         inline_level (int):
             Recursion depth must be equal to this value or greater to be
             eligible for inlining.
+
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is true.
             If a function is passed in, it is used as the key function.
+
         indent (int):
             The number of spaces to use to represent a single level of
             indentation.  Must be one or greater.
+
         converters (dict):
             A dictionary where the keys are types and the values are converter
             functions (functions that take an object and return it in a form
@@ -1564,21 +1583,23 @@ def dumps(
             An object may provide its own converter by defining the
             ``__nestedtext_converter__`` attribute.  It may be False, or it may
             be a method that converts the object to a supported data type for
-            NestedText.  A matching converter specified in the *converters*
+            *NestedText*.  A matching converter specified in the *converters*
             argument dominates over this attribute.
-        default (func or 'strict'):
+
+        default (func or “strict”):
             The default converter. Use to convert otherwise unrecognized objects
             to a form that can be processed. If not provided an error will be
             raised for unsupported data types. Typical values are *repr* or
-            *str*. If 'strict' is specified then only dictionaries, lists,
+            *str*. If “strict” is specified then only dictionaries, lists,
             strings, and those types that have converters are allowed. If
             *default* is not specified then a broader collection of value types
             are supported, including *None*, *bool*, *int*, *float*, and *list*-
             and *dict*-like objects.  In this case Booleans are rendered as
-            'True' and 'False' and None is rendered as an empty string.  If
+            “True” and “False” and None is rendered as an empty string.  If
             *default* is a function, it acts as the default converter.  If
             it raises a TypeError, the value is reported as an
             unsupported type.
+
         _level (int):
             The number of indentation levels.  When dumps is invoked recursively
             this is used to increment the level and so the indent.  This argument
@@ -1620,7 +1641,7 @@ def dumps(
         converting them to the types supported by the format.  This implies that
         a round trip through *dumps* and *loads* could result in the types of
         values being transformed. You can restrict *dumps* to only supporting
-        the native types of *NestedText* by passing `default='strict'` to
+        the native types of *NestedText* by passing `default="strict"` to
         *dumps*.  Doing so means that values that are not dictionaries, lists,
         or strings generate exceptions.
 
@@ -1794,8 +1815,10 @@ def dump(obj, dest, **kwargs):
     """Write the *NestedText* representation of the given object to the given file.
 
     Args:
+
         obj:
             The object to convert to *NestedText*.
+
         dest (str, os.PathLike, io.TextIOBase):
             The file to write the *NestedText* content to.  The file can be
             specified either as a path (e.g. a string or a `pathlib.Path`) or
@@ -1886,8 +1909,10 @@ def get_value_from_keys(obj, keys):
     Get value from keys.
 
     Args:
+
         obj:
             Your data set as returned by :meth:`load` or :meth:`loads`.
+
         keys:
             A tuple of keys taken from a *keymap*.
 
@@ -1903,6 +1928,7 @@ def get_value_from_keys(obj, keys):
             >>> contents = """
             ... names:
             ...     given: Fumiko
+            ...     surname: Purvis
             ... """
 
             >>> data = nt.loads(contents, 'dict')
@@ -1930,7 +1956,7 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
     user focuses on the whole string and not just the first line.
 
     If *sep* is given, either one line number or both the beginning and ending
-    line numbers are given, joined with the separator.  In this case the line
+    line numbers are returned, joined with the separator.  In this case the line
     numbers start from line 1.
 
     If *sep* is not given, the line numbers are returned as a tuple containing a
@@ -1946,15 +1972,20 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
     leaf values, which are always strings.
 
     Args:
+
         obj:
             Your data set as returned by :meth:`load` or :meth:`loads`.
+
         keys:
             The collection of keys that identify a value in the dataset.
+
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`.
+
         kind (str):
-            Specify either 'key' or 'value' depending on which token is
+            Specify either “key” or “value” depending on which token is
             desired.
+
         sep:
             The separator string. If given a string is returned and *sep* is
             inserted between two line numbers.  Otherwise a tuple is returned.
@@ -2004,17 +2035,26 @@ def get_original_keys(keys, keymap, strict=False):
     '''
     Get original keys from normalized keys.
 
+    This function is used when the *normalize_key* argument is used with
+    :meth:`load` or :meth:`loads` to transform the keys to a standard form.
+    Given a set of normalized keys that point to a particular value in the
+    returned dataset, this function returns the original keys for that value.
+
     Args:
+
         keys:
-            The collection of keys that identify a value in the dataset.
+            The collection of normalized keys that identify a value in the
+            dataset.
+
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`.
+
         strict:
-            If true, a KeyError will be raised if the given keys are not found
-            in the keymap.  Otherwise, the given key will be returned rather
-            than the original key.  This is helpful when reporting errors on
-            required keys that do not exist in the data set.  Since they are
-            not in the dataset, the original keys are not available.
+            If true, a *KeyError* is raised if the given keys are not found
+            in *keymap*.  Otherwise, the given normalized keys will be returned
+            rather than the original keys.  This is helpful when reporting
+            errors on required keys that do not exist in the data set.  Since
+            they are not in the dataset, the original keys are not available.
 
     Returns:
         A tuple containing the original keys names.
@@ -2076,19 +2116,29 @@ def get_original_keys(keys, keymap, strict=False):
 
 
 # join_keys {{{2
-def join_keys(keys, sep=', ', keymap=None):
+def join_keys(keys, sep=', ', keymap=None, strict=False):
     '''
     Joins the keys into a string.
 
     Args:
+
         keys:
             A tuple of keys.
+
         sep:
             The separator string. It is inserted between each key during the join.
+
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`. It is
             optional. If given the given keys are converted to the original keys
             before the joining.
+
+        strict:
+            If true, a *KeyError* is raised if the given keys are not found
+            in *keymap*.  Otherwise, the given normalized keys will be returned
+            rather than the original keys.  This is helpful when reporting
+            errors on required keys that do not exist in the data set.  Since
+            they are not in the dataset, the original keys are not available.
 
     Returns:
         A string containing the joined keys.
@@ -2118,9 +2168,12 @@ def join_keys(keys, sep=', ', keymap=None):
             >>> join_keys(('names', 'given'), keymap=keymap)
             'Names, Given'
 
+            >>> join_keys(('names', 'surname'), keymap=keymap)
+            'Names, surname'
+
     '''
     if keymap:
-        keys = get_original_keys(keys, keymap, strict=False)
+        keys = get_original_keys(keys, keymap, strict=strict)
     return sep.join(str(k) for k in keys)
 
 # vim: set sw=4 sts=4 tw=80 fo=croqj foldmethod=marker et spell:
