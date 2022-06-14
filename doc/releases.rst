@@ -16,7 +16,11 @@ Latest development version
 | Version: 3.4.0-beta.1
 | Released: 2022-06-13
 
-- refined the *on_dup* parameter to :meth:`load` and :meth:`loads`.
+
+v3.4 (2022-06-15)
+-----------------
+
+- improved the *on_dup* parameter to :meth:`load` and :meth:`loads`.
 - added *strict* argument to :func:`join_keys`.
 
 .. warning::
