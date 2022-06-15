@@ -52,8 +52,8 @@ import unicodedata
 
 
 # Globals {{{1
-__version__ = "3.4.0-rc.0"
-__released__ = "2022-06-14"
+__version__ = "3.4.0-rc.1"
+__released__ = "2022-06-15"
 __all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 support_inlines = True
     # By disabling inlines it is possible to have keys that start with [ or {,
