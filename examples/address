@@ -21,7 +21,7 @@ def normalize_key(key, parent_keys):
 
 def render_contact(data):
     text = nt.dumps(data, default=repr)
-    return (re.sub(r'^(\s*)[>:]\s?(.*)$', r'\1\2', text, flags=re.M))
+    return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
 
 cmdline = docopt(__doc__)
 name = cmdline['<name>']
