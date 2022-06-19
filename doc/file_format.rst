@@ -44,9 +44,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     #.  or a hash {``#``), left bracket (``[``), or left brace (``{``) as the 
         first non-ASCII-space character on a line.
 
-    These symbols can only introduce tags when they are the first
-    non-ASCII-space character on a line, except for the colon (``:``) which can
-    introduce a dictionary item with an inline key midway through a line.
+    These symbols only introduce tags when they are the first non-ASCII-space 
+    character on a line, except for the colon (``:``) which introduces 
+    a dictionary item with an inline key midway through a line.
 
     The first (left-most) tag on a line determines the line type.  Once the 
     first tag has been found on the line, any subsequent occurrences of any of 
@@ -82,11 +82,11 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 **List items**:
 
     If the first non-space character on a line is a dash followed immediately by 
-    an ASCII space (``-␣``) or a line break, the line is a *list item*.  Adjacent list 
-    items with the same indentation level are combined in order into a list.
-    Each list item has a tag and a value.  The tag is only used to determine the 
-    type of the line and is discarded leaving the value.  The value takes one of 
-    three forms.
+    an ASCII space (``-␣``) or a line break, the line is a *list item*.  
+    Adjacent list items with the same indentation level are combined in order 
+    into a list.  Each list item has a tag and a value.  The tag is only used to 
+    determine the type of the line and is discarded leaving the value.  The 
+    value takes one of three forms.
 
     #. If the line contains further text (characters after the dash-space), then 
        the value is that text.  The text ends at the line break and may contain 
@@ -101,13 +101,13 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Key items**:
 
-    If the first non-ASCII-space character on a line is a colon followed immediately 
-    by an ASCII space (``:␣``) or a line break, the line is a *key item*.  After 
-    comments and blank lines have been removed, adjacent key items with the same 
-    indentation level are combined in order into a multiline key.  The key 
-    itself is the multiline string with the tags removed. Any leading white 
-    space that follows the tag is retained, as is any trailing white space and 
-    all newlines except the last.
+    If the first non-ASCII-space character on a line is a colon followed 
+    immediately by an ASCII space (``:␣``) or a line break, the line is a *key 
+    item*.  After comments and blank lines have been removed, adjacent key items 
+    with the same indentation level are combined in order into a multiline key.  
+    The key itself is the multiline string with the tags removed. Any leading 
+    white space that follows the tag is retained, as is any trailing white space 
+    and all newlines except the last.
 
     Key values may contain any printing UTF-8 character.
 
@@ -122,9 +122,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     The first is a *dictionary item with inline key*.  In this case the line 
     starts with a key followed by a dictionary tag: a colon followed by either 
-    an ASCII space (``:␣``) or a newline.  The dictionary item consists of the key, the 
-    tag, and the trailing value.  Any Unicode white-space between the key and the tag is 
-    ignored.
+    an ASCII space (``:␣``) or a newline.  The dictionary item consists of the 
+    key, the tag, and the trailing value.  Any Unicode white-space between the 
+    key and the tag is ignored.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
 
@@ -132,7 +132,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     #. start with a list item, string item or key item tag,
     #. start with ``[`` or ``{``,
     #. contain a dictionary item tag, or
-    #. contain Unicode leading spaces (any Unicode spaces that follow the key are ignored).
+    #. contain Unicode leading spaces
+       (any Unicode spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
     leaving the key and the value, which follows the tag.  The value takes one 
@@ -159,9 +160,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **Inline Lists and Dictionaries**:
 
-    If the first non-ASCII-space character on a line is either a left bracket (``[``) 
-    or a left brace (``{``) the line is an *inline structure*.  A bracket
-    introduces an inline list and a brace introduces an inline dictionary.
+    If the first non-ASCII-space character on a line is either a left bracket 
+    (``[``) or a left brace (``{``) the line is an *inline structure*.  
+    A bracket introduces an inline list and a brace introduces an inline 
+    dictionary.
 
     An *inline list* starts with an open bracket (``[``), ends with a matching 
     closed bracket (``]``), contains inline values separated by commas (``,``), 
@@ -185,7 +187,6 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     inline strings that are contained in inline dictionaries may not contain 
     ``:``.  Both leading and trailing ASCII spaces and ASCII tabs are ignored
     with inline strings.
-    
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 

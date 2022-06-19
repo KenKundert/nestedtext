@@ -467,7 +467,7 @@ code more robust with little to no increase in complexity:
 
 .. _json: https://www.json.org/json-en.html
 .. _yaml: https://yaml.org/
-.. _strictyaml: <https://hitchdev.com/strictyaml
+.. _strictyaml: https://hitchdev.com/strictyaml
 .. _toml: https://toml.io/en/
 .. _ini: https://en.wikipedia.org/wiki/INI_file
 .. _csv: https://en.wikipedia.org/wiki/Comma-separated_values
