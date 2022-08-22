@@ -25,7 +25,7 @@ v3.4 (2022-06-15)
 
 .. warning::
 
-    Be aware that the new version of the *on_dup* parameter are not compatible 
+    Be aware that the new version of the *on_dup* parameter is not compatible 
     with previous versions.
 
 
@@ -34,10 +34,12 @@ v3.3 (2022-06-07)
 
 - add *normalize_key* argument to :meth:`load` and :meth:`loads`.
 - added utility functions for operating on keys and keymaps:
+
   - :func:`get_value_from_keys`
   - :func:`get_lines_from_keys`
   - :func:`get_original_keys`
   - :func:`join_keys`
+
 - None passed as key is now converted to an empty string rather than "None".
 
 

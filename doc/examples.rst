@@ -21,7 +21,7 @@ for a web server:
 
 Below is the code to parse this file.  Note how the structure of the data is 
 specified using basic Python objects.  The :func:`Coerce()` function is 
-necessary to have voluptuous convert string input to the given type; otherwise 
+necessary to have Voluptuous convert string input to the given type; otherwise 
 it would simply check that the input matches the given type:
 
 .. literalinclude:: ../examples/deploy_voluptuous.py

@@ -374,7 +374,8 @@ code more robust with little to no increase in complexity:
     | ``She said, "Hey there!"`` is a valid string,
         but ``"She said, "Hey there!""`` is an error.
     | ``She said, "Hey there!"`` is a valid string,
-        but ``She said: "Hey there!"`` is an error.
+        but ``She said: "Hey there!"`` is an error (notice the comma is 
+        converted to a colon).
     | ``3.10.4`` is a string, but ``3.10`` is a real and ``3`` is an integer.
     | ``10`` is 10, but ``010`` is 8 and ``09`` is "09", a string.
     | ``Now`` is a string, but ``No`` is a Boolean.
