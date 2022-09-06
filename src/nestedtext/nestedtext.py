@@ -54,7 +54,6 @@ import unicodedata
 # Globals {{{1
 __version__ = "3.4.0"
 __released__ = "2022-06-15"
-__all__ = ['load', 'loads', 'dump', 'dumps', 'NestedTextError']
 support_inlines = True
     # By disabling inlines it is possible to have keys that start with [ or {,
     # but the resulting NestedText files are not compliant with the spec.
@@ -1146,7 +1145,7 @@ def loads(
             >>> print(nt.loads(content))
             Traceback (most recent call last):
             ...
-            nestedtext.NestedTextError: 3: duplicate key: key.
+            nestedtext.nestedtext.NestedTextError: 3: duplicate key: key.
 
             >>> print(nt.loads(content, on_dup='ignore'))
             {'key': 'value 1', 'name': 'value 4'}

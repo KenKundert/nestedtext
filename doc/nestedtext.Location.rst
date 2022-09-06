@@ -1,7 +1,7 @@
 ﻿Location
 ========
 
-.. currentmodule:: nestedtext
+.. currentmodule:: nestedtext.nestedtext
 
 .. autoclass:: Location
    :members:
