@@ -380,12 +380,12 @@ class Lines:
                 value = value,
                 prev_line = prev_line,
             )
-            if kind.endswith(' item'):
+            if kind.endswith(' item') or kind.startswith('inline '):
                 # Create prev_line, which differs from last_line in that it
                 # is a copy of the line without a prev_line attribute of its
                 # own. This avoids keeping a chain of all previous lines. In
                 # contrast, last line is the actual this_line from the previous
-                # iteration.
+                # iteration.  Also, it is a data line, not a comment or blank.
                 prev_line = self.Line(
                     text = this_line.text,
                     value = this_line.value,
