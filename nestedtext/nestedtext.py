@@ -2170,6 +2170,11 @@ def join_keys(keys, sep=', ', keymap=None, strict=False):
             >>> join_keys(('names', 'surname'), keymap=keymap)
             'Names, surname'
 
+            >>> join_keys(('names', 'surname'), keymap=keymap, strict=True)
+            Traceback (most recent call last):
+                ...
+            KeyError: ('names', 'surname')
+
     '''
     if keymap:
         keys = get_original_keys(keys, keymap, strict=strict)

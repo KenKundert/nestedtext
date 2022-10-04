@@ -44,11 +44,18 @@ Implementations
 `zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 `Zig <https://ziglang.org>`_ implementation of *NestedText*
-(slight subset of :ref:`NestedText v2.0 <v2.0>`).
+(slight subset of :ref:`NestedText v2.0 <v2.0>`).  Also contains *nt-cli*, an 
+efficient command line utility for converting between *NestedText* and *JSON*.
 
 
 Utilities
 ---------
+
+`pNestedTextTo (nt2) <https://github.com/AndydeCleyre/nestedtextto>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and 
+*TOML*.
+
 
 `parametrize from file <https://github.com/kalekundert/parametrize_from_file>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
