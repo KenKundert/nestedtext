@@ -51,8 +51,8 @@ efficient command line utility for converting between *NestedText* and *JSON*.
 Utilities
 ---------
 
-`pNestedTextTo (nt2) <https://github.com/AndydeCleyre/nestedtextto>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedTextTo (nt2) <https://github.com/AndydeCleyre/nestedtextto>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and 
 *TOML*.
 
