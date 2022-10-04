@@ -69,6 +69,24 @@ that contains a few addresses:
             - new membership task force
             - accounting task force
 
+One of the more attractive use-cases for *NestedText* is command line programs 
+whose output is meant to be consumed by either people or programs.  Many 
+programs do so by supporting a ``--json`` command-line flag that indicates the 
+output should be computer readable rather than human readable.  But, with 
+*NestedText* it is not necessary to make people choose.  Just output the result 
+in *NestedText* and it can be read by people or computers.  For example, 
+consider a program that read your address list and output particular fields on 
+demand::
+
+    > address --email
+    Katheryn McDaniel: KateMcD@aol.com
+    Margaret Hodge: margaret.hodge@ku.edu
+
+This could output could be fed directly into another program that accepted input 
+as *NestedText*::
+
+    > address --email | mail-to-list
+
 
 Contributing
 ------------

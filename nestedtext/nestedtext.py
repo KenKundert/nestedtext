@@ -159,7 +159,7 @@ class NestedTextError(Error, ValueError):
         ..     e.report()
         error: 2: duplicate key: name1.
             ❬name1: value2❭
-             △
+             ▲
 
     The *terminate* method prints the message directly and exits::
 
@@ -169,7 +169,7 @@ class NestedTextError(Error, ValueError):
         ..     e.terminate()
         error: 2: duplicate key: name1.
             ❬name1: value2❭
-             △
+             ▲
 
     With exceptions generated from :func:`load` or :func:`loads` you may see
     extra lines at the end of the message that show the problematic lines if
@@ -190,7 +190,7 @@ class NestedTextError(Error, ValueError):
         duplicate key: name1.
            1 ❬name1: value1❭
            2 ❬name1: value2❭
-              △
+              ▲
 
     Note the ❬ and ❭ characters in the codicil. They delimit the extent of the
     text on each line and help you see troublesome leading or trailing white
@@ -260,7 +260,7 @@ def report(message, line, *args, colno=None, **kwargs):
             text = line.text.replace("\t", "→")
             codicil += [
                 f'{line.lineno+1:>4} ❬{text}❭',
-                '      ' + (colno*' ') + '△',
+                '      ' + (colno*' ') + '▲',
             ]
             kwargs['codicil'] = '\n'.join(cull(codicil))
             kwargs['colno'] = colno
@@ -314,7 +314,7 @@ class Lines:
         def render(self, col=None):
             result = [f'{self.lineno+1:>4} ❬{self.text}❭']
             if col is not None:
-                result += ['      ' + (col*' ') + '△']
+                result += ['      ' + (col*' ') + '▲']
             return '\n'.join(result)
 
         def __str__(self):
@@ -772,7 +772,7 @@ class Inline:
 
     # render {{{3
     def render(self, index):  # pragma: no cover
-        return f"❬{self.text}❭\n {index*' '}△"
+        return f"❬{self.text}❭\n {index*' '}▲"
 
     # __repr__ {{{3
     def __repr__(self):  # pragma: no cover
@@ -1123,7 +1123,7 @@ def loads(
             examples/duplicate-keys.nt, 5: duplicate key: name.
                4 ❬name:❭
                5 ❬name:❭
-                  △
+                  ▲
 
         Notice in the above example the encoding is explicitly specified as
         'utf-8'.  *NestedText* files should always be read and written using

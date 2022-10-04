@@ -34,7 +34,7 @@ the following example:
     already have a value.
        4 ❬    address: Home❭
        5 ❬        > 3636 Buffalo Ave❭
-              △
+              ▲
 
 Notice that the complaint is about line 5, but problem stems from line 4 where 
 *Home* gave a value to *address*. With a value specified for *address*, any 
@@ -65,7 +65,7 @@ A more subtle version of this same error follows:
     already have a value, which in this case consists only of whitespace.
        4 ❬    address:  ❭
        5 ❬        > 3636 Buffalo Ave❭
-              △
+              ▲
 
 Notice the ␣␣ that follows *address* in *content*.  These are replaced by 
 2 spaces before *content* is processed by *loads*.  Thus, in this case there is 

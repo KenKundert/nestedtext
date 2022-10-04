@@ -60,10 +60,10 @@ def to_snake_case(key):
 schema = Schema(
     {
         Required('my_gpg_ids'): to_gpg_ids,
-        'sign with': to_gpg_id,
+        'sign_with': to_gpg_id,
         'avendesora_gpg_passphrase_account': to_str,
         'avendesora_gpg_passphrase_field': to_str,
-        'name template': to_str,
+        'name_template': to_str,
         Required('recipients'): {
             Extra: {
                 Required('category'): to_ident,
@@ -117,7 +117,7 @@ try:
         settings = schema(settings)
 
         # show the resulting settings
-        pprint(settings)
+        print(nt.dumps(settings, default=str))
 
 except nt.NestedTextError as e:
     e.report()

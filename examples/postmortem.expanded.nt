@@ -1,0 +1,30 @@
+my_gpg_ids:
+    - odin@norse-gods.com
+sign_with: odin@norse-gods.com
+name_template: {name}-{now:YYMMDD}
+recipients:
+    Frigg:
+        email:
+            - frigg@norse-gods.com
+        category: wife
+        attach:
+            - /home/ken/home/estate/trust.pdf
+            - /home/ken/home/estate/will.pdf
+            - /home/ken/home/estate/deed-valhalla.pdf
+        networth: odin
+    Thor:
+        email:
+            - thor@norse-gods.com
+        category: kids
+        attach:
+            - /home/ken/home/estate/trust.pdf
+            - /home/ken/home/estate/will.pdf
+            - /home/ken/home/estate/deed-valhalla.pdf
+    Loki:
+        email:
+            - loki@norse-gods.com
+        category: kids
+        attach:
+            - /home/ken/home/estate/trust.pdf
+            - /home/ken/home/estate/will.pdf
+            - /home/ken/home/estate/deed-valhalla.pdf

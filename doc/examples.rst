@@ -319,27 +319,17 @@ if needed. In this example, simple functions are passed in that perform
 validation and coercion as needed.  This is a more flexible approach and allows 
 better control of the error messages.
 
+This code does not do any thing useful, it just reads in and expands the 
+information contained in the input file.  It simply represents the beginnings of 
+a program that would use the specified information to generate the postmortem 
+reports.  In this case is simply prints the expanded information in the form of 
+a *NestedText* document, which is easier to read that if it were pretty-printed 
+as *Python* or *JSON*.
+
 Here are the processed settings:
 
-.. code-block:: python
-
-    {'my_gpg_ids': ['odin@norse-gods.com'],
-     'recipients': {'Frigg': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
-                                         PosixPath('/home/ken/home/estate/will.pdf'),
-                                         PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
-                              'category': 'wife',
-                              'email': ['frigg@norse-gods.com'],
-                              'networth': 'odin'},
-                    'Loki': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
-                                        PosixPath('/home/ken/home/estate/will.pdf'),
-                                        PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
-                             'category': 'kids',
-                             'email': ['loki@norse-gods.com']},
-                     'Thor': {'attach': [PosixPath('/home/ken/home/estate/trust.pdf'),
-                                         PosixPath('/home/ken/home/estate/will.pdf'),
-                                         PosixPath('/home/ken/home/estate/deed-valhalla.pdf')],
-                              'category': 'kids',
-                              'email': ['thor@norse-gods.com']}}}
+.. literalinclude:: ../examples/postmortem.expanded.nt
+   :language: nestedtext
 
 
 .. _voluptuous: https://github.com/alecthomas/voluptuous

@@ -114,7 +114,7 @@ def test_postmortem():
      if sys.version_info < (3, 8):
          return  # postmortem example uses walrus operator
      with cd(tests_dir):
-        expected = Path('postmortem.json').read_text()
+        expected = Path('postmortem.expanded.nt').read_text()
         user_home_dir = str(to_path('~'))
         expected = expected.replace('~', user_home_dir)
 

@@ -75,7 +75,7 @@ except json.JSONDecodeError as e:
         lineno = e.lineno
         culprit = (culprit, lineno)
         colno = e.colno
-        lines_before = e.doc.split('\n')[lineno-2:lineno]
+        lines_before = e.doc.split('\n')[max(lineno-2, 0):lineno]
         lines = []
         for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
             lines.append(f'{i+1:>4}> {l}')
@@ -85,7 +85,7 @@ except json.JSONDecodeError as e:
         for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
             lines.append(f'{i+1:>4}> {l}')
         lines_after = '\n'.join(lines)
-        codicil = f"{lines_before}\n     {colno*' '}△\n{lines_after}"
+        codicil = f"{lines_before}\n     {colno*' '}▲\n{lines_after}"
     except Exception:
         pass
     fatal(full_stop(msg), culprit=culprit, codicil=codicil)
