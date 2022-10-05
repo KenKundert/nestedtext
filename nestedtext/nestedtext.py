@@ -90,38 +90,40 @@ class NestedTextError(Error, ValueError):
 
     All exceptions provide the following attributes:
 
-    args:
-        The exception arguments.  A tuple that usually contains the problematic
-        value.
+    Attributes:
+        args:
+            The exception arguments.  A tuple that usually contains the
+            problematic value.
 
-    template:
-        The possibly parameterized text used for the error message.
+        template:
+            The possibly parameterized text used for the error message.
 
     Exceptions raised by the :func:`loads()` or :func:`load()` functions provide
     the following additional attributes:
 
-    source:
-        The source of the *NestedText* content, if given. This is often a
-        filename.
+    Attributes:
+        source:
+            The source of the *NestedText* content, if given. This is often a
+            filename.
 
-    line:
-        The text of the line of *NestedText* content where the problem was found.
+        line:
+            The text of the line of *NestedText* content where the problem was found.
 
-    prev_line:
-        The text of the meaningful line immediately before where the problem was
-        found.  This will not be a comment or blank line.
+        prev_line:
+            The text of the meaningful line immediately before where the problem was
+            found.  This will not be a comment or blank line.
 
-    lineno:
-        The number of the line where the problem was found.  Line numbers are
-        zero based except when included in messages to the end user.
+        lineno:
+            The number of the line where the problem was found.  Line numbers are
+            zero based except when included in messages to the end user.
 
-    colno:
-        The number of the character where the problem was found on *line*.
-        Column numbers are zero based.
+        colno:
+            The number of the character where the problem was found on *line*.
+            Column numbers are zero based.
 
-    codicil:
-        The line that contains the error decorated with the location of the
-        error.
+        codicil:
+            The line that contains the error decorated with the location of the
+            error.
 
     The exception culprit is the tuple that indicates where the error was found.
     With exceptions from :func:`loads()` or :func:`load()`, the culprit consists
@@ -558,7 +560,6 @@ class Location:
         column numbers are 0 based.
 
         Args:
-
             kind (str):
                 Specify either “key” or “value” depending on which token is
                 desired.
@@ -584,7 +585,6 @@ class Location:
         token.
 
         Args:
-
             kind (str):
                 Specify either “key” or “value” depending on which token is
                 desired.
@@ -997,7 +997,6 @@ def loads(
     Loads *NestedText* from string.
 
     Args:
-
         content (str):
             String that contains encoded data.
 
@@ -1182,7 +1181,6 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
     files.
 
     Args:
-
         f (str, os.PathLike, io.TextIOBase, collections.abc.Iterator):
             The file to read the *NestedText* content from.  This can be
             specified either as a path (e.g. a string or a `pathlib.Path`),
@@ -1191,7 +1189,6 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
             object is given, it will be read and not closed; utf-8 encoding
             should be used..  If an iterator is given, it should generate full
             lines in the same manner that iterating on a file descriptor would.
-
         kwargs:
             See :func:`loads` for optional arguments.
 
@@ -1553,7 +1550,6 @@ def dumps(
     """Recursively convert object to *NestedText* string.
 
     Args:
-
         obj:
             The object to convert to *NestedText*.
 
@@ -1814,10 +1810,8 @@ def dump(obj, dest, **kwargs):
     """Write the *NestedText* representation of the given object to the given file.
 
     Args:
-
         obj:
             The object to convert to *NestedText*.
-
         dest (str, os.PathLike, io.TextIOBase):
             The file to write the *NestedText* content to.  The file can be
             specified either as a path (e.g. a string or a `pathlib.Path`) or
@@ -1832,7 +1826,6 @@ def dump(obj, dest, **kwargs):
             by giving the schema, it is recommended that you use two suffixes,
             with the suffix that specifies the schema given first and .nt given
             last. For example: flicker.sig.nt.
-
         kwargs:
             See :func:`dumps` for optional arguments.
 
@@ -1908,10 +1901,8 @@ def get_value_from_keys(obj, keys):
     Get value from keys.
 
     Args:
-
         obj:
             Your data set as returned by :meth:`load` or :meth:`loads`.
-
         keys:
             A tuple of keys taken from a *keymap*.
 
@@ -1971,20 +1962,15 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
     leaf values, which are always strings.
 
     Args:
-
         obj:
             Your data set as returned by :meth:`load` or :meth:`loads`.
-
         keys:
             The collection of keys that identify a value in the dataset.
-
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`.
-
         kind (str):
             Specify either “key” or “value” depending on which token is
             desired.
-
         sep:
             The separator string. If given a string is returned and *sep* is
             inserted between two line numbers.  Otherwise a tuple is returned.
@@ -2040,14 +2026,11 @@ def get_original_keys(keys, keymap, strict=False):
     returned dataset, this function returns the original keys for that value.
 
     Args:
-
         keys:
             The collection of normalized keys that identify a value in the
             dataset.
-
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`.
-
         strict:
             If true, a *KeyError* is raised if the given keys are not found
             in *keymap*.  Otherwise, the given normalized keys will be returned
@@ -2120,18 +2103,14 @@ def join_keys(keys, sep=', ', keymap=None, strict=False):
     Joins the keys into a string.
 
     Args:
-
         keys:
             A tuple of keys.
-
         sep:
             The separator string. It is inserted between each key during the join.
-
         keymap:
             The keymap returned from :meth:`load` or :meth:`loads`. It is
             optional. If given the given keys are converted to the original keys
             before the joining.
-
         strict:
             If true, a *KeyError* is raised if the given keys are not found
             in *keymap*.  Otherwise, the given normalized keys will be returned
