@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.4.2
-| Released: 2022-10-04
+| Version: 3.5
+| Released: 2022-11-04
 
 
 v3.5 (2022-11-04)
