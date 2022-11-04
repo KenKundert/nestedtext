@@ -17,11 +17,17 @@ Latest development version
 | Released: 2022-10-04
 
 
+v3.5 (2022-11-04)
+-----------------
+
+- Minor refinements and fixes.
+
+
 v3.4 (2022-06-15)
 -----------------
 
-- improved the *on_dup* parameter to :meth:`load` and :meth:`loads`.
-- added *strict* argument to :func:`join_keys`.
+- Improved the *on_dup* parameter to :meth:`load` and :meth:`loads`.
+- Added *strict* argument to :func:`join_keys`.
 
 .. warning::
 
@@ -32,8 +38,8 @@ v3.4 (2022-06-15)
 v3.3 (2022-06-07)
 -----------------
 
-- add *normalize_key* argument to :meth:`load` and :meth:`loads`.
-- added utility functions for operating on keys and keymaps:
+- Add *normalize_key* argument to :meth:`load` and :meth:`loads`.
+- Added utility functions for operating on keys and keymaps:
 
   - :func:`get_value_from_keys`
   - :func:`get_lines_from_keys`
@@ -46,13 +52,13 @@ v3.3 (2022-06-07)
 v3.2 (2022-01-17)
 -----------------
 
-- add circular reference detection and reporting.
+- Add circular reference detection and reporting.
 
 
 v3.1 (2021-07-23)
 -----------------
 
-- change error reporting for :func:`dumps` and :func:`dump` functions;
+- Change error reporting for :func:`dumps` and :func:`dump` functions;
   culprit is now the keys rather than the value.
 
 
