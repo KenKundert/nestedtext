@@ -1,5 +1,5 @@
-NestedText: A Human Friendly Data Format
-========================================
+NestedText — A Human Friendly Data Format
+=========================================
 
 .. image:: https://pepy.tech/badge/nestedtext/month
     :target: https://pepy.tech/project/nestedtext
