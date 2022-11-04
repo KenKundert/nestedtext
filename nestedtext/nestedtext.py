@@ -52,8 +52,6 @@ import unicodedata
 
 
 # Globals {{{1
-__version__ = "3.4.2"
-__released__ = "2022-10-04"
 support_inlines = True
     # By disabling inlines it is possible to have keys that start with [ or {,
     # but the resulting NestedText files are not compliant with the spec.
