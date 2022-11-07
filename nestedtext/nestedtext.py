@@ -61,7 +61,7 @@ support_inlines = True
 # Utility functions {{{1
 # convert_returns {{{2
 def convert_returns(text):
-    return text.replace('\r\n', '\n').replace('\r', '\n')
+    return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
 # Unspecified {{{2
@@ -151,7 +151,7 @@ class NestedTextError(Error, ValueError):
 
     You can also use the *report* method to print the message directly. This is
     appropriate if you are using *inform* for your messaging as it follows
-    *inform*'s conventions::
+    *inform*’s conventions::
 
         >> try:
         ..     print(nt.loads(content))
@@ -210,8 +210,8 @@ class NestedTextError(Error, ValueError):
         ...     print(nt.loads(content))
         ... except nt.NestedTextError as e:
         ...     template = None
-        ...     if e.template == 'duplicate key: {}.':
-        ...         template = 'llave duplicada: {}.'
+        ...     if e.template == "duplicate key: {}.":
+        ...         template = "llave duplicada: {}."
         ...     print(e.render(template=template))
         2: llave duplicada: name1.
 
@@ -244,57 +244,57 @@ def report(message, line, *args, colno=None, **kwargs):
     culprits = get_culprit()
     codicil = [kwargs.get("codicil", "")]
     if culprits:
-        kwargs['source'] = culprits[0]
+        kwargs["source"] = culprits[0]
     if line:
         # line numbers are always 0 based unless included in a message to user
         include_prev_line = not (
-            line.prev_line is None or kwargs.pop('suppress_prev_line', False)
+            line.prev_line is None or kwargs.pop("suppress_prev_line", False)
         )
         if colno is not None:
             # build codicil that shows both the line and the preceding line
             if include_prev_line:
-                codicil += [f'{line.prev_line.lineno+1:>4} ❬{line.prev_line.text}❭']
+                codicil += [f"{line.prev_line.lineno+1:>4} ❬{line.prev_line.text}❭"]
             else:
                 codicil += []
             # replace tabs with → so that arrow points to right location.
             text = line.text.replace("\t", "→")
             codicil += [
-                f'{line.lineno+1:>4} ❬{text}❭',
-                '      ' + (colno*' ') + '▲',
+                f"{line.lineno+1:>4} ❬{text}❭",
+                "      " + (colno*" ") + "▲",
             ]
-            kwargs['codicil'] = '\n'.join(cull(codicil))
-            kwargs['colno'] = colno
+            kwargs["codicil"] = "\n".join(cull(codicil))
+            kwargs["colno"] = colno
         else:
-            kwargs['codicil'] = f'{line.lineno+1:>4} ❬{line.text}❭'
-        kwargs['culprit'] = get_culprit(line.lineno+1)
-        kwargs['line'] = line.text
-        kwargs['lineno'] = line.lineno
+            kwargs["codicil"] = f"{line.lineno+1:>4} ❬{line.text}❭"
+        kwargs["culprit"] = get_culprit(line.lineno + 1)
+        kwargs["line"] = line.text
+        kwargs["lineno"] = line.lineno
         if include_prev_line:
-            kwargs['prev_line'] = line.prev_line.text
+            kwargs["prev_line"] = line.prev_line.text
     else:
-        kwargs['culprit'] = culprits  # pragma: no cover
+        kwargs["culprit"] = culprits  # pragma: no cover
     raise NestedTextError(template=message, *args, **kwargs)
 
 
 # unrecognized_line {{{2
 def unrecognized_line(line):
     # line will not be recognized if there is invalid white space in indentation
-    first_non_space = line.text.lstrip(' ')[0]
+    first_non_space = line.text.lstrip(" ")[0]
     index_of_first_non_space = line.text.index(first_non_space)
-    if first_non_space.strip() == '':
+    if first_non_space.strip() == "":
         # first non-space is a white space character
         # treat it as invalid indentation
         desc = unicodedata.name(first_non_space, "")
         if desc:
-            desc = f' ({desc})'
+            desc = f" ({desc})"
         report(
-            f'invalid character in indentation: {first_non_space!r}{desc}.',
+            f"invalid character in indentation: {first_non_space!r}{desc}.",
             line,
             colno = index_of_first_non_space,
-            codicil = 'Only simple spaces are allowed in indentation.'
+            codicil = "Only simple spaces are allowed in indentation."
         )
     else:
-        report('unrecognized line.', line, colno=index_of_first_non_space)
+        report("unrecognized line.", line, colno=index_of_first_non_space)
 
 
 # Lines class {{{2
@@ -312,10 +312,10 @@ class Lines:
     # Line class {{{3
     class Line(Info):
         def render(self, col=None):
-            result = [f'{self.lineno+1:>4} ❬{self.text}❭']
+            result = [f"{self.lineno+1:>4} ❬{self.text}❭"]
             if col is not None:
-                result += ['      ' + (col*' ') + '▲']
-            return '\n'.join(result)
+                result += ["      " + (col*" ") + "▲"]
+            return "\n".join(result)
 
         def __str__(self):
             return self.text
@@ -330,10 +330,10 @@ class Lines:
         for lineno, line in enumerate(self.lines):
             key = None
             value = None
-            line = line.rstrip('\n')
+            line = line.rstrip("\n")
 
             # compute indentation
-            stripped = line.lstrip(' ')
+            stripped = line.lstrip(" ")
             depth = len(line) - len(stripped)
 
             # determine line type and extract values
@@ -345,27 +345,27 @@ class Lines:
                 kind = "comment"
                 value = line[1:].strip()
                 depth = None
-            elif stripped == '-' or stripped.startswith('- '):
+            elif stripped == "-" or stripped.startswith("- "):
                 kind = "list item"
                 value = stripped[2:]
-            elif stripped == '>' or stripped.startswith('> '):
+            elif stripped == ">" or stripped.startswith("> "):
                 kind = "string item"
                 value = line[depth+2:]
-            elif stripped == ':' or stripped.startswith(': '):
+            elif stripped == ":" or stripped.startswith(": "):
                 kind = "key item"
                 value = line[depth+2:]
-            elif stripped[0:1] in ['[', '{'] and support_inlines:
+            elif stripped[0:1] in ["[", "{"] and support_inlines:
                 tag = stripped[0:1]
-                kind = 'inline dict' if tag == '{' else 'inline list'
+                kind = "inline dict" if tag == "{" else "inline list"
                 value = line[depth:]
             else:
                 matches = dict_item_recognizer.fullmatch(stripped)
                 if matches:
                     kind = "dict item"
-                    key = matches.group('key')
-                    value = matches.group('value')
+                    key = matches.group("key")
+                    value = matches.group("value")
                     if value is None:
-                        value = ''
+                        value = ""
                 else:
                     kind = "unrecognized"
                     value = line
@@ -380,7 +380,7 @@ class Lines:
                 value = value,
                 prev_line = prev_line,
             )
-            if kind.endswith(' item') or kind.startswith('inline '):
+            if kind.endswith(" item") or kind.startswith("inline "):
                 # Create prev_line, which differs from last_line in that it
                 # is a copy of the line without a prev_line attribute of its
                 # own. This avoids keeping a chain of all previous lines. In
@@ -397,10 +397,10 @@ class Lines:
                 # add this line as next_line in prev_line if this is a continued
                 # multiline string.
                 if (
-                    last_line and
-                    depth == last_line.depth and
-                    kind == last_line.kind and
-                    kind in ['key item', 'string item']
+                    last_line                 and
+                    depth == last_line.depth  and
+                    kind == last_line.kind    and
+                    kind in ["key item", "string item"]
                 ):
                     last_line.next_line = this_line
 
@@ -459,30 +459,27 @@ class Lines:
         prev_line = line.prev_line
         codicil = None
         if not line.prev_line and depth == 0:
-            msg = 'top-level content must start in column 1.'
+            msg = "top-level content must start in column 1."
         elif (
-            prev_line and
-            prev_line.value and
-            prev_line.depth < line.depth and
-            prev_line.kind in ['list item', 'dict item']
+            prev_line                     and
+            prev_line.value               and
+            prev_line.depth < line.depth  and
+            prev_line.kind in ["list item", "dict item"]
         ):
-            if prev_line.value.strip() == '':
-                obs = ', which in this case consists only of whitespace'
+            if prev_line.value.strip() == "":
+                obs = ", which in this case consists only of whitespace"
             else:
-                obs = ''
-            msg = 'invalid indentation.'
+                obs = ""
+            msg = "invalid indentation."
             codicil = join(
                 "An indent may only follow a dictionary or list item that does",
                 f"not already have a value{obs}.",
                 wrap = True
             )
-        elif (
-            prev_line and
-            prev_line.depth > line.depth
-        ):
-            msg = 'invalid indentation, partial dedent.'
+        elif prev_line and prev_line.depth > line.depth:
+            msg = "invalid indentation, partial dedent."
         else:
-            msg = 'invalid indentation.'
+            msg = "invalid indentation."
         report(join(msg, wrap=True), line, colno=depth, codicil=codicil)
 
 
@@ -501,9 +498,9 @@ class KeyPolicy:
     def add_to_dictionary(cls, dictionary, key, value, keys, line=None, colno=None):
         if key in dictionary:
             # found duplicate key
-            if cls.on_dup is None or cls.on_dup == 'error':
-                report('duplicate key: {}.', line, key, colno=colno)
-            if cls.on_dup == 'ignore':
+            if cls.on_dup is None or cls.on_dup == "error":
+                report("duplicate key: {}.", line, key, colno=colno)
+            if cls.on_dup == "ignore":
                 return
             if isinstance(cls.on_dup, dict):
                 dup_handler = cls.on_dup.pop(_OnDupCallback)
@@ -515,10 +512,10 @@ class KeyPolicy:
                     if key is None:
                         return
                 except KeyError:
-                    report('duplicate key: {}.', line, key, colno=colno)
+                    report("duplicate key: {}.", line, key, colno=colno)
                 cls.on_dup[_OnDupCallback] = dup_handler  # restore dup_handler
-            elif cls.on_dup != 'replace':
-                raise NotImplementedError(f'{cls.on_dup}: unknown value for on_dup.')
+            elif cls.on_dup != "replace":
+                raise NotImplementedError(f"{cls.on_dup}: unknown value for on_dup.")
         dictionary[key] = value
 
 
@@ -530,6 +527,7 @@ class Location:
     Objects of this class holds the line and column numbers of the key and value
     tokens.
     """
+
     def __init__(self, line=None, col=None, key_line=None, key_col=None):
         self.line = line
         self.key_line = key_line
@@ -551,7 +549,7 @@ class Location:
         return f"{self.__class__.__name__}({', '.join(components)})"
 
     # as_tuple() {{{3
-    def as_tuple(self, kind='value'):
+    def as_tuple(self, kind="value"):
         """
         Returns the location of either the value or the key token as a tuple
         that contains the line number and the column number.  The line and
@@ -562,7 +560,7 @@ class Location:
                 Specify either “key” or “value” depending on which token is
                 desired.
         """
-        if kind == 'key':
+        if kind == "key":
             line = self.key_line
             col = self.key_col
             if line is None:
@@ -575,7 +573,7 @@ class Location:
         return line.lineno, col
 
     # as_line() {{{3
-    def as_line(self, kind='value'):
+    def as_line(self, kind="value"):
         """
         Returns a string containing two lines that identify the token in
         context.  The first line contains the line number and text of the line
@@ -587,7 +585,7 @@ class Location:
                 Specify either “key” or “value” depending on which token is
                 desired.
         """
-        if kind == 'key':
+        if kind == "key":
             line = self.key_line
             col = self.key_col
             if line is None:
@@ -614,9 +612,7 @@ class Inline:
         try:
             self.values, self.keymap, index = self.parse_inline_value(keys, 0)
         except IndexError:
-            self.inline_error(
-                "line ended without closing delimiter", self.max_index
-            )
+            self.inline_error("line ended without closing delimiter", self.max_index)
         if index < self.max_index:
             extra = self.text[index:]
             self.inline_error(
@@ -627,9 +623,9 @@ class Inline:
 
     # parse_inline_value() {{{3
     def parse_inline_value(self, keys, index, forbidden_chars=None):
-        if self.text[index] == '{':
+        if self.text[index] == "{":
             return self.parse_inline_dict(keys, index)
-        elif self.text[index] == '[':
+        elif self.text[index] == "[":
             return self.parse_inline_list(keys, index)
         else:
             return self.parse_inline_str(keys, index, forbidden_chars)
@@ -637,23 +633,23 @@ class Inline:
     # parse_inline_dict() {{{3
     def parse_inline_dict(self, keys, index):
         starting_index = index
-        assert self.text[index] == '{'
+        assert self.text[index] == "{"
         index += 1
         values = {}
         need_another = False
 
-        while self.text[index] != '}':
+        while self.text[index] != "}":
             prev_index = index
             orig_key, value, location, index = self.parse_inline_dict_item(keys, index)
             key = self.loader.normalize_key(orig_key, keys)
             KeyPolicy.add_to_dictionary(values, key, value, keys, self.line, prev_index)
             self.loader._add_keymap(keys + (key,), location)
             need_another = False
-            if self.text[index] not in ',}':
+            if self.text[index] not in ",}":
                 self.inline_error(
                     "expected ‘,’ or ‘}}’, found ‘{}’", index, self.text[index]
                 )
-            if self.text[index] == ',':
+            if self.text[index] == ",":
                 index += 1
                 need_another = True
         if need_another:
@@ -666,19 +662,19 @@ class Inline:
 
     # parse_inline_dict_item() {{{3
     def parse_inline_dict_item(self, keys, index):
-        forbidden_chars = '{}[],:'
+        forbidden_chars = "{}[],:"
         key_index = self.adjust_index(index)
         if self.text[index] in forbidden_chars:
-            key = ''
+            key = ""
         else:
             key, _, index = self.parse_inline_value(keys, index, forbidden_chars)
-        if self.text[index] != ':':
+        if self.text[index] != ":":
             self.inline_error(
                 "expected ‘:’, found ‘{}’", index, self.text[index], culprit=key
             )
         index = self.adjust_index(index+1)
-        if self.text[index] in ',}':
-            value = ''
+        if self.text[index] in ",}":
+            value = ""
             loc = self.location(index)
         else:
             value, loc, index = self.parse_inline_value(keys, index, forbidden_chars)
@@ -687,27 +683,27 @@ class Inline:
 
     # parse_inline_list() {{{3
     def parse_inline_list(self, keys, index):
-        forbidden_chars = '{}[],'
+        forbidden_chars = "{}[],"
         starting_index = index
-        assert self.text[index] == '['
+        assert self.text[index] == "["
         index += 1
 
         # handle empty list
-        if self.text[index] == ']':
+        if self.text[index] == "]":
             return [], self.location(starting_index), self.adjust_index(index+1)
 
         key = 0
         values = []
-        value = ''
+        value = ""
         loc = self.location(index)
         while True:
             new_keys = keys + (key,)
             c = self.text[index]
-            if c in ',]':
+            if c in ",]":
                 values.append(value)
                 self.loader._add_keymap(new_keys, loc)
                 key += 1
-                if c == ']':
+                if c == "]":
                     return (
                         values,
                         self.location(starting_index),
@@ -716,12 +712,12 @@ class Inline:
                 index += 1
                 loc = self.location(index)
                 index = self.adjust_index(index)
-                value = ''
+                value = ""
             elif value:
                 self.inline_error(
                     "expected ‘,’ or ‘]’, found ‘{}’", index, self.text[index]
                 )
-            elif c in '}],':
+            elif c in "}],":
                 self.inline_error("expected value", index)
             else:
                 value, loc, index = self.parse_inline_value(
@@ -738,14 +734,14 @@ class Inline:
 
     # adjust_index() {{{3
     def adjust_index(self, index):
-        # if desired index points to white space, shift right until it doesn't
-        while index < self.max_index and self.text[index] in ' \t':
+        # if desired index points to white space, shift right until it doesn’t
+        while index < self.max_index and self.text[index] in " \t":
             index += 1
         return index
 
     # location() {{{3
     def location(self, index, **kwargs):
-        kwargs['line'] = self.line
+        kwargs["line"] = self.line
         return Location(col=index + self.starting_col, **kwargs)
 
     # add_key_location() {{{3
@@ -791,38 +787,47 @@ class NestedTextLoader:
             lines = self.lines = Lines(lines)
             next_is = lines.type_of_next()
 
-            if top in ['any', any]:
+            if top in ["any", any]:
                 if next_is is None:
                     self.values, self.keymap = None, None
                 else:
                     self.values, self.keymap = self._read_value(0, ())
                 return
 
-            if top in ['dict', dict]:
+            if top in ["dict", dict]:
                 if next_is in ["dict item", "key item", "inline dict"]:
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
                     self.values, self.keymap = {}, None
                 else:
-                    report('content must start with key or brace ({{).', lines.get_next())
+                    report(
+                        "content must start with key or brace ({{).",
+                        lines.get_next()
+                    )
                 return
 
-            if top in ['list', list]:
+            if top in ["list", list]:
                 if next_is in ["list item", "inline list"]:
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
                     self.values, self.keymap = [], None
                 else:
-                    report('content must start with dash (-) or bracket ([).', lines.get_next())
+                    report(
+                        "content must start with dash (-) or bracket ([).",
+                        lines.get_next(),
+                    )
                 return
 
-            if top in ['str', str]:
+            if top in ["str", str]:
                 if next_is == "string item":
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
                     self.values, self.keymap = "", None
                 else:
-                    report('content must start with greater-than sign (>).', lines.get_next())
+                    report(
+                        "content must start with greater-than sign (>).",
+                        lines.get_next(),
+                    )
                 return
 
             raise NotImplementedError(top)
@@ -905,7 +910,7 @@ class NestedTextLoader:
                     loc.key_line = line
                     loc.key_col = depth
                 else:
-                    value = ''
+                    value = ""
                     loc = Location(line=line, key_col=depth, col=depth + 1)
                 values.append(value)
                 self._add_keymap(new_keys, loc)
@@ -938,16 +943,16 @@ class NestedTextLoader:
 
             new_keys = keys + (key,)
             if value:
-                loc = Location(line=line, col=depth+len(key)+2)
+                loc = Location(line=line, col=depth + len(key) + 2)
             else:
                 depth_of_next = lines.depth_of_next()
                 if depth_of_next > depth:
                     value, loc = self._read_value(depth_of_next, new_keys)
                 elif line.kind == "dict item":
-                    value = ''
-                    loc = Location(line=line, col=depth+len(key)+1)
+                    value = ""
+                    loc = Location(line=line, col=depth + len(key) + 1)
                 else:
-                    report('multiline key requires a value.', line, None, colno=depth)
+                    report("multiline key requires a value.", line, None, colno=depth)
 
             KeyPolicy.add_to_dictionary(values, key, value, keys, line, depth)
             loc.key_line = key_line
@@ -987,8 +992,7 @@ class NestedTextLoader:
 
 # loads {{{2
 def loads(
-    content, top="dict", *,
-    source=None, on_dup=None, keymap=None, normalize_key=None
+    content, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=None
 ):
     # description {{{3
     r'''
@@ -1090,7 +1094,7 @@ def loads(
 
             >>> contents = """
             ... name: Kristel Templeton
-            ... sex: female
+            ... gender: female
             ... age: 74
             ... """
 
@@ -1100,7 +1104,7 @@ def loads(
             ...     e.terminate()
 
             >>> print(data)
-            {'name': 'Kristel Templeton', 'sex': 'female', 'age': '74'}
+            {'name': 'Kristel Templeton', 'gender': 'female', 'age': '74'}
 
         *loads()* takes an optional argument, *source*. If specified, it is
         added to any error messages. It is often used to designate the source
@@ -1110,9 +1114,9 @@ def loads(
 
         .. code-block:: python
 
-            >>> filename = 'examples/duplicate-keys.nt'
+            >>> filename = "examples/duplicate-keys.nt"
             >>> try:
-            ...     with open(filename, encoding='utf-8') as f:
+            ...     with open(filename, encoding="utf-8") as f:
             ...         addresses = nt.loads(f.read(), source=filename)
             ... except nt.NestedTextError as e:
             ...     print(e.render())
@@ -1123,7 +1127,7 @@ def loads(
                   ▲
 
         Notice in the above example the encoding is explicitly specified as
-        'utf-8'.  *NestedText* files should always be read and written using
+        "utf-8".  *NestedText* files should always be read and written using
         *utf-8* encoding.
 
         The following examples demonstrate the various ways of handling
@@ -1144,10 +1148,10 @@ def loads(
             ...
             nestedtext.nestedtext.NestedTextError: 3: duplicate key: key.
 
-            >>> print(nt.loads(content, on_dup='ignore'))
+            >>> print(nt.loads(content, on_dup="ignore"))
             {'key': 'value 1', 'name': 'value 4'}
 
-            >>> print(nt.loads(content, on_dup='replace'))
+            >>> print(nt.loads(content, on_dup="replace"))
             {'key': 'value 3', 'name': 'value 5'}
 
             >>> def de_dup(key, state):
@@ -1162,7 +1166,7 @@ def loads(
     '''
 
     # code {{{3
-    lines = convert_returns(content).split('\n')
+    lines = convert_returns(content).split("\n")
     loader = NestedTextLoader(lines, top, source, on_dup, keymap, normalize_key)
     return loader.get_decoded()
 
@@ -1170,7 +1174,7 @@ def loads(
 # load {{{2
 def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
     # description {{{3
-    r'''
+    r"""
     Loads *NestedText* from file or stream.
 
     Is the same as :func:`loads` except the *NextedText* is accessed by reading
@@ -1205,14 +1209,14 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
         .. code-block:: python
 
             >>> import nestedtext as nt
-            >>> print(open('examples/groceries.nt').read())
+            >>> print(open("examples/groceries.nt").read())
             groceries:
               - Bread
               - Peanut butter
               - Jam
             <BLANKLINE>
 
-            >>> nt.load('examples/groceries.nt')
+            >>> nt.load("examples/groceries.nt")
             {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
         Load from a `pathlib.Path`:
@@ -1220,19 +1224,19 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
         .. code-block:: python
 
             >>> from pathlib import Path
-            >>> nt.load(Path('examples/groceries.nt'))
+            >>> nt.load(Path("examples/groceries.nt"))
             {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
         Load from an open file object:
 
         .. code-block:: python
 
-            >>> with open('examples/groceries.nt') as f:
+            >>> with open("examples/groceries.nt") as f:
             ...     nt.load(f)
             ...
             {'groceries': ['Bread', 'Peanut butter', 'Jam']}
 
-    '''
+    """
 
     # code {{{3
     # Do not invoke the read method as that would read in the entire contents of
@@ -1241,12 +1245,12 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
     # them once they are no longer needed, which reduces the memory usage.
 
     if isinstance(f, collections.abc.Iterator):
-        source = getattr(f, 'name', None)
+        source = getattr(f, "name", None)
         loader = NestedTextLoader(f, top, source, on_dup, keymap, normalize_key)
         return loader.get_decoded()
     else:
         source = str(f)
-        with open(f, encoding='utf-8') as fp:
+        with open(f, encoding="utf-8") as fp:
             loader = NestedTextLoader(fp, top, source, on_dup, keymap, normalize_key)
             return loader.get_decoded()
 
@@ -1260,9 +1264,9 @@ def add_leader(s, leader):
     # add leader to each non-blank line
     # add right-stripped leader to each blank line
     # rejoin and return
-    return '\n'.join(
+    return "\n".join(
         leader + line if line else leader.rstrip()
-        for line in s.split('\n')
+        for line in s.split("\n")
     )
 
 
@@ -1316,7 +1320,7 @@ class NestedTextDumper:
         self.sort_keys = sort
 
         # define object type identification functions {{{4
-        if default == 'strict':
+        if default == "strict":
             self.is_a_dict = lambda obj: isinstance(obj, dict)
             self.is_a_list = lambda obj: isinstance(obj, list)
             self.is_a_str = lambda obj: isinstance(obj, str)
@@ -1332,7 +1336,7 @@ class NestedTextDumper:
     # convert {{{3
     def convert(self, obj):
         converters = self.converters
-        converter = getattr(obj, '__nestedtext_converter__', None)
+        converter = getattr(obj, "__nestedtext_converter__", None)
         converter = converters.get(type(obj)) if converters else converter
         if converter:
             try:
@@ -1360,9 +1364,7 @@ class NestedTextDumper:
             key = self.default(key)
         if not self.is_a_str(key):
             raise NestedTextError(
-                key,
-                template = 'keys must be strings.',
-                culprit = self.keys
+                key, template="keys must be strings.", culprit=self.keys
             ) from None
         return convert_returns(key)
 
@@ -1370,11 +1372,11 @@ class NestedTextDumper:
     def render_dict_item(self, key, value, level):
         multiline_key_required = (
             not key
-            or '\n' in key
+            or "\n" in key
             or key.strip() != key
             or (key[:1] in "#[{" and support_inlines)
             or key[:2] in ["- ", "> ", ": "]
-            or ': ' in key
+            or ": " in key
         )
         if multiline_key_required:
             key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
@@ -1398,7 +1400,7 @@ class NestedTextDumper:
 
     # render_inline_dict {{{3
     def render_inline_dict(self, obj):
-        exclude = set('\n\r[]{}:,')
+        exclude = set("\n\r[]{}:,")
         rendered = {}
         for k, v in obj.items():
             with Keys(k, v, self):
@@ -1407,20 +1409,20 @@ class NestedTextDumper:
                 rendered[k] = v
         items = []
         for k in self.sort_keys(rendered):
-            items.append(f'{k}: {rendered[k]}')
-        return '{' + ', '.join(items) + '}'
+            items.append(f"{k}: {rendered[k]}")
+        return "{" + ", ".join(items) + "}"
 
     # render_inline_list {{{3
     def render_inline_list(self, obj):
         items = []
         for v in obj:
-            v = self.render_inline_value(v, exclude=set('\n\r[]{},'))
+            v = self.render_inline_value(v, exclude=set("\n\r[]{},"))
             items.append(v)
         if len(items) == 1 and not items[0]:
-            return '[ ]'
-        content = ', '.join(items)
-        leading_delimiter = '[ ' if content[0:1] == ',' else '['
-        return leading_delimiter + content + ']'
+            return "[ ]"
+        content = ", ".join(items)
+        leading_delimiter = "[ " if content[0:1] == "," else "["
+        return leading_delimiter + content + "]"
 
     # render_inline_scalar {{{3
     def render_inline_scalar(self, obj, exclude):
@@ -1428,7 +1430,7 @@ class NestedTextDumper:
         if self.is_a_str(obj):
             value = obj
         elif self.is_a_scalar(obj):
-            value = '' if obj is None else str(obj)
+            value = "" if obj is None else str(obj)
         elif self.default and callable(self.default):
             try:
                 obj = self.default(obj)
@@ -1452,16 +1454,14 @@ class NestedTextDumper:
     def check_for_cyclic_reference(self, obj):
         if id(obj) in self.values[:-1]:
             raise NestedTextError(
-                obj,
-                template = 'circular reference.',
-                culprit=self.keys
+                obj, template="circular reference.", culprit=self.keys
             )
 
     # render content {{{3
     def render_content(self, obj, level):
         assert level >= 0
         error = None
-        content = ''
+        content = ""
         obj = self.convert(obj)
         need_indented_block = is_collection(obj)
 
@@ -1505,13 +1505,13 @@ class NestedTextDumper:
         elif self.is_a_str(obj):
             text = convert_returns(obj)
             if "\n" in text or level == 0:
-                content = add_leader(text, '> ')
+                content = add_leader(text, "> ")
                 need_indented_block = True
             else:
                 content = text
         elif self.is_a_scalar(obj):
             if obj is None:
-                content = ''
+                content = ""
             else:
                 content = str(obj)
         elif self.default and callable(self.default):
@@ -1614,9 +1614,9 @@ def dumps(
             >>> import nestedtext as nt
 
             >>> data = {
-            ...     'name': 'Kristel Templeton',
-            ...     'sex': 'female',
-            ...     'age': '74',
+            ...     "name": "Kristel Templeton",
+            ...     "gender": "female",
+            ...     "age": "74",
             ... }
 
             >>> try:
@@ -1624,7 +1624,7 @@ def dumps(
             ... except nt.NestedTextError as e:
             ...     print(str(e))
             name: Kristel Templeton
-            sex: female
+            gender: female
             age: 74
 
         The *NestedText* format only supports dictionaries, lists, and strings.
@@ -1640,7 +1640,7 @@ def dumps(
 
         .. code-block:: python
 
-            >>> data = {'key': 42, 'value': 3.1415926, 'valid': True}
+            >>> data = {"key": 42, "value": 3.1415926, "valid": True}
 
             >>> try:
             ...     print(nt.dumps(data))
@@ -1651,7 +1651,7 @@ def dumps(
             valid: True
 
             >>> try:
-            ...     print(nt.dumps(data, default='strict'))
+            ...     print(nt.dumps(data, default="strict"))
             ... except nt.NestedTextError as e:
             ...     print(str(e))
             key: unsupported type (int).
@@ -1666,11 +1666,11 @@ def dumps(
             ...     def __init__(self, color):
             ...         self.color = color
             ...     def __repr__(self):
-            ...         return f'Color({self.color!r})'
+            ...         return f"Color({self.color!r})"
             ...     def __str__(self):
             ...         return self.color
 
-            >>> data['house'] = Color('red')
+            >>> data["house"] = Color("red")
             >>> print(nt.dumps(data, default=repr))
             key: 42
             value: 3.1415926
@@ -1694,7 +1694,7 @@ def dumps(
             ...     def __nestedtext_converter__(self):
             ...         return self.color.title()
 
-            >>> data['house'] = Color('red')
+            >>> data["house"] = Color("red")
             >>> print(nt.dumps(data))
             key: 42
             value: 3.1415926
@@ -1711,14 +1711,14 @@ def dumps(
             ...         self.__dict__ = kwargs
 
             >>> converters = {
-            ...     bool: lambda b: 'yes' if b else 'no',
+            ...     bool: lambda b: "yes" if b else "no",
             ...     int: hex,
-            ...     float: lambda f: f'{f:0.3}',
+            ...     float: lambda f: f"{f:0.3}",
             ...     Color: lambda c: c.color,
             ...     Info: lambda i: i.__dict__,
             ... }
 
-            >>> data['attributes'] = Info(readable=True, writable=False)
+            >>> data["attributes"] = Info(readable=True, writable=False)
 
             >>> try:
             ...    print(nt.dumps(data, converters=converters))
@@ -1741,7 +1741,7 @@ def dumps(
         .. code-block:: python
 
             >>> converters = {
-            ...     bool: lambda b: 'yes' if b else 'no',
+            ...     bool: lambda b: "yes" if b else "no",
             ...     int: hex,
             ...     float: False,
             ...     Color: lambda c: c.color,
@@ -1766,28 +1766,28 @@ def dumps(
             >>> import quantiphy
 
             >>> class Dollars(quantiphy.Quantity):
-            ...     units = '$'
-            ...     form = 'fixed'
+            ...     units = "$"
+            ...     form = "fixed"
             ...     prec = 2
             ...     strip_zeros = False
             ...     show_commas = True
 
             >>> converters = {
             ...     dict: cull,
-            ...     arrow.Arrow: lambda d: d.format('D MMMM YYYY'),
+            ...     arrow.Arrow: lambda d: d.format("D MMMM YYYY"),
             ...     quantiphy.Quantity: lambda q: str(q)
             ... }
 
             >>> transaction = dict(
-            ...     date = arrow.get('2013-05-07T22:19:11.363410-07:00'),
-            ...     description = "Incoming wire from Publisher's Clearing House",
+            ...     date = arrow.get("2013-05-07T22:19:11.363410-07:00"),
+            ...     description = "Incoming wire from Publisher’s Clearing House",
             ...     debit = 0,
             ...     credit = Dollars(12345.67)
             ... )
 
             >>> print(nt.dumps(transaction, converters=converters))
             date: 7 May 2013
-            description: Incoming wire from Publisher's Clearing House
+            description: Incoming wire from Publisher’s Clearing House
             credit: $12,345.67
 
         Both *default* and *converters* may be used together. *converters* has
@@ -1816,7 +1816,7 @@ def dump(obj, dest, **kwargs):
             as a text IO instance (e.g. an open file).  If a path is given, the
             will be opened, written, and closed.  If an IO object is given, it
             must have been opened in a mode that allows writing (e.g.
-            ``open(path, 'w')``), if applicable.  It will be written and not
+            ``open(path, "w")``), if applicable.  It will be written and not
             closed.
 
             The name used for the file is arbitrary but it is tradition to use a
@@ -1845,13 +1845,13 @@ def dump(obj, dest, **kwargs):
             >>> from inform import fatal, os_error
 
             >>> data = {
-            ...     'name': 'Kristel Templeton',
-            ...     'sex': 'female',
-            ...     'age': '74',
+            ...     "name": "Kristel Templeton",
+            ...     "gender": "female",
+            ...     "age": "74",
             ... }
 
             >>> try:
-            ...     with open('data.nt', 'w', encoding='utf-8') as f:
+            ...     with open("data.nt", "w", encoding="utf-8") as f:
             ...         nt.dump(data, f)
             ... except nt.NestedTextError as e:
             ...     e.terminate()
@@ -1860,12 +1860,12 @@ def dump(obj, dest, **kwargs):
 
         This example writes to a file specified by file name.  In general, the
         file name and extension are arbitrary. However, by convention a
-        '.nt' suffix is generally used for *NestedText* files.
+        ‘.nt’ suffix is generally used for *NestedText* files.
 
         .. code-block:: python
 
             >>> try:
-            ...     nt.dump(data, 'data.nt')
+            ...     nt.dump(data, "data.nt")
             ... except nt.NestedTextError as e:
             ...     e.terminate()
             ... except OSError as e:
@@ -1877,17 +1877,17 @@ def dump(obj, dest, **kwargs):
     content = dumps(obj, **kwargs)
 
     try:
-        dest.write(content + '\n')
+        dest.write(content + "\n")
     except AttributeError:
         # Avoid nested try-except blocks, since they lead to chained exceptions
-        # (e.g. if the file isn't found, etc.) that unnecessarily complicate the
+        # (e.g. if the file isn’t found, etc.) that unnecessarily complicate the
         # stack trace.
         pass
     else:
         return
 
-    with open(dest, 'w', encoding='utf-8') as f:
-        f.write(content + '\n')
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write(content + "\n")
 
 
 # NestedText Utilities {{{1
@@ -1919,9 +1919,9 @@ def get_value_from_keys(obj, keys):
             ...     surname: Purvis
             ... """
 
-            >>> data = nt.loads(contents, 'dict')
+            >>> data = nt.loads(contents, "dict")
 
-            >>> get_value_from_keys(data, ('names', 'given'))
+            >>> get_value_from_keys(data, ("names", "given"))
             'Fumiko'
 
     '''
@@ -1931,8 +1931,8 @@ def get_value_from_keys(obj, keys):
 
 
 # get_lines_from_keys {{{2
-def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
-    """
+def get_lines_from_keys(obj, keys, keymap, kind="value", sep=None):
+    '''
     Get line numbers from normalized keys.
 
     This function returns the line numbers of the key or value selected by
@@ -1976,12 +1976,12 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
     Example:
         >>> import nestedtext as nt
 
-        >>> doc = '''
+        >>> doc = """
         ... key:
         ...     > this is line 1
         ...     > this is line 2
         ...     > this is line 3
-        ... '''
+        ... """
 
         >>> data = nt.loads(doc, keymap=(keymap:={}))
         >>> keys = ("key",)
@@ -1997,20 +1997,20 @@ def get_lines_from_keys(obj, keys, keymap, kind='value', sep=None):
             > this is line 2
             > this is line 3
 
-    """
+    '''
     line, col = keymap[keys].as_tuple(kind)
     value = get_value_from_keys(obj, keys)
-    if kind == 'value':
+    if kind == "value":
         num_lines = len(value.splitlines()) if is_str(value) else 1
     else:
         key = keys[-1]
         num_lines = len(key.splitlines()) if is_str(key) else 1
     if sep is None:
-        return (line, line+num_lines)
+        return (line, line + num_lines)
     if num_lines > 1:
-        return join(line+1, line+num_lines, sep=sep)
+        return join(line + 1, line + num_lines, sep=sep)
     else:
-        return str(line+1)
+        return str(line + 1)
 
 
 # get_original_keys {{{2
@@ -2053,15 +2053,15 @@ def get_original_keys(keys, keymap, strict=False):
             >>> def normalize_key(key, keys):
             ...     return key.lower()
 
-            >>> data = nt.loads(contents, 'dict', normalize_key=normalize_key, keymap=(keymap:={}))
+            >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
 
-            >>> print(get_original_keys(('names', 'given'), keymap))
+            >>> print(get_original_keys(("names", "given"), keymap))
             ('Names', 'Given')
 
-            >>> print(get_original_keys(('names', 'surname'), keymap))
+            >>> print(get_original_keys(("names", "surname"), keymap))
             ('Names', 'surname')
 
-            >>> keys = get_original_keys(('names', 'surname'), keymap, strict=True)
+            >>> keys = get_original_keys(("names", "surname"), keymap, strict=True)
             Traceback (most recent call last):
             ...
             KeyError: ('names', 'surname')
@@ -2072,15 +2072,15 @@ def get_original_keys(keys, keymap, strict=False):
         try:
             loc = keymap[tuple(keys[:i+1])]
             line = loc.key_line
-            if line.kind == 'key item':
+            if line.kind == "key item":
                 # is multiline key (key fragment is actually held in line.text)
                 key = [line.text[line.depth+2:]]
                 while line.next_line:
                     line = line.next_line
                     key.append(line.text[line.depth+2:])
-                key = '\n'.join(key)
+                key = "\n".join(key)
             else:
-                if line.kind == 'list item':
+                if line.kind == "list item":
                     key = keys[i]
                 else:
                     key = line.key
@@ -2096,7 +2096,7 @@ def get_original_keys(keys, keymap, strict=False):
 
 
 # join_keys {{{2
-def join_keys(keys, sep=', ', keymap=None, strict=False):
+def join_keys(keys, sep=", ", keymap=None, strict=False):
     '''
     Joins the keys into a string.
 
@@ -2133,21 +2133,21 @@ def join_keys(keys, sep=', ', keymap=None, strict=False):
             >>> def normalize_key(key, keys):
             ...     return key.lower()
 
-            >>> data = nt.loads(contents, 'dict', normalize_key=normalize_key, keymap=(keymap:={}))
+            >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
 
-            >>> join_keys(('names', 'given'))
+            >>> join_keys(("names", "given"))
             'names, given'
 
-            >>> join_keys(('names', 'given'), sep='.')
+            >>> join_keys(("names", "given"), sep=".")
             'names.given'
 
-            >>> join_keys(('names', 'given'), keymap=keymap)
+            >>> join_keys(("names", "given"), keymap=keymap)
             'Names, Given'
 
-            >>> join_keys(('names', 'surname'), keymap=keymap)
+            >>> join_keys(("names", "surname"), keymap=keymap)
             'Names, surname'
 
-            >>> join_keys(('names', 'surname'), keymap=keymap, strict=True)
+            >>> join_keys(("names", "surname"), keymap=keymap, strict=True)
             Traceback (most recent call last):
                 ...
             KeyError: ('names', 'surname')
@@ -2156,5 +2156,6 @@ def join_keys(keys, sep=', ', keymap=None, strict=False):
     if keymap:
         keys = get_original_keys(keys, keymap, strict=strict)
     return sep.join(str(k) for k in keys)
+
 
 # vim: set sw=4 sts=4 tw=80 fo=croqj foldmethod=marker et spell:
