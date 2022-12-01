@@ -32,9 +32,9 @@ NestedText is a file format for holding structured data to be entered, edited,
 or viewed by people. It organizes the data into a nested collection of 
 dictionaries, lists, and strings without the need for quoting or escaping.  
 A unique feature of this file format is that it only supports one scalar type: 
-strings.  While the decision to eschew integer, real, date, etc. types may seem 
-counter intuitive, it leads to simpler data files and applications that are more 
-robust.
+strings.  While the decision to forego other types (integers, reals, dates, 
+etc.) may seem counter intuitive, it leads to simpler data files and 
+applications that are more robust.
 
 *NestedText* is convenient for configuration files, address books, account 
 information, and the like.  Because there is no need for quoting or escaping, it 
