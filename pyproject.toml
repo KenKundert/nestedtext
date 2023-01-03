@@ -3,7 +3,6 @@ name = "nestedtext"
 version = "3.5"
 description = "human readable and writable data interchange format"
 readme = "README.rst"
-license = {file = "LICENSE"}
 keywords = ["data", "serialzation", "json", "yaml"]
 authors = [
     {name = "Ken Kundert"},
