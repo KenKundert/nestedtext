@@ -82,8 +82,8 @@ demand::
     Katheryn McDaniel: KateMcD@aol.com
     Margaret Hodge: margaret.hodge@ku.edu
 
-This could output could be fed directly into another program that accepted input 
-as *NestedText*::
+This output could be fed directly into another program that accepted 
+*NestedText* as input::
 
     > address --email | mail-to-list
 
