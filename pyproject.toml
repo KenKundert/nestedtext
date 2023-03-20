@@ -7,7 +7,7 @@ keywords = ["data", "serialzation", "json", "yaml"]
 authors = [
     {name = "Ken Kundert"},
     {name = "Kale Kundert"},
-    {email = "inform@nurdletech.com"}
+    {email = "nestedtext@nurdletech.com"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -21,7 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.6"
 dependencies = [
-    "inform>=1.25",
+    "inform>=1.28",
 ]
 
 [project.urls]
