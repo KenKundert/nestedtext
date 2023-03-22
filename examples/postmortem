@@ -56,6 +56,12 @@ def to_gpg_ids(arg):
 def to_snake_case(key):
     return '_'.join(key.strip().lower().split())
 
+# provide user-friendly error messages
+voluptuous_error_msg_mappings = {
+    "extra keys not allowed": ("unknown key", "key"),
+    "expected a dictionary": ("expected key-value pairs", "value"),
+}
+
 # define the schema for the settings file
 schema = Schema(
     {
@@ -123,11 +129,13 @@ except nt.NestedTextError as e:
     e.report()
 except MultipleInvalid as e:
     for err in e.errors:
-        kind = 'key' if 'key' in err.msg else 'value'
+        msg, flag = voluptuous_error_msg_mappings.get(
+            err.msg, (err.msg, 'value')
+        )
         culprit = nt.join_keys(err.path, keymap=keymap)
-        print(f"ERROR: {config_filepath!s}: {culprit}: {err.msg}.")
+        print(f"ERROR: {config_filepath!s}: {culprit}: {msg}.")
         try:
-            print(keymap[tuple(err.path)].as_line(kind))
+            print(keymap[tuple(err.path)].as_line(flag))
         except KeyError:
             pass
 except OSError as e:

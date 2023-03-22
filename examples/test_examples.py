@@ -72,13 +72,13 @@ def test_csv_to_nestedtext():
 
 def test_deploy_pydantic():
      with cd(tests_dir):
-        expected = Path('deploy_pydantic.nt').read_text()
+        expected = Path('deploy_pydantic.out').read_text()
         dp = Run('python3 deploy_pydantic.py', modes='sOEW')
         assert dp.stdout.strip() == expected.strip()
 
 def test_deploy_voluptuous():
      with cd(tests_dir):
-        expected = Path('deploy_voluptuous.nt').read_text()
+        expected = Path('deploy_voluptuous.out').read_text()
         dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
         assert dv.stdout.strip() == expected.strip()
 
