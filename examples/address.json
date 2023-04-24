@@ -4,7 +4,7 @@
         "address": "138 Almond Street\nTopeka, Kansas 20697",
         "phone": {
             "cell": "1-210-555-5297",
-            "home": "1-210-555-8470"
+            "work": "1-210-555-8470"
         },
         "email": "KateMcD@aol.com",
         "additional roles": [
@@ -22,7 +22,7 @@
         ]
     },
     "Fumiko Purvis": {
-        "Position": "treasurer",
+        "Position": "Treasurer",
         "Address": "3636 Buffalo Ave\nTopeka, Kansas 20692",
         "Phone": "1-268-555-0280",
         "EMail": "fumiko.purvis@hotmail.com",

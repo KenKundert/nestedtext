@@ -86,18 +86,24 @@ def test_address():
      if sys.version_info < (3, 8):
          return  # address example uses walrus operator
      with cd(tests_dir):
-        cc = Run('./address fumiko', modes='sOEW')
-        assert cc.stdout.strip() == dedent("""
-            Fumiko Purvis
-                position: treasurer
-                address:
+        fumiko = Run('./address fumiko', modes='sOEW')
+        assert fumiko.stdout.strip() == dedent("""
+            Fumiko Purvis:
+                Position: Treasurer
+                Address:
                     3636 Buffalo Ave
                     Topeka, Kansas 20692
-                phone: 1-268-555-0280
-                email: fumiko.purvis@hotmail.com
-                additional roles:
-                    - accounting task force
+                Phone: 1-268-555-0280
+                EMail: fumiko.purvis@hotmail.com
         """).strip()
+
+def test_michael_jordan():
+     if sys.version_info < (3, 8):
+         return  # address example uses walrus operator
+     with cd(tests_dir):
+        mj = Run('./michael_jordan', modes='sOEW')
+        expected = Path('./michael_jordan.out').read_text()
+        assert mj.stdout.strip() == expected.strip()
 
 def test_cryptocurrency():
      if sys.version_info < (3, 8):
@@ -120,3 +126,9 @@ def test_postmortem():
 
         pm = Run('./postmortem', modes='sOEW')
         assert pm.stdout.strip() == expected.strip()
+
+def test_diet():
+     with cd(tests_dir):
+        mj = Run('./diet', modes='sOEW')
+        expected = Path('./diet.nt').read_text()
+        assert mj.stdout.strip() == expected.strip()

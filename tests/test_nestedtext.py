@@ -7,8 +7,7 @@ import arrow
 from pathlib import Path
 from functools import wraps
 from io import StringIO
-from textwrap import dedent
-from inform import Error, Info, render, indent, join
+from inform import Error, Info, render, indent, join, dedent
 from quantiphy import Quantity
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
@@ -604,42 +603,44 @@ def test_load_duplicates():
     def dup_is_error(key, state):
         raise KeyError(key)
 
-    content = 'key: hello\nkey: goodbye'
+    regular_content = 'key: hello\nkey: goodbye'
+    inline_content = '{key: hello, key: goodbye}'
 
-    data = nt.loads(content, on_dup='ignore')
-    assert data == {'key': 'hello'}
+    for content in [regular_content, inline_content]:
+        data = nt.loads(content, on_dup='ignore')
+        assert data == {'key': 'hello'}, content
 
-    data = nt.loads(content, on_dup=ignore_dup)
-    assert data == {'key': 'hello'}
+        data = nt.loads(content, on_dup=ignore_dup)
+        assert data == {'key': 'hello'}, content
 
-    data = nt.loads(content, on_dup='replace')
-    assert data == {'key': 'goodbye'}
+        data = nt.loads(content, on_dup='replace')
+        assert data == {'key': 'goodbye'}, content
 
-    data = nt.loads(content, on_dup=replace_dup)
-    assert data == {'key': 'goodbye'}
+        data = nt.loads(content, on_dup=replace_dup)
+        assert data == {'key': 'goodbye'}, content
 
-    data = nt.loads(content, on_dup=de_dup)
-    assert data == {'key': 'hello', 'key — #2': 'goodbye'}
+        data = nt.loads(content, on_dup=de_dup)
+        assert data == {'key': 'hello', 'key — #2': 'goodbye'}, content
 
-    with pytest.raises(nt.NestedTextError) as e:
-        nt.loads(content)
-    assert e.value.get_message() == 'duplicate key: key.'
-    assert e.value.source == None
+        with pytest.raises(nt.NestedTextError) as e:
+            nt.loads(content)
+        assert e.value.get_message() == 'duplicate key: key.', content
+        assert e.value.source == None, content
 
-    with pytest.raises(nt.NestedTextError) as e:
-        nt.loads(content, on_dup='error')
-    assert e.value.get_message() == 'duplicate key: key.'
-    assert e.value.source == None
+        with pytest.raises(nt.NestedTextError) as e:
+            nt.loads(content, on_dup='error')
+        assert e.value.get_message() == 'duplicate key: key.', content
+        assert e.value.source == None, content
 
-    with pytest.raises(nt.NestedTextError) as e:
-        nt.loads(content, on_dup=dup_is_error)
-    assert e.value.get_message() == 'duplicate key: key.'
-    assert e.value.source == None
+        with pytest.raises(nt.NestedTextError) as e:
+            nt.loads(content, on_dup=dup_is_error)
+        assert e.value.get_message() == 'duplicate key: key.', content
+        assert e.value.source == None, content
 
-    with pytest.raises(nt.NestedTextError) as e:
-        nt.loads(content, source='nantucket')
-    assert e.value.get_message() == 'duplicate key: key.'
-    assert e.value.source == 'nantucket'
+        with pytest.raises(nt.NestedTextError) as e:
+            nt.loads(content, source='nantucket')
+        assert e.value.get_message() == 'duplicate key: key.', content
+        assert e.value.source == 'nantucket', content
 
 # test_load_inline {{{2
 @parametrize(
@@ -891,12 +892,122 @@ def test_keymaps():
 
     # With key normalization
     keymap = {}
-    addresses = nt.loads(document, keymap=keymap, normalize_key= normalize_key)
+    addresses = nt.loads(document, keymap=keymap, normalize_key=normalize_key)
     for case in cases:
         given, expected = case.split('→')
         keys = tuple(fix_key(n, False) for n in given.split())
         check_result(keys, expected, addresses)
 
+
+# test_keymaps_with_duplicates {{{2
+def test_keymaps_with_duplicates():
+
+    document_with_linenos = dedent("""
+        0   michael jordan:
+        1       occupation: basketball player
+        2
+        3   michael jordan:
+        4       occupation: actor
+        5
+        6   michael jordan:
+        7       occupation: football player
+    """).strip()
+
+    # remove line numbers from NestedText document
+    doc_lines = [l[4:] for l in document_with_linenos.splitlines()]
+    document = '\n'.join(doc_lines)
+    print(document)
+
+    #   keys                                  key    value    lines
+    #                                         r  c    r  c    k       v
+    cases = """
+        michael_jordan                      → 0  0    1  4    0  1    1  2
+        michael_jordan occupation           → 1  4    1  16   1  2    1  2
+        michael_jordan2                     → 3  0    4  4    3  4    4  5
+        michael_jordan2 occupation          → 4  4    4  16   4  5    4  5
+        michael_jordan3                     → 6  0    7  4    6  7    7  8
+        michael_jordan3 occupation          → 7  4    7  16   7  8    7  8
+    """.strip().splitlines()
+
+    def fix_key(key, normalize):
+        key = key.replace('↲', '\n')
+        try:
+            return int(key)
+        except:
+            if normalize:
+                return key.replace('_', ' ')
+            else:
+                return key
+
+    def normalize_key(key, parent_keys):
+        return key.replace(' ', '_')
+
+    def de_dup(key, state):
+        if key not in state:
+            state[key] = 1
+        state[key] += 1
+        return f"{key}{state[key]}"
+
+    def check_result(keys, expected, addresses):
+        location = keymap[keys]
+
+        # separate expected into 8 expected values
+        key_lineno, key_colno, lineno, colno, \
+        key_first_line, key_last_line, value_first_line, value_last_line \
+            = tuple(int(n) for n in expected.split())
+
+        # check raw row and column numbers
+        assert location.as_tuple() == (lineno, colno), keys
+        assert location.as_tuple('value') == (lineno, colno), keys
+        assert location.as_tuple('key') == (key_lineno, key_colno), keys
+
+        # check rendered row and column numbers
+        assert location.line.render() == f'{lineno+1:>4} ❬{doc_lines[lineno]}❭'
+        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭\n      {colno*' '}▲"
+        assert location.line.render(colno) == rendered
+        assert location.as_line() == rendered
+        assert location.as_line('value') == rendered
+        rendered = f"{key_lineno+1:>4} ❬{doc_lines[key_lineno]}❭\n      {key_colno*' '}▲"
+        assert location.as_line('key') == rendered
+        assert str(location.line) == doc_lines[lineno]
+        assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
+        assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
+
+        # check line numbers as tuples
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key') == (key_first_line, key_last_line), keys
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value') == (value_first_line, value_last_line), keys
+
+        # check line numbers as strings
+        if key_first_line+1 != key_last_line:
+            key_lines = f"{key_first_line+1}-{key_last_line}"
+        else:
+            key_lines = str(key_last_line)
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key', sep='-') == key_lines, keys
+        if value_first_line+1 != value_last_line:
+            value_lines = f"{value_first_line+1}-{value_last_line}"
+        else:
+            value_lines = str(value_last_line)
+        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
+
+    # Without key normalization
+    keymap = {}
+    addresses = nt.loads(
+        document, keymap=keymap, on_dup=de_dup
+    )
+    for case in cases:
+        given, expected = case.split('→')
+        keys = tuple(fix_key(n, True) for n in given.split())
+        check_result(keys, expected, addresses)
+
+    # With key normalization
+    keymap = {}
+    addresses = nt.loads(
+        document, keymap=keymap, on_dup=de_dup, normalize_key=normalize_key
+    )
+    for case in cases:
+        given, expected = case.split('→')
+        keys = tuple(fix_key(n, False) for n in given.split())
+        check_result(keys, expected, addresses)
 
 # test_key_utilities {{{2
 def test_key_utilities():
@@ -1143,9 +1254,9 @@ def test_dump_default(dump, tmp_path):
     ''').lstrip()
 
 
-# test_dump_sort_keys {{{2
+# test_dump_sort_key {{{2
 @parametrize_dump_api
-def test_dump_sort_keys(dump, tmp_path):
+def test_dump_sort_key(dump, tmp_path):
     data = dict(cc=3, aaa=1, b=2)
 
     assert dump(data, tmp_path, sort_keys=False) == dedent('''\
@@ -1160,7 +1271,7 @@ def test_dump_sort_keys(dump, tmp_path):
             cc: 3
     ''').lstrip()
 
-    assert dump(data, tmp_path, sort_keys=len) == dedent('''\
+    assert dump(data, tmp_path, sort_keys=lambda t, k: len(t[0])) == dedent('''\
             b: 2
             cc: 3
             aaa: 1
@@ -1168,7 +1279,7 @@ def test_dump_sort_keys(dump, tmp_path):
 
     assert dump(data, tmp_path, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}\n'
     assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}\n'
-    assert dump(data, tmp_path, sort_keys=len, width=80) == '{b: 2, cc: 3, aaa: 1}\n'
+    assert dump(data, tmp_path, sort_keys=lambda t, k: len(t[0]), width=80) == '{b: 2, cc: 3, aaa: 1}\n'
 
 # test_dump_indent {{{2
 @parametrize_dump_api
@@ -1602,15 +1713,15 @@ def test_dump_width(dump, tmp_path, given, expected, kwargs):
 def test_dump_nones(dump, tmp_path, given, expected, kwargs):
     assert dump(given, tmp_path, **kwargs) == expected + '\n'
 
-# test_cycle_detection {{{2
-def test_cycle_detection():
+# test_dump_cycle_detection {{{2
+def test_dump_cycle_detection():
     a = [0, 1, 2]
     b = [a]
     a.append(b)
 
     with pytest.raises(nt.NestedTextError) as exception:
         nt.dumps(a)
-    assert exception.value.culprit == (3, 0, 3,)
+    assert exception.value.culprit == (3, 0, 3)
     assert 'circular reference' in str(exception.value)
 
     A = dict(a=a, b=b)
@@ -1619,5 +1730,80 @@ def test_cycle_detection():
         nt.dumps(A)
     assert exception.value.culprit == ('a', 3, 0)
     assert 'circular reference' in str(exception.value)
+
+# test_dump_map_keys_keymap {{{2
+def test_dump_map_keys_keymap():
+    document = dedent("""
+        Michael Jordan:
+            occupation: basketball player
+        Michael Jordan:
+            occupation: actor
+        Michael Jordan:
+            occupation: football player
+    """).strip()
+
+    expected = dedent("""
+        Michael Jordan:
+            occupation: basketball player
+        Michael Jordan #2:
+            occupation: actor
+        Michael Jordan #3:
+            occupation: football player
+    """).strip()
+
+    def de_dup(key, state):
+        if key not in state:
+            state[key] = 1
+        state[key] += 1
+        return f"{key} #{state[key]}"
+
+    # without key normalization
+    keymap = {}
+    people = nt.loads(document, on_dup=de_dup, keymap=keymap)
+    output = nt.dumps(people)
+    assert output == expected
+    output = nt.dumps(people, map_keys=keymap)
+    assert output == document
+
+    # withkey normalization
+    def normalize_key(key, parent_keys):
+        return key.lower()
+
+    keymap = {}
+    people = nt.loads(document, on_dup=de_dup, keymap=keymap, normalize_key=normalize_key)
+    output = nt.dumps(people)
+    assert output == expected.lower()
+    output = nt.dumps(people, map_keys=keymap)
+    assert output == document
+
+    # check error handling
+    people['michael jordan'].update(dict(level='goat'))
+    output = nt.dumps(people, map_keys=keymap)
+    assert 'level: goat' in output
+
+# test_dump_map_keys_func {{{2
+def test_dump_map_keys_func():
+    document = dedent("""
+        declarations:
+            count:
+                type: reg
+                size: [5:0]
+                initial: 'bXXX_XXX
+        behavior:
+            - count = 0 when reset
+            - count += 1 on posedge clock
+    """).strip()
+
+    expected = document
+    for each in ["declarations", "behavior"]:
+        expected = expected.replace(each, each.upper())
+
+    def map_keys(key, parent_keys):
+        if len(parent_keys) == 0:
+            return key.upper()
+
+    code = nt.loads(document)
+    output = nt.dumps(code, map_keys=map_keys)
+    assert output == expected
 
 # vim: fdm=marker

@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+from inform import codicil, display, fatal, full_stop, os_error
+import nestedtext as nt
+
+filename = "michael_jordan.nt"
+
+def de_dup(key, state):
+    if key not in state:
+        state[key] = 1
+    state[key] += 1
+    return f"{key}#{state[key]}"
+
+try:
+    # read contacts database
+    data = nt.load(filename, 'dict', on_dup=de_dup, keymap=(keymap:={}))
+
+    # display contact using deduplicated keys
+    display("DE-DUPLICATED KEYS:")
+    display(nt.dumps(data))
+
+    # display contact using original keys
+    display()
+    display("ORIGINAL KEYS:")
+    display(nt.dumps(data, map_keys=keymap))
+
+except nt.NestedTextError as e:
+    e.terminate()
+except OSError as e:
+    fatal(os_error(e))

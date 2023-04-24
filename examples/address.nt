@@ -7,7 +7,8 @@ Katheryn McDaniel:
         > Topeka, Kansas 20697
     phone:
         cell: 1-210-555-5297
-        home: 1-210-555-8470
+            # Katheryn prefers that we call her on her cell phone
+        work: 1-210-555-8470
     email: KateMcD@aol.com
     additional roles:
         - board member
@@ -24,9 +25,8 @@ Margaret Hodge:
         - accounting task force
 
 Fumiko Purvis:
-    Position: treasurer
+    Position: Treasurer
         # Fumiko's term is ending at the end of the year.
-        # She will be replaced by Merrill Eldridge.
     Address:
         > 3636 Buffalo Ave
         > Topeka, Kansas 20692

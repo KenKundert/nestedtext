@@ -18,25 +18,23 @@ schema = Schema({
     'webmaster_email': str,
 })
 
-# provide user-friendly error messages
-voluptuous_error_msg_mappings = {
-    "extra keys not allowed": ("unknown key", "key"),
-    "expected a dictionary": ("expected key-value pairs", "value"),
-}
-
 try:
     keymap = {}
     raw = nt.load('deploy.nt', keymap=keymap)
     config = schema(raw)
 except nt.NestedTextError as e:
     e.terminate()
-except MultipleInvalid as e:
-    for err in e.errors:
-        msg, flag = voluptuous_error_msg_mappings.get(
-            err.msg, (err.msg, 'value')
+except MultipleInvalid as exception:
+    voluptuous_error_messages = {  # provide user-friendly error messages
+        "extra keys not allowed": ("unknown key", "key"),
+        "expected a dictionary": ("expected key-value pair", "value"),
+    }
+    for e in exception.errors:
+        msg, flag = voluptuous_error_messages.get(
+            e.msg, (e.msg, 'value')
         )
-        loc = keymap[tuple(err.path)]
-        error(full_stop(msg), culprit=err.path, codicil=loc.as_line(flag))
+        loc = keymap[tuple(e.path)]
+        error(full_stop(msg), culprit=e.path, codicil=loc.as_line(flag))
     terminate()
 
 pprint(config)

@@ -16,6 +16,21 @@ Latest development version
 | Version: 3.5
 | Released: 2022-11-04
 
+- De-duplicating with the *on_dup* argument to :func:`loads` now works well for 
+  error reporting with keymaps.
+- The *map_keys* argument has been added to :func:`dump` and :func:`dumps`.
+
+.. warning::
+
+    The *sort_keys* argument to :func:`dump` and :func:`dumps` has changed.  
+    When passing a call-back function to *sort_keys*, that call-back function 
+    now has a second argument, *parent_keys*.
+
+.. warning::
+
+    The state passed to the *on_dup* functions of :func:`dump` and :func:`dumps` 
+    no longer contains the value associated with the duplicate key.
+
 
 v3.5 (2022-11-04)
 -----------------

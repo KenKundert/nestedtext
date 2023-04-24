@@ -75,7 +75,7 @@ programs do so by supporting a ``--json`` command-line flag that indicates the
 output should be computer readable rather than human readable.  But, with 
 *NestedText* it is not necessary to make people choose.  Just output the result 
 in *NestedText* and it can be read by people or computers.  For example, 
-consider a program that read your address list and output particular fields on 
+consider a program that reads your address list and output particular fields on 
 demand::
 
     > address --email

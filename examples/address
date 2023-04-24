@@ -3,11 +3,11 @@
 Display Contact Information
 
 Usage:
-    contact <name>
+    contact <name>...
 """
 
 from docopt import docopt
-from inform import codicil, display, error, full_stop, indent, os_error, terminate
+from inform import codicil, display, fatal, full_stop, os_error
 import nestedtext as nt
 from voluptuous import Schema, Required, Any, MultipleInvalid
 import re
@@ -17,14 +17,14 @@ contacts_file = "address.nt"
 def normalize_key(key, parent_keys):
     if len(parent_keys) == 0:
         return key
-    return ' '.join(key.lower().split())
+    return '_'.join(key.lower().split())
 
-def render_contact(data):
-    text = nt.dumps(data, default=repr)
+def render_contact(data, keymap=None):
+    text = nt.dumps(data, map_keys=keymap)
     return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
 
 cmdline = docopt(__doc__)
-name = cmdline['<name>']
+names = cmdline['<name>']
 
 try:
     # define structure of contacts database
@@ -34,7 +34,7 @@ try:
             'address': str,
             'phone': Required(Any({str:str},str)),
             'email': Required(Any({str:str},str)),
-            'additional roles': Any(list,str),
+            'additional_roles': Any(list,str),
         }
     })
 
@@ -48,24 +48,32 @@ try:
         )
     )
 
-    # display requested contact
+    # display requested contact information, excluding additional_roles
+    filtered = {}
     for fullname, contact_info in contacts.items():
-        if name in fullname.lower():
-            display(fullname)
-            display(indent(render_contact(contact_info)))
+        for name in names:
+            if name in fullname.lower():
+                filtered[fullname] = contact_info
+                if 'additional_roles' in contact_info:
+                    del contact_info['additional_roles']
+
+    # display contact using normalized keys
+    # display(render_contact(filtered))
+
+    # display contact using original keys
+    display(render_contact(filtered, keymap))
 
 except nt.NestedTextError as e:
     e.report()
-except MultipleInvalid as e:
-    for err in e.errors:
-        kind = 'key' if 'key' in err.msg else 'value'
-        keys = tuple(err.path)
+except MultipleInvalid as exception:
+    for e in exception.errors:
+        kind = 'key' if 'key' in e.msg else 'value'
+        keys = tuple(e.path)
         codicil = keymap[keys].as_line(kind) if keys in keymap else None
-        error(
-            full_stop(err.msg),
+        fatal(
+            full_stop(e.msg),
             culprit = (contacts_file, nt.join_keys(keys, keymap=keymap)),
             codicil = codicil
         )
 except OSError as e:
-    error(os_error(e))
-terminate()
+    fatal(os_error(e))

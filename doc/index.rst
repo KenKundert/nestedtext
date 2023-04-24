@@ -18,6 +18,7 @@
 
    basic_use
    schemas
+   techniques
    examples
    common_mistakes
    python_api

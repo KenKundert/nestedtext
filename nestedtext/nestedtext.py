@@ -495,28 +495,28 @@ class KeyPolicy:
         cls.on_dup = on_dup
 
     @classmethod
-    def add_to_dictionary(cls, dictionary, key, value, keys, line=None, colno=None):
-        if key in dictionary:
-            # found duplicate key
-            if cls.on_dup is None or cls.on_dup == "error":
+    def process_duplicate(cls, dictionary, key, keys, line=None, colno=None):
+        if cls.on_dup is None or cls.on_dup == "error":
+            report("duplicate key: {}.", line, key, colno=colno)
+        if cls.on_dup == "ignore":
+            return None
+        if isinstance(cls.on_dup, dict):
+            dup_handler = cls.on_dup.pop(_OnDupCallback)
+            cls.on_dup.update(
+                dict(dictionary=dictionary, keys=keys)
+            )
+            try:
+                key = dup_handler(key=key, state=cls.on_dup)
+                if key is None:
+                    return None
+            except KeyError:
                 report("duplicate key: {}.", line, key, colno=colno)
-            if cls.on_dup == "ignore":
-                return
-            if isinstance(cls.on_dup, dict):
-                dup_handler = cls.on_dup.pop(_OnDupCallback)
-                cls.on_dup.update(
-                    dict(value=value, dictionary=dictionary, keys=keys)
-                )
-                try:
-                    key = dup_handler(key=key, state=cls.on_dup)
-                    if key is None:
-                        return
-                except KeyError:
-                    report("duplicate key: {}.", line, key, colno=colno)
-                cls.on_dup[_OnDupCallback] = dup_handler  # restore dup_handler
-            elif cls.on_dup != "replace":
-                raise NotImplementedError(f"{cls.on_dup}: unknown value for on_dup.")
-        dictionary[key] = value
+            cls.on_dup[_OnDupCallback] = dup_handler  # restore dup_handler
+        elif cls.on_dup != "replace":  # pragma: no cover
+            raise AssertionError(
+                f"{cls.on_dup}: unexpected value for on_dup."
+            ) from None
+        return key
 
 
 # Location class {{{2
@@ -597,6 +597,24 @@ class Location:
             col = self.col
         return line.render(col)
 
+    # _get_original_key() {{{3
+    def _get_original_key(self, key, strict):
+        try:
+            line = self.key_line
+            if line.kind == "key item":
+                # is multiline key (key fragment is actually held in line.text)
+                key_frags = [line.text[line.depth+2:]]
+                while line.next_line:
+                    line = line.next_line
+                    key_frags.append(line.text[line.depth+2:])
+                key = "\n".join(key_frags)
+            else:
+                if line.kind != "list item":
+                    key = line.key
+            return key
+        except AttributeError:
+            # this occurs for list indexes
+            return key
 
 # Inline class {{{2
 class Inline:
@@ -642,8 +660,11 @@ class Inline:
             prev_index = index
             orig_key, value, location, index = self.parse_inline_dict_item(keys, index)
             key = self.loader.normalize_key(orig_key, keys)
-            KeyPolicy.add_to_dictionary(values, key, value, keys, self.line, prev_index)
-            self.loader._add_keymap(keys + (key,), location)
+            if key in values:
+                key = KeyPolicy.process_duplicate(values, key, keys, self.line, prev_index)
+            if key is not None:
+                values[key] = value
+                self.loader._add_keymap(keys + (key,), location)
             need_another = False
             if self.text[index] not in ",}":
                 self.inline_error(
@@ -780,7 +801,8 @@ class NestedTextLoader:
     def __init__(self, lines, top, source, on_dup, keymap, normalize_key):
         KeyPolicy.set_policy(on_dup)
         self.source = source
-        self.keymap = {} if keymap is True else keymap
+        self.keymap = keymap
+        assert self.keymap is None or is_mapping(self.keymap)
         self.normalize_key = normalize_key if normalize_key else lambda k, ks: k
 
         with set_culprit(source):
@@ -923,14 +945,20 @@ class NestedTextLoader:
         lines = self.lines
         values = {}
         first_line = lines.next_line
+
+        # process all items in dictionary
         while lines.still_within_level(depth):
             line = lines.get_next()
+            key_line = line
+            key_col = depth
+
+            # error checking
             if line.depth != depth:
                 lines.indentation_error(line, depth)
             if line.kind not in ["dict item", "key item"]:
                 report("expected dictionary item.", line, colno=depth)
-            key_line = line
-            key_col = depth
+
+            # process key
             if line.kind == "key item":
                 # multiline key
                 original_key = self._read_key(line, depth)
@@ -940,21 +968,31 @@ class NestedTextLoader:
                 original_key = line.key
                 value = line.value
             key = self.normalize_key(original_key, keys)
-
+            if key in values:
+                # found duplicate key
+                key = KeyPolicy.process_duplicate(values, key, keys, line, depth)
+                if key is None:
+                    continue
             new_keys = keys + (key,)
+
+            # process value
             if value:
+                # this is a single-line item, value was found above
                 loc = Location(line=line, col=depth + len(key) + 2)
             else:
+                # value is on subsequent lines
                 depth_of_next = lines.depth_of_next()
                 if depth_of_next > depth:
+                    # read indented values
                     value, loc = self._read_value(depth_of_next, new_keys)
                 elif line.kind == "dict item":
+                    # found the next key in this dictionary, so value is empty
                     value = ""
                     loc = Location(line=line, col=depth + len(key) + 1)
                 else:
                     report("multiline key requires a value.", line, None, colno=depth)
 
-            KeyPolicy.add_to_dictionary(values, key, value, keys, line, depth)
+            values[key] = value
             loc.key_line = key_line
             loc.key_col = key_col
             self._add_keymap(new_keys, loc)
@@ -1033,8 +1071,6 @@ def loads(
             state:
                 A dictionary containing other possibly helpful information:
 
-                value:
-                    The value associated with the duplicate key.
                 dictionary:
                     The entire dictionary as it is at the moment the duplicate
                     key is found.  You should not change it.
@@ -1050,11 +1086,9 @@ def loads(
             *None* is returned, this key is ignored.  If a *KeyError* is
             raised, the duplicate key is reported as an error.
 
-            Be aware that de-duplication does not play nicely with keymaps when
-            used to access values using the original keys as it is not possible
-            to use the original keys to distinguish between the duplicate
-            key-sets.  If an error occurs in the value of one of the duplicates,
-            it may be reported as occurring in one of the others.
+            Be aware that key de-duplication occurs after key normalization.  As
+            such you should generate keys during de-duplication that are
+            consistent with your normalization scheme.
 
         keymap (dict):
             Specify an empty dictionary or nothing at all for the value of
@@ -1280,44 +1314,38 @@ def add_prefix(prefix, suffix):
     return prefix + " " + suffix
 
 
-# Keys class {{{2
-class Keys:
-    def __init__(self, key, value, dumper):
-        self.dumper = dumper
-        self.orig_keys = dumper.keys
-        self.orig_values = dumper.values
-        dumper.keys = dumper.keys + (key,)
-        dumper.values = dumper.values + (id(value),)
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.dumper.keys = self.orig_keys
-        self.dumper.values = self.orig_values
+# grow {{{2
+# add object to end of a tuple
+def grow(base, ext):
+    return base + (ext,)
 
 
 # NestedTextDumper class {{{2
 class NestedTextDumper:
     # constructor {{{3
-    def __init__(self, width, inline_level, sort_keys, indent, converters, default):
+    def __init__(
+        self, width, inline_level, sort_keys, indent, converters, default, map_keys
+    ):
         assert indent > 0
         self.width = width
         self.inline_level = inline_level
         self.indent = indent
         self.converters = converters
+        self.map_keys = map_keys
         self.default = default
-        self.keys = ()
-        self.values = ()
 
         # define key sorting function {{{4
         if sort_keys:
-            def sort(keys):
-                return sorted(keys, key=sort_keys if callable(sort_keys) else None)
+            if callable(sort_keys):
+                def sort(items, keys):
+                    return sorted(items, key=lambda k: sort_keys(k, keys))
+            else:
+                def sort(items, keys):
+                    return sorted(items)
         else:
-            def sort(keys):
-                return keys
-        self.sort_keys = sort
+            def sort(items, keys):
+                return items
+        self.sort = sort
 
         # define object type identification functions {{{4
         if default == "strict":
@@ -1333,28 +1361,9 @@ class NestedTextDumper:
             if is_str(default):
                 raise NotImplementedError(default)
 
-    # convert {{{3
-    def convert(self, obj):
-        converters = self.converters
-        converter = getattr(obj, "__nestedtext_converter__", None)
-        converter = converters.get(type(obj)) if converters else converter
-        if converter:
-            try:
-                return converter(obj)
-            except TypeError:
-                # is bound method
-                return converter()
-        elif converter is False:
-            raise NestedTextError(
-                obj,
-                template = f"unsupported type ({type(obj).__name__}).",
-                culprit = self.keys,
-            ) from None
-        return obj
-
     # render_key {{{3
-    def render_key(self, key):
-        key = self.convert(key)
+    def render_key(self, key, keys):
+        key = self.convert(key, keys)
         if self.is_a_scalar(key):
             if key is None:
                 key = ""
@@ -1364,12 +1373,12 @@ class NestedTextDumper:
             key = self.default(key)
         if not self.is_a_str(key):
             raise NestedTextError(
-                key, template="keys must be strings.", culprit=self.keys
+                key, template="keys must be strings.", culprit=keys
             ) from None
         return convert_returns(key)
 
     # render_dict_item {{{3
-    def render_dict_item(self, key, value, level):
+    def render_dict_item(self, key, value, keys, values):
         multiline_key_required = (
             not key
             or "\n" in key
@@ -1385,48 +1394,56 @@ class NestedTextDumper:
                 value = convert_returns(value)
                 return key + "\n" + add_leader(value, self.indent*" " + "> ")
             else:
-                return key + self.render_content(value, level + 1)
+                return key + self.render_value(value, keys, values)
         else:
-            return add_prefix(key + ":", self.render_content(value, level + 1))
+            return add_prefix(key + ":", self.render_value(value, keys, values))
 
     # render_inline_value {{{3
-    def render_inline_value(self, obj, exclude):
-        obj = self.convert(obj)
+    def render_inline_value(self, obj, exclude, keys, values):
+        obj = self.convert(obj, keys)
         if self.is_a_dict(obj):
-            return self.render_inline_dict(obj)
+            return self.render_inline_dict(obj, keys, values)
         if self.is_a_list(obj):
-            return self.render_inline_list(obj)
-        return self.render_inline_scalar(obj, exclude)
+            return self.render_inline_list(obj, keys, values)
+        return self.render_inline_scalar(obj, exclude, keys, values)
 
     # render_inline_dict {{{3
-    def render_inline_dict(self, obj):
+    def render_inline_dict(self, obj, keys, values):
         exclude = set("\n\r[]{}:,")
-        rendered = {}
+        rendered = []
         for k, v in obj.items():
-            with Keys(k, v, self):
-                v = self.render_inline_value(obj[k], exclude=exclude)
-                k = self.render_inline_scalar(k, exclude=exclude)
-                rendered[k] = v
-        items = []
-        for k in self.sort_keys(rendered):
-            items.append(f"{k}: {rendered[k]}")
-        return "{" + ", ".join(items) + "}"
+            new_keys = grow(keys, k)
+            new_values = grow(values, id(v))
+            key = self.render_key(k, new_keys)
+            mapped_key = self.map_key(key, new_keys)
+            v = obj[k]
+            rendered_value = self.render_inline_value(
+                v, exclude, new_keys, new_values
+            )
+            rendered_key = self.render_inline_scalar(
+                mapped_key, exclude, new_keys, new_values
+            )
+            rendered.append((mapped_key, key, f"{rendered_key}: {rendered_value}",))
+        items = [v for mk, k, v in self.sort(rendered, keys)]
+        return ''.join(["{", ", ".join(items), "}"])
 
     # render_inline_list {{{3
-    def render_inline_list(self, obj):
-        items = []
-        for v in obj:
-            v = self.render_inline_value(v, exclude=set("\n\r[]{},"))
-            items.append(v)
-        if len(items) == 1 and not items[0]:
+    def render_inline_list(self, obj, keys, values):
+        rendered_values = []
+        for i, v in enumerate(obj):
+            rendered_value = self.render_inline_value(
+                v, set("\n\r[]{},"), grow(keys, i), grow(values, id(v))
+            )
+            rendered_values.append(rendered_value)
+        if len(rendered_values) == 1 and not rendered_values[0]:
             return "[ ]"
-        content = ", ".join(items)
+        content = ", ".join(rendered_values)
         leading_delimiter = "[ " if content[0:1] == "," else "["
         return leading_delimiter + content + "]"
 
     # render_inline_scalar {{{3
-    def render_inline_scalar(self, obj, exclude):
-        obj = self.convert(obj)
+    def render_inline_scalar(self, obj, exclude, keys, values):
+        obj = self.convert(obj, keys)
         if self.is_a_str(obj):
             value = obj
         elif self.is_a_scalar(obj):
@@ -1438,9 +1455,9 @@ class NestedTextDumper:
                 raise NestedTextError(
                     obj,
                     template = f"unsupported type ({type(obj).__name__}).",
-                    culprit = self.keys
+                    culprit = keys
                 ) from None
-            return self.render_inline_value(obj, exclude)
+            return self.render_inline_value(obj, exclude, keys, values)
         else:
             raise NotSuitableForInline from None
 
@@ -1450,56 +1467,51 @@ class NestedTextDumper:
             raise NotSuitableForInline from None
         return value
 
-    # is_cyclic_reference {{{3
-    def check_for_cyclic_reference(self, obj):
-        if id(obj) in self.values[:-1]:
-            raise NestedTextError(
-                obj, template="circular reference.", culprit=self.keys
-            )
-
     # render content {{{3
-    def render_content(self, obj, level):
-        assert level >= 0
+    def render_value(self, obj, keys, values):
+        level = len(keys)
         error = None
         content = ""
-        obj = self.convert(obj)
+        obj = self.convert(obj, keys)
         need_indented_block = is_collection(obj)
 
         if self.is_a_dict(obj):
-            self.check_for_cyclic_reference(obj)
+            self.check_for_cyclic_reference(obj, keys, values)
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or len(obj) > self.width/5):
                     raise NotSuitableForInline from None
-                content = self.render_inline_dict(obj)
+                content = self.render_inline_dict(obj, keys, values)
                 if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
-                rendered = {}
+                rendered = []
                 for k, v in obj.items():
-                    with Keys(k, v, self):
-                        key = self.render_key(k)
-                        v = self.render_dict_item(key, obj[k], level)
-                        rendered[key] = v
-                content = "\n".join(rendered[k] for k in self.sort_keys(rendered))
+                    new_keys = grow(keys, k)
+                    new_values = grow(values, id(v))
+                    key = self.render_key(k, new_keys)
+                    mapped_key = self.map_key(key, new_keys)
+                    rendered_value = self.render_dict_item(
+                        mapped_key, obj[k], new_keys, new_values
+                    )
+                    rendered.append((mapped_key, key, rendered_value))
+                content = "\n".join(v for mk, k, v in self.sort(rendered, keys))
         elif self.is_a_list(obj):
-            self.check_for_cyclic_reference(obj)
+            self.check_for_cyclic_reference(obj, keys, values)
             try:
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or len(obj) > self.width/3):
                     raise NotSuitableForInline from None
-                content = self.render_inline_list(obj)
+                content = self.render_inline_list(obj, keys, values)
                 if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 content = []
                 for i, v in enumerate(obj):
-                    with Keys(i, v, self):
-                        content.append(
-                            add_prefix("-", self.render_content(v, level+1))
-                        )
+                    v = self.render_value(v, grow(keys, i), grow(values, id(v)))
+                    content.append(add_prefix("-", v))
                 content = "\n".join(content)
 
         elif self.is_a_str(obj):
@@ -1520,7 +1532,7 @@ class NestedTextDumper:
             except TypeError:
                 error = f"unsupported type ({type(obj).__name__})."
             else:
-                content = self.render_content(obj, level+1)
+                content = self.render_value(obj, keys, values)
         else:
             error = f"unsupported type ({type(obj).__name__})."
 
@@ -1528,9 +1540,63 @@ class NestedTextDumper:
             content = "\n" + add_leader(content, self.indent*" ")
 
         if error:
-            raise NestedTextError(obj, template=error, culprit=self.keys) from None
+            raise NestedTextError(obj, template=error, culprit=keys) from None
 
         return content
+
+    # check_for_cyclic_reference {{{3
+    def check_for_cyclic_reference(self, obj, keys, values):
+        if id(obj) in values[:-1]:
+            raise NestedTextError(
+                obj, template="circular reference.", culprit=keys
+            )
+
+    # convert {{{3
+    # apply externally supplied converter to convert value to string
+    def convert(self, obj, keys):
+        converters = self.converters
+        converter = getattr(obj, "__nestedtext_converter__", None)
+        converter = converters.get(type(obj)) if converters else converter
+        if converter:
+            try:
+                return converter(obj)
+            except TypeError:
+                # is bound method
+                return converter()
+        elif converter is False:
+            raise NestedTextError(
+                obj,
+                template = f"unsupported type ({type(obj).__name__}).",
+                culprit = keys,
+            ) from None
+        return obj
+
+    # map_key {{{3
+    # apply externally supplied mapping to convert key to desired form
+    def map_key(self, key, keys):
+        mapper = self.map_keys
+        if not mapper:
+            return key
+        if callable(mapper):
+            new_key = mapper(key, keys[:-1])
+            if new_key is None:
+                return key
+            return new_key
+        elif is_mapping(mapper):
+            try:
+                loc = mapper.get(keys)
+                if loc:
+                    return loc._get_original_key(key, strict=False)
+                else:
+                    return key
+            except AttributeError:    # pragma: no cover
+                raise AssertionError(
+                    "if map_keys is a dictionary, it must be a keymap"
+                ) from None
+        else:  # pragma: no cover
+            raise AssertionError(
+                "map_keys must be a callable or a dictionary"
+            ) from None
 
 
 # dumps {{{2
@@ -1542,10 +1608,11 @@ def dumps(
     sort_keys = False,
     indent = 4,
     converters = None,
+    map_keys = None,
     default = None,
 ):
     # description {{{3
-    """Recursively convert object to *NestedText* string.
+    '''Recursively convert object to *NestedText* string.
 
     Args:
         obj:
@@ -1560,8 +1627,19 @@ def dumps(
             eligible for inlining.
 
         sort_keys (bool or func):
-            Dictionary items are sorted by their key if *sort_keys* is true.
-            If a function is passed in, it is used as the key function.
+            Dictionary items are sorted by their key if *sort_keys* is *True*.
+            In this case, keys at all level are sorted alphabetically.  If
+            *sort_keys* is *False*, the natural order of dictionaries is
+            retained.
+
+            If a function is passed in, it is expected to return the sort key.
+            The function is passed two tuples, each consists only of strings.
+            The first contains the mapped key, the original key, and the
+            rendered item.  So it takes the form::
+
+                ('<mapped_key>', '<orig_key>', '<mapped_key>: <value>')
+
+            The second contains the keys of the parent.
 
         indent (int):
             The number of spaces to use to represent a single level of
@@ -1593,10 +1671,16 @@ def dumps(
             it raises a TypeError, the value is reported as an
             unsupported type.
 
-        _level (int):
-            The number of indentation levels.  When dumps is invoked recursively
-            this is used to increment the level and so the indent.  This argument
-            is use internally and should not be specified by the user.
+        map_keys (func or keymap):
+            This argument is used to modify the way keys are rendered.  It may
+            be a keymap that was created by :func:`load` or :func:`loads`, in
+            which case keys are rendered into their original form, before any
+            normalization or de-duplication was performed by the load functions.
+
+            It may also be a function that takes two arguments: the key after
+            any needed conversion has been performed, and the tuple of parent
+            keys.  The value returned is used as the key and so must be a
+            string.  If no value is returned, the key is not modified.
 
     Returns:
         The *NestedText* content without a trailing newline.  *NestedText* files
@@ -1793,13 +1877,68 @@ def dumps(
         Both *default* and *converters* may be used together. *converters* has
         priority over the built-in types and *default*.  When a function is
         specified as *default*, it is always applied as a last resort.
-    """
+
+        Use the *map_keys* argument to format the keys as you wish.  For
+        example, you may wish to render the keys at the first level of hierarchy
+        in upper case:
+
+        .. code-block:: python
+
+            >>> def map_keys(key, parent_keys):
+            ...     if len(parent_keys) == 0:
+            ...         return key.upper()
+
+            >>> print(nt.dumps(transaction, converters=converters, map_keys=map_keys))
+            DATE: 7 May 2013
+            DESCRIPTION: Incoming wire from Publisher’s Clearing House
+            CREDIT: $12,345.67
+
+        It can also be used map the keys back to their original form when
+        round-tripping a dataset when using key normalization or key
+        de-duplication:
+
+        .. code-block:: python
+
+            >>> content = """
+            ... Michael Jordan:
+            ...     occupation: basketball player
+            ... Michael Jordan:
+            ...     occupation: actor
+            ... Michael Jordan:
+            ...     occupation: football player
+            ... """
+
+            >>> def de_dup(key, state):
+            ...     if key not in state:
+            ...         state[key] = 1
+            ...     state[key] += 1
+            ...     return f"{key}  ⟪#{state[key]}⟫"
+
+            >>> keymap = {}
+            >>> people = nt.loads(content, dict, on_dup=de_dup, keymap=keymap)
+            >>> print(nt.dumps(people))
+            Michael Jordan:
+                occupation: basketball player
+            Michael Jordan  ⟪#2⟫:
+                occupation: actor
+            Michael Jordan  ⟪#3⟫:
+                occupation: football player
+
+            >>> print(nt.dumps(people, map_keys=keymap))
+            Michael Jordan:
+                occupation: basketball player
+            Michael Jordan:
+                occupation: actor
+            Michael Jordan:
+                occupation: football player
+
+    '''
 
     # code {{{3
     dumper = NestedTextDumper(
-        width, inline_level, sort_keys, indent, converters, default
+        width, inline_level, sort_keys, indent, converters, default, map_keys
     )
-    return dumper.render_content(obj, 0)
+    return dumper.render_value(obj, (), ())
 
 
 # dump {{{2
@@ -2067,32 +2206,16 @@ def get_original_keys(keys, keymap, strict=False):
             KeyError: ('names', 'surname')
 
     '''
-    original_keys = []
+    original_keys = ()
     for i in range(len(keys)):
         try:
             loc = keymap[tuple(keys[:i+1])]
-            line = loc.key_line
-            if line.kind == "key item":
-                # is multiline key (key fragment is actually held in line.text)
-                key = [line.text[line.depth+2:]]
-                while line.next_line:
-                    line = line.next_line
-                    key.append(line.text[line.depth+2:])
-                key = "\n".join(key)
-            else:
-                if line.kind == "list item":
-                    key = keys[i]
-                else:
-                    key = line.key
-            original_keys.append(key)
-        except AttributeError:
-            # this occurs for list indexes
-            original_keys.append(keys[i])
+            original_keys += loc._get_original_key(keys[i], strict),
         except (KeyError, IndexError):
             if strict:
                 raise
-            original_keys.append(keys[i])
-    return tuple(original_keys)
+            original_keys += keys[i],
+    return original_keys
 
 
 # join_keys {{{2

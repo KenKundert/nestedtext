@@ -127,15 +127,15 @@ try:
 
 except nt.NestedTextError as e:
     e.report()
-except MultipleInvalid as e:
-    for err in e.errors:
+except MultipleInvalid as exception:
+    for e in exception.errors:
         msg, flag = voluptuous_error_msg_mappings.get(
-            err.msg, (err.msg, 'value')
+            e.msg, (e.msg, 'value')
         )
-        culprit = nt.join_keys(err.path, keymap=keymap)
+        culprit = nt.join_keys(e.path, keymap=keymap)
         print(f"ERROR: {config_filepath!s}: {culprit}: {msg}.")
         try:
-            print(keymap[tuple(err.path)].as_line(flag))
+            print(keymap[tuple(e.path)].as_line(flag))
         except KeyError:
             pass
 except OSError as e:

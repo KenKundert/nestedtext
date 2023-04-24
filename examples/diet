@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+from inform import Error, display, dedent
+import nestedtext as nt
+import re
+
+foods = nt.loads(dedent("""
+    oatmeal:
+        steel cut oats: 1/4 cup
+        tangerines: 1 each
+        whole milk: 1/4 cup
+    steel cut oats:
+        calories by weight: 150/40 cals/gram
+    tangerines:
+        calories each: 40 cals
+        calories by weight: 53/100 cals/gram
+    whole milk:
+        calories by weight: 149/255 cals/gram
+        calories by volume: 149 cals/cup
+    almonds:
+        calories each: 40 cals
+        calories by weight: 822/143 cals/gram
+        calories by volume: 822 cals/cup
+"""), dict)
+
+meals = nt.loads(dedent("""
+    21 March 2023:
+        breakfast: oatmeal
+    22 March 2023:
+        breakfast: @oatmeal
+    23 March 2023:
+        breakfast: @oatmeal(tangerines: 0 each, almonds: 10 each)
+"""), dict)
+
+def expand_foods(value):
+    # allows macro values to be defined as a top-level food.
+    # allows macro reference to be found anywhere.
+    if isinstance(value, str):
+        value = value.strip()
+        if value[:1] == '@':
+            value =  parse_macro(value[1:].strip())
+        return value
+    if isinstance(value, dict):
+        return {k:expand_foods(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [expand_foods(v) for v in value]
+    raise NotImplementedError(value)
+
+def parse_macro(macro):
+    match = re.match(r'(\w+)(?:\((.*)\))?', macro)
+    if match:
+        name, args = match.groups()
+        try:
+            food = foods[name].copy()
+        except KeyError:
+            raise Error("unknown food.", culprit=name)
+        if args:
+            args = nt.loads('{' + args + '}', dict)
+            food.update(args)
+        return food
+    raise Error("unknown macro.", culprit=macro)
+
+
+try:
+    meals = expand_foods(meals)
+    display(nt.dumps(meals))
+except Error as e:
+    e.terminate()
