@@ -24,7 +24,9 @@ Latest development version
 
     The *sort_keys* argument to :func:`dump` and :func:`dumps` has changed.  
     When passing a call-back function to *sort_keys*, that call-back function 
-    now has a second argument, *parent_keys*.
+    now has a second argument, *parent_keys*.  In addition, the first argument 
+    has changed.  It is now a tuple with three members rather than two, with the 
+    new and leading member being the mapped key rather than the original key.
 
 .. warning::
 
