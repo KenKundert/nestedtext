@@ -8,5 +8,5 @@ show_missing=yes
 [run]
 source = nestedtext
 omit = */.tox/*,*/.local/*
-    # the doctests use the installed version of nestedtext, which suppressess 
+    # the doctests use the installed version of NestedText, which suppresses 
     # the coverage percentage

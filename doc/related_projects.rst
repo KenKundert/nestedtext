@@ -59,7 +59,7 @@ Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and
 
 `ntLog <https://github.com/KenKundert/ntlog>`_
 """"""""""""""""""""""""""""""""""""""""""""""
-*ntlog* is a NestedText logfile aggregation utility
+*ntlog* is a *NestedText* logfile aggregation utility
 
 
 `parametrize from file <https://github.com/kalekundert/parametrize_from_file>`_
