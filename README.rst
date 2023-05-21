@@ -27,19 +27,22 @@ NestedText — A Human Friendly Data Format
 | Please post all questions, suggestions, and bug reports to: `Github <https://github.com/KenKundert/nestedtext/issues>`_.
 |
 
+*NestedText* is a file format for holding structured data.  It is similar in 
+concept to `JSON <https://en.wikipedia.org/wiki/JSON>`_, except that 
+*NestedText* is intended to be entered, edited, or viewed by people.
+It organizes the data into a nested collection of name-value pairs, lists, and 
+strings without the need for quoting or escaping.  The syntax is very simple and 
+intuitive.
 
-NestedText is a file format for holding structured data to be entered, edited, 
-or viewed by people. It organizes the data into a nested collection of 
-dictionaries, lists, and strings without the need for quoting or escaping.  
 A unique feature of this file format is that it only supports one scalar type: 
-strings.  While the decision to forego other types (integers, reals, dates, 
-etc.) may seem counter intuitive, it leads to simpler data files and 
-applications that are more robust.
+strings.  As such, quoting strings is unnecessary, and without quoting there is 
+no need for escaping.  While the decision to forego other types (integers, 
+reals, dates, etc.) may seem counter productive, it leads to simpler data files 
+and applications that are more robust.
 
 *NestedText* is convenient for configuration files, address books, account 
-information, and the like.  Because there is no need for quoting or escaping, it 
-is particularly nice for holding code fragments.  Here is an example of a file 
-that contains a few addresses:
+information, and the like.  Here is an example of a file that contains a few 
+addresses:
 
 .. code-block:: nestedtext
 
@@ -86,6 +89,39 @@ This output could be fed directly into another program that accepted
 *NestedText* as input::
 
     > address --email | mail-to-list
+
+Because *NestedText* does not use quoting or escaping, it is particularly nice 
+for holding code fragments.
+Here is another example of *NestedText* that shows off this feature.  It holds 
+some `Parametrize From File <https://parametrize-from-file.readthedocs.io>`_ 
+test cases for `pytest <https://docs.pytest.org>`_.  In this case a command line 
+program is being tested and its response is checked using regular expressions::
+
+    -
+        cmd: emborg version
+        expected: emborg version: \d+\.\d+(\.\d+(\.?\w+\d+)?)?  \(\d\d\d\d-\d\d-\d\d\)
+        expected_type: regex
+    -
+        cmd: emborg --quiet list
+        expected: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
+        expected_type: regex
+    -
+        cmd: emborg --quiet borg list --glob-archives "home-*" --short @repo
+        expected: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
+        expected_type: regex
+    -
+        cmd: emborg --quiet files -D
+        expected:
+            > Archive: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
+            > \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\d\d\d\d configs/subdir/(file|)
+            > \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\d\d\d\d configs/subdir/(file|)
+                # Unfortunately, we cannot check the order as they were both 
+                # created at the same time.
+        expected_type: regex
+    -
+        cmd: emborg due --backup-days 1 --message "{elapsed} since last {action}"
+        expected: home: (\d+(\.\d)? (seconds|minutes)) since last backup\.
+        expected_type: regex
 
 
 Contributing
