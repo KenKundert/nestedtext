@@ -29,10 +29,10 @@ NestedText — A Human Friendly Data Format
 
 *NestedText* is a file format for holding structured data.  It is similar in 
 concept to `JSON <https://en.wikipedia.org/wiki/JSON>`_, except that 
-*NestedText* is intended to be entered, edited, or viewed by people.
-It organizes the data into a nested collection of name-value pairs, lists, and 
-strings without the need for quoting or escaping.  The syntax is very simple and 
-intuitive.
+*NestedText* is designed to make it easy for people to enter, edit, or view the 
+data directly.  It organizes the data into a nested collection of name-value 
+pairs, lists, and strings.  The syntax is intended to be very simple and 
+intuitive for most people.
 
 A unique feature of this file format is that it only supports one scalar type: 
 strings.  As such, quoting strings is unnecessary, and without quoting there is 
@@ -72,7 +72,7 @@ addresses:
             - new membership task force
             - accounting task force
 
-One of the more attractive use-cases for *NestedText* is command line programs 
+One particularly attractive use-case for *NestedText* is command line programs 
 whose output is meant to be consumed by either people or programs.  Many 
 programs do so by supporting a ``--json`` command-line flag that indicates the 
 output should be computer readable rather than human readable.  But, with 
@@ -85,17 +85,17 @@ demand::
     Katheryn McDaniel: KateMcD@aol.com
     Margaret Hodge: margaret.hodge@ku.edu
 
-This output could be fed directly into another program that accepted 
-*NestedText* as input::
+This output could be fed directly into another program that accepts *NestedText* 
+as input::
 
     > address --email | mail-to-list
 
-Because *NestedText* does not use quoting or escaping, it is particularly nice 
-for holding code fragments.
-Here is another example of *NestedText* that shows off this feature.  It holds 
-some `Parametrize From File <https://parametrize-from-file.readthedocs.io>`_ 
-test cases for `pytest <https://docs.pytest.org>`_.  In this case a command line 
-program is being tested and its response is checked using regular expressions::
+Another strength of *NestedText* is its lack of quoting and escaping, making it 
+particularly nice for holding code fragments.  Here is another example of 
+*NestedText* that shows off this feature.  It holds some `Parametrize From File 
+<https://parametrize-from-file.readthedocs.io>`_ test cases for `pytest 
+<https://docs.pytest.org>`_.  In this case a command line program is being 
+tested and its response is checked using regular expressions::
 
     -
         cmd: emborg version
