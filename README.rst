@@ -72,25 +72,7 @@ addresses:
             - new membership task force
             - accounting task force
 
-One particularly attractive use-case for *NestedText* is command line programs 
-whose output is meant to be consumed by either people or programs.  Many 
-programs do so by supporting a ``--json`` command-line flag that indicates the 
-output should be computer readable rather than human readable.  But, with 
-*NestedText* it is not necessary to make people choose.  Just output the result 
-in *NestedText* and it can be read by people or computers.  For example, 
-consider a program that reads your address list and output particular fields on 
-demand::
-
-    > address --email
-    Katheryn McDaniel: KateMcD@aol.com
-    Margaret Hodge: margaret.hodge@ku.edu
-
-This output could be fed directly into another program that accepts *NestedText* 
-as input::
-
-    > address --email | mail-to-list
-
-Another strength of *NestedText* is its lack of quoting and escaping, making it 
+A strength of *NestedText* is its lack of quoting and escaping, making it 
 particularly nice for holding code fragments.  Here is another example of 
 *NestedText* that shows off this feature.  It holds some `Parametrize From File 
 <https://parametrize-from-file.readthedocs.io>`_ test cases for `pytest 
@@ -122,6 +104,24 @@ tested and its response is checked using regular expressions::
         cmd: emborg due --backup-days 1 --message "{elapsed} since last {action}"
         expected: home: (\d+(\.\d)? (seconds|minutes)) since last backup\.
         expected_type: regex
+
+One particularly attractive use-case for *NestedText* is command line programs 
+whose output is meant to be consumed by either people or programs.  Many 
+programs do so by supporting a ``--json`` command-line flag that indicates the 
+output should be computer readable rather than human readable.  But, with 
+*NestedText* it is not necessary to make people choose.  Just output the result 
+in *NestedText* and it can be read by people or computers.  For example, 
+consider a program that reads your address list and output particular fields on 
+demand::
+
+    > address --email
+    Katheryn McDaniel: KateMcD@aol.com
+    Margaret Hodge: margaret.hodge@ku.edu
+
+This output could be fed directly into another program that accepts *NestedText* 
+as input::
+
+    > address --email | mail-to-list
 
 
 Contributing
