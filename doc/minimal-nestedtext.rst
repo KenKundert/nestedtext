@@ -59,7 +59,7 @@ describe to your users if you decide to use it for your application.
 
     It organizes the data into a nested collection of lists and name-value 
     pairs where the lowest level values are all strings.  For example, a simple 
-    collection of name-value pairs is:
+    collection of name-value pairs represented using:
 
     .. code-block:: nestedtext
 
@@ -67,9 +67,9 @@ describe to your users if you decide to use it for your application.
         Name 2: Value 2
 
     The name and value are separated by a colon followed immediately by a space.  
-    Any characters that follow the space are part of the value.
+    The characters that follow the space are the value.
 
-    A simple list is:
+    A simple list represented with:
 
     .. code-block:: nestedtext
 
@@ -77,8 +77,7 @@ describe to your users if you decide to use it for your application.
         - Value 2
 
     A list item is introduced by dash as the first non-blank character on a line 
-    followed by a space.  Any characters that follow the space are part of the 
-    value.
+    followed by a space.  The characters that follow the space are the value.
 
     Indentation is used to denote nesting.  In this case the colon or dash is 
     the last character on the line and is followed by an indented value.  The 
