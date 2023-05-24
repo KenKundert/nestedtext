@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.6rc1
-| Released: 2023-04-24
+| Version: 3.6rc2
+| Released: 2023-05-23
 
 - De-duplicating with the *on_dup* argument to :func:`loads` now works well for 
   error reporting with keymaps.
