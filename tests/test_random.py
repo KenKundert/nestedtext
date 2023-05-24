@@ -46,6 +46,12 @@ def add_spaces(content, targets):
 
 
 @settings(max_examples=max_examples)
+@given(st.from_type(bool | None | int | float))
+def test_types(v):
+    expected = None if v is None else str(v)
+    assert nt.loads(nt.dumps(v), top=any) == expected
+
+@settings(max_examples=max_examples)
 @given(st.text())
 def test_strings(s):
     assert nt.loads(nt.dumps(s), top=str) == normalize_line_breaks(s)

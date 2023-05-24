@@ -1220,11 +1220,12 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
         f (str, os.PathLike, io.TextIOBase, collections.abc.Iterator):
             The file to read the *NestedText* content from.  This can be
             specified either as a path (e.g. a string or a `pathlib.Path`),
-            as a text IO object (e.g. an open file), or as an iterator.  If a
-            path is given, the file will be opened, read, and closed.  If an IO
-            object is given, it will be read and not closed; utf-8 encoding
-            should be used..  If an iterator is given, it should generate full
-            lines in the same manner that iterating on a file descriptor would.
+            as a text IO object (e.g. an open file, or 0 for stdin), or as an
+            iterator.  If a path is given, the file will be opened, read, and
+            closed.  If an IO object is given, it will be read and not closed;
+            utf-8 encoding should be used..  If an iterator is given, it should
+            generate full lines in the same manner that iterating on a file
+            descriptor would.
         kwargs:
             See :func:`loads` for optional arguments.
 
@@ -1526,6 +1527,9 @@ class NestedTextDumper:
                 content = ""
             else:
                 content = str(obj)
+                if level == 0:
+                    content = add_leader(content, "> ")
+                    need_indented_block = True
         elif self.default and callable(self.default):
             try:
                 obj = self.default(obj)
@@ -1952,11 +1956,11 @@ def dump(obj, dest, **kwargs):
         dest (str, os.PathLike, io.TextIOBase):
             The file to write the *NestedText* content to.  The file can be
             specified either as a path (e.g. a string or a `pathlib.Path`) or
-            as a text IO instance (e.g. an open file).  If a path is given, the
-            will be opened, written, and closed.  If an IO object is given, it
-            must have been opened in a mode that allows writing (e.g.
-            ``open(path, "w")``), if applicable.  It will be written and not
-            closed.
+            as a text IO instance (e.g. an open file, or 1 for stdout).  If a
+            path is given, the will be opened, written, and closed.  If an IO
+            object is given, it must have been opened in a mode that allows
+            writing (e.g.  ``open(path, "w")``), if applicable.  It will be
+            written and not closed.
 
             The name used for the file is arbitrary but it is tradition to use a
             .nt suffix.  If you also wish to further distinguish the file type
