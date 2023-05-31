@@ -60,8 +60,8 @@ v3.0 (2021-07-17)
 
     Be aware that aspects of this version are not backward compatible.
     Specifically, trailing commas are no longer supported in inline
-    dictionaries and lists.  In addition, ``[ ]`` now represents a list with
-    an that contains an empty string, whereas previously it represented an
+    dictionaries and lists.  In addition, ``[ ]`` now represents a list
+    that contains an empty string, whereas previously it represented an
     empty list.
 
 
