@@ -18,6 +18,12 @@ Latest development version
 | Released: 2023-05-23
 
 
+v3.6 (2023-05-30)
+-----------------
+
+- No changes.
+
+
 v3.5 (2022-11-04)
 -----------------
 

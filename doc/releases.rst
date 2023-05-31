@@ -16,6 +16,10 @@ Latest development version
 | Version: 3.6rc2
 | Released: 2023-05-23
 
+
+v3.6 (2023-05-30)
+-----------------
+
 - De-duplicating with the *on_dup* argument to :func:`loads` now works well for 
   error reporting with keymaps.
 - The *map_keys* argument has been added to :func:`dump` and :func:`dumps`.
