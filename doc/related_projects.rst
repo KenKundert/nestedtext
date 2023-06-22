@@ -47,6 +47,11 @@ Implementations
 (slight subset of :ref:`NestedText v2.0 <v2.0>`).  Also contains *nt-cli*, an 
 efficient command line utility for converting between *NestedText* and *JSON*.
 
+`@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`__
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+nodejs ( es module ) implementation of *NestedText*
+use https://github.com/npillmayer/nestext wasm for nestedtext decode 
+(supports :ref:`NestedText v3.0 <v3.0>`).
 
 Utilities
 ---------
