@@ -1,12 +1,15 @@
-**********
-Techniques
-**********
-
 .. doctests:
 
    >>> import nestedtext as nt
 
 .. currentmodule:: nestedtext
+
+
+**********
+Techniques
+**********
+
+This section documents common patterns of use with examples and suggestions.
 
 
 .. _voluptuous example:
@@ -18,8 +21,7 @@ This example shows how to use voluptuous_ to validate and parse a *NestedText*
 file and it demonstrates how to use the *keymap* argument from :func:`loads` or 
 :func:`load` to add location information to *Voluptuous* error messages.
 
-The input file is the same as in the previous example, i.e. deployment settings 
-for a web server:
+The input file in this case specifies deployment settings for a web server:
 
 .. literalinclude:: ../examples/deploy.nt
    :language: nestedtext
@@ -44,7 +46,8 @@ Validate with *Pydantic*
 ========================
 
 This example shows how to use pydantic_ to validate and parse a *NestedText* 
-file.  The file in this case specifies deployment settings for a web server:
+file.  The input file is the same as in the previous example, i.e. deployment 
+settings for a web server:
 
 .. literalinclude:: ../examples/deploy.nt
    :language: nestedtext
@@ -100,10 +103,10 @@ other levels are considered keywords and so should be normalized.
    :language: python
 
 This program takes a name as a command line argument and prints out the 
-corresponding address.  It uses the pretty print idea from the previous section 
-to render the contact information.  *Voluptuous* checks the validity of the 
-contacts database, which is shown next. Notice the variability in the keys given 
-in Fumiko's entry:
+corresponding address.  It uses the pretty print idea described below to render 
+the contact information.  *Voluptuous* checks the validity of the contacts 
+database, which is shown next. Notice the variability in the keys given in 
+Fumiko's entry:
 
 .. literalinclude:: ../examples/address.nt
    :language: nestedtext
@@ -475,6 +478,10 @@ stripping leading multiline string tags.
     email: KateMcD@aol.com
     additional roles:
         - board member
+
+Stripping leading multiline string tags results in the output no longer being 
+valid *NestedText* and so should not be done if the output needs to be readable 
+later as *NestedText*..
 
 
 .. _long lines example:

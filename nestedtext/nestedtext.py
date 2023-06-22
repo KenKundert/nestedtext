@@ -1206,7 +1206,7 @@ def loads(
 
 
 # load {{{2
-def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
+def load(f, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=None):
     # description {{{3
     r"""
     Loads *NestedText* from file or stream.
@@ -1280,11 +1280,16 @@ def load(f, top="dict", *, on_dup=None, keymap=None, normalize_key=None):
     # them once they are no longer needed, which reduces the memory usage.
 
     if isinstance(f, collections.abc.Iterator):
-        source = getattr(f, "name", None)
+        if not source:
+            source = getattr(f, "name", None)
         loader = NestedTextLoader(f, top, source, on_dup, keymap, normalize_key)
         return loader.get_decoded()
     else:
-        source = str(f)
+        if not source:
+            if f == 0:
+                source = '<stdin>'
+            else:
+                source = str(f)
         with open(f, encoding="utf-8") as fp:
             loader = NestedTextLoader(fp, top, source, on_dup, keymap, normalize_key)
             return loader.get_decoded()
