@@ -66,7 +66,7 @@ Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and
 
 `ntLog <https://github.com/KenKundert/ntlog>`_
 """"""""""""""""""""""""""""""""""""""""""""""
-*ntlog* is a *NestedText* logfile aggregation utility
+*ntlog* is a *NestedText* logfile aggregation utility.
 
 
 `parametrize from file <https://github.com/kalekundert/parametrize_from_file>`_
@@ -78,7 +78,8 @@ from your `PyTest <https://docs.pytest.org>`_ test code.
 `pygments <https://github.com/KenKundert/pygments>`_
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 Version of the popular *pygments* Python library that supports :ref:`NestedText 
-v3.0 <v3.0>`.
+v3.0 <v3.0>`.  Expect v2.16 of `base repository
+<https://github.com/pygments/pygments>`_ to support v3.0 of *NestedText*.
 
 
 `vim-nestedtext <https://github.com/kenkundert/vim-nestedtext>`_
