@@ -185,8 +185,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Specifically, inline strings may not contain newlines or any of the 
     following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  In addition, 
     inline strings that are contained in inline dictionaries may not contain 
-    ``:``.  Both leading and trailing ASCII spaces and ASCII tabs are ignored
-    with inline strings.
+    ``:``.  Both leading and trailing ASCII spaces are ignored with inline
+    strings.
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 
