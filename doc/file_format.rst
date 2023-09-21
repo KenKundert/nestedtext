@@ -123,8 +123,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     The first is a *dictionary item with inline key*.  In this case the line 
     starts with a key followed by a dictionary tag: a colon followed by either 
     an ASCII space (``:␣``) or a newline.  The dictionary item consists of the 
-    key, the tag, and the trailing value.  Any Unicode white-space between the 
-    key and the tag is ignored.
+    key, the tag, and the trailing value.  Any ASCII spaces between the key and
+    the tag is ignored.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
 
@@ -132,8 +132,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     #. start with a list item, string item or key item tag,
     #. start with ``[`` or ``{``,
     #. contain a dictionary item tag, or
-    #. contain Unicode leading spaces
-       (any Unicode spaces that follow the key are ignored).
+    #. contain leading ASCII spaces
+       (any ASCII spaces that follow the key are ignored).
 
     The tag is only used to determine the type of the line and is discarded 
     leaving the key and the value, which follows the tag.  The value takes one 
