@@ -68,7 +68,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **String items**:
 
-    If the first non-space character on a line is a greater-than symbol followed 
+    If the first non-ASCII-space character on a line is a greater-than symbol followed 
     immediately by an ASCII space (``>␣``) or a line break, the line is a *string 
     item*.  After comments and blank lines have been removed, adjacent string 
     items with the same indentation level are combined in order into 
@@ -81,7 +81,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **List items**:
 
-    If the first non-space character on a line is a dash followed immediately by 
+    If the first non-ASCII-space character on a line is a dash followed immediately by 
     an ASCII space (``-␣``) or a line break, the line is a *list item*.  
     Adjacent list items with the same indentation level are combined in order 
     into a list.  Each list item has a tag and a value.  The tag is only used to 
