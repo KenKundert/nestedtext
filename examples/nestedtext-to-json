@@ -14,7 +14,7 @@ is written to stdout.
 """
 
 from docopt import docopt
-from inform import done, fatal, os_error
+from inform import done, fatal, os_error, full_stop
 from pathlib import Path
 import json
 import nestedtext as nt
@@ -52,5 +52,7 @@ except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
     e.terminate()
+except UnicodeError as e:
+    fatal(full_stop(e))
 except KeyboardInterrupt:
     done()

@@ -57,6 +57,13 @@ support_inlines = True
     # but the resulting NestedText files are not compliant with the spec.
     # Use of this feature is highly discouraged.
 
+def set_prefs(**kwargs):
+    if 'support_inlines' in kwargs:
+        global support_inlines
+        support_inlines = kwargs.pop('support_inlines')
+    if kwargs:
+        raise NestedTextError(f"unknown preferences: {', '.join(kwargs.keys())}.")
+
 
 # Utility functions {{{1
 # convert_returns {{{2

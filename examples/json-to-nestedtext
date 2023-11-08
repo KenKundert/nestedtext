@@ -8,6 +8,7 @@ usage:
 options:
     -f, --force            force overwrite of output file
     -i <n>, --indent <n>   number of spaces per indent [default: 4]
+    -s, --sort             sort the keys
     -w <n>, --width <n>    desired maximum line width; specifying enables
                            use of single-line lists and dictionaries as long
                            as the fit in given width [default: 0]
@@ -17,7 +18,7 @@ is written to stdout.
 """
 
 from docopt import docopt
-from inform import done, fatal, full_stop, os_error, warn
+from inform import done, fatal, full_stop, os_error, warn, full_stop
 from pathlib import Path
 import json
 import nestedtext as nt
@@ -48,7 +49,12 @@ try:
     data = json.loads(json_content)
 
     # convert to NestedText
-    nestedtext_content = nt.dumps(data, indent=indent, width=width) + "\n"
+    nestedtext_content = nt.dumps(
+        data,
+        indent = indent,
+        width = width,
+        sort_keys = cmdline['--sort']
+    )
 
     # output NestedText content; to file or to stdout
     if input_filename:
@@ -58,12 +64,14 @@ try:
                 fatal('file exists, use -f to force over-write.', culprit=output_path)
         output_path.write_text(nestedtext_content, encoding='utf-8')
     else:
-        sys.stdout.write(nestedtext_content)
+        sys.stdout.write(nestedtext_content + "\n")
 
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
     e.terminate()
+except UnicodeError as e:
+    fatal(full_stop(e))
 except KeyboardInterrupt:
     done()
 except json.JSONDecodeError as e:
