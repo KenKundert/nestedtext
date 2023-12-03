@@ -40,9 +40,9 @@ no need for escaping.  While the decision to forego other types (integers,
 reals, dates, etc.) may seem counter productive, it leads to simpler data files 
 and applications that are more robust.
 
-*NestedText* is convenient for configuration files, address books, account 
-information, and the like.  Here is an example of a file that contains a few 
-addresses:
+*NestedText* is convenient for configuration files, data journals, address 
+books, account information, and the like.  Here is an example of a file that 
+contains a few addresses:
 
 .. code-block:: nestedtext
 
@@ -72,25 +72,28 @@ addresses:
             - new membership task force
             - accounting task force
 
-A strength of *NestedText* is its lack of quoting and escaping, making it 
-particularly nice for holding code fragments.  Here is another example of 
-*NestedText* that shows off this feature.  It holds some `Parametrize From File 
-<https://parametrize-from-file.readthedocs.io>`_ test cases for `pytest 
+A particularly attractive use-case for *NestedText* is to hold structured code, 
+where code fragments are embedded in data structures.  The code is clean as 
+there is no need for quoting or escaping.  This is demonstrated with a file of 
+test-cases file for `Parametrize From File 
+<https://parametrize-from-file.readthedocs.io>`_ for `PyTest 
 <https://docs.pytest.org>`_.  In this case a command line program is being 
-tested and its response is checked using regular expressions::
+tested and its response is checked using regular expressions.  Each entry 
+includes a shell command to run the program and a regular expression that is 
+applied to the output to find expected output::
 
     -
         cmd: emborg version
         expected: emborg version: \d+\.\d+(\.\d+(\.?\w+\d+)?)?  \(\d\d\d\d-\d\d-\d\d\)
-        expected_type: regex
+        expected type: regex
     -
         cmd: emborg --quiet list
         expected: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
-        expected_type: regex
+        expected type: regex
     -
         cmd: emborg --quiet borg list --glob-archives "home-*" --short @repo
         expected: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
-        expected_type: regex
+        expected type: regex
     -
         cmd: emborg --quiet files -D
         expected:
@@ -99,20 +102,19 @@ tested and its response is checked using regular expressions::
             > \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\d\d\d\d configs/subdir/(file|)
                 # Unfortunately, we cannot check the order as they were both 
                 # created at the same time.
-        expected_type: regex
+        expected type: regex
     -
         cmd: emborg due --backup-days 1 --message "{elapsed} since last {action}"
         expected: home: (\d+(\.\d)? (seconds|minutes)) since last backup\.
-        expected_type: regex
+        expected type: regex
 
-One particularly attractive use-case for *NestedText* is command line programs 
-whose output is meant to be consumed by either people or programs.  Many 
-programs do so by supporting a ``--json`` command-line flag that indicates the 
-output should be computer readable rather than human readable.  But, with 
-*NestedText* it is not necessary to make people choose.  Just output the result 
-in *NestedText* and it can be read by people or computers.  For example, 
-consider a program that reads your address list and output particular fields on 
-demand::
+Another attractive use-case for *NestedText* is command line programs whose 
+output is meant to be consumed by either people or programs.  Many programs do 
+so by supporting a ``--json`` command-line flag that indicates the output should 
+be computer readable rather than human readable.  But, with *NestedText* it is 
+not necessary to make people choose.  Just output the result in *NestedText* and 
+it can be read by people or computers.  For example, consider a program that 
+reads your address list and output particular fields on demand::
 
     > address --email
     Katheryn McDaniel: KateMcD@aol.com
@@ -132,5 +134,4 @@ a test suite.  Implementation in many languages is required for *NestedText* to
 catch on widely.  If you like the format, please consider contributing 
 additional implementations.
 
-Also, please consider using *NestedText* for any applications you create.  It is 
-especially suitable for configuration files.
+Also, please consider using *NestedText* for any applications you create.
