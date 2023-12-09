@@ -123,8 +123,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     The first is a *dictionary item with inline key*.  In this case the line 
     starts with a key followed by a dictionary tag: a colon followed by either 
     an ASCII space (``:␣``) or a newline.  The dictionary item consists of the 
-    key, the tag, and the trailing value.  Any Unicode white-space between the 
-    key and the tag is ignored.
+    key, the tag, and the trailing value.  Any white space between the key and 
+    the tag is ignored.
 
     The inline key precedes the tag. It must be a non-empty string and must not:
 
@@ -174,9 +174,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     a matching closed brace (``}``), contains inline dictionary items separated 
     by commas (``,``), and is contained on a single line.  An inline dictionary 
     item is a key and value separated by a colon (``:``).  A space need not 
-    follow the colon and any spaces that do follow the colon are ignored. The 
-    keys are inline strings and the values may be inline strings, inline lists, 
-    and inline dictionaries.
+    follow the colon and any white space that does follow the colon is ignored.  
+    The keys are inline strings and the values may be inline strings, inline 
+    lists, and inline dictionaries.
 
     *Inline strings* are the string values specified in inline dictionaries and 
     lists.  They are somewhat constrained in the characters that they may 
@@ -185,8 +185,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     Specifically, inline strings may not contain newlines or any of the 
     following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  In addition, 
     inline strings that are contained in inline dictionaries may not contain 
-    ``:``.  Both leading and trailing ASCII spaces and ASCII tabs are ignored
-    with inline strings.
+    ``:``.  Both leading and trailing white space is ignored with inline strings.
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 
