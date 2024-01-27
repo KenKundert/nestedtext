@@ -1,6 +1,6 @@
 # NestedText
-__version__ = "3.6"
-__released__ = "2023-05-30"
+__version__ = "3.6.1"
+__released__ = "2024-01-26"
 
 from .nestedtext import (
     load, loads, dump, dumps, NestedTextError,

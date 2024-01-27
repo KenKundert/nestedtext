@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.6
-| Released: 2023-05-30
+| Version: 3.6.1
+| Released: 2024-01-26
 
 - Added *offset* option to :meth:`Location.as_line()`.
 
