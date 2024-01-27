@@ -16,6 +16,8 @@ Latest development version
 | Version: 3.6
 | Released: 2023-05-30
 
+- Added *offset* option to :meth:`Location.as_line()`.
+
 
 v3.6 (2023-05-30)
 -----------------

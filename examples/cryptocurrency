@@ -76,12 +76,14 @@ except nt.NestedTextError as e:
 except MultipleInvalid as exception:
     for e in exception.errors:
         kind = 'key' if 'key' in e.msg else 'value'
-        keys = nt.join_keys(e.path, keymap=keymap)
         loc = keymap.get(tuple(e.path))
         codicil = loc.as_line(kind) if loc else None
+        line_num, col_num = loc.as_tuple()
+        file_and_lineno = f"{settings_file!s}@{line_num}"
+        key_path = nt.join_keys(e.path, keymap=keymap, sep="›")
         error(
             full_stop(e.msg),
-            culprit = (settings_file, keys),
+            culprit = (file_and_lineno, key_path),
             codicil = codicil
         )
 except OSError as e:

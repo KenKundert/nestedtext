@@ -580,7 +580,7 @@ class Location:
         return line.lineno, col
 
     # as_line() {{{3
-    def as_line(self, kind="value"):
+    def as_line(self, kind="value", offset=0):
         """
         Returns a string containing two lines that identify the token in
         context.  The first line contains the line number and text of the line
@@ -591,6 +591,8 @@ class Location:
             kind (str):
                 Specify either “key” or “value” depending on which token is
                 desired.
+            offset (int):
+                Move error pointer to the right by this many characters.
         """
         if kind == "key":
             line = self.key_line
@@ -602,7 +604,7 @@ class Location:
         else:
             line = self.line
             col = self.col
-        return line.render(col)
+        return line.render(col + offset)
 
     # _get_original_key() {{{3
     def _get_original_key(self, key, strict):

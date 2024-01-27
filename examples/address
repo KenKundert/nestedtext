@@ -70,9 +70,12 @@ except MultipleInvalid as exception:
         kind = 'key' if 'key' in e.msg else 'value'
         keys = tuple(e.path)
         codicil = keymap[keys].as_line(kind) if keys in keymap else None
+        line_num, col_num = keymap[keys].as_tuple()
+        file_and_lineno = f"{contacts_file!s}@{line_num}"
+        key_path = nt.join_keys(keys, keymap=keymap, sep="›")
         fatal(
             full_stop(e.msg),
-            culprit = (contacts_file, nt.join_keys(keys, keymap=keymap)),
+            culprit = (file_and_lineno, key_path),
             codicil = codicil
         )
 except OSError as e:

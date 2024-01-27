@@ -31,7 +31,8 @@ def to_paths(arg):
     return [Path(p).expanduser() for p in to_list(arg)]
 
 def to_email(arg):
-    user, _, host = arg.partition('@')
+    email = to_str(arg)
+    user, _, host = email.partition('@')
     if '.' in host and '@' not in host:
         return arg
     raise Invalid('expected email address')
@@ -47,7 +48,7 @@ def to_gpg_id(arg):
             int(arg, base=16)     # if not an email, it must be a hex key
             assert len(arg) >= 8  # at least 8 characters long
             return arg
-        except (ValueError, AssertionError):
+        except (ValueError, TypeError, AssertionError):
             raise Invalid('expected GPG id')
 
 def to_gpg_ids(arg):
@@ -132,8 +133,10 @@ except MultipleInvalid as exception:
         msg, flag = voluptuous_error_msg_mappings.get(
             e.msg, (e.msg, 'value')
         )
-        culprit = nt.join_keys(e.path, keymap=keymap)
-        print(f"ERROR: {config_filepath!s}: {culprit}: {msg}.")
+        line_num, col_num = keymap[tuple(e.path)].as_tuple()
+        file_and_lineno = f"{config_filepath!s}@{line_num}"
+        culprit = nt.join_keys(e.path, keymap=keymap, sep="›")
+        print(f"ERROR: {file_and_lineno}: {culprit}: {msg}.")
         try:
             print(keymap[tuple(e.path)].as_line(flag))
         except KeyError:
