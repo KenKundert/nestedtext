@@ -591,8 +591,10 @@ class Location:
             kind (str):
                 Specify either “key” or “value” depending on which token is
                 desired.
-            offset (int):
+            offset (int | None):
                 Move error pointer to the right by this many characters.
+                Default is 0.  If None is specified, error pointer is not
+                added to the line.
         """
         if kind == "key":
             line = self.key_line
@@ -602,8 +604,11 @@ class Location:
             if col is None:
                 col = self.col
         else:
+            assert kind == "value"
             line = self.line
             col = self.col
+        if offset is None:
+            return line.render()
         return line.render(col + offset)
 
     # _get_original_key() {{{3

@@ -42,7 +42,8 @@ class Location:
 
     def as_line(
         self,
-        kind: str = ...
+        kind: str = ...,
+        offset: str | None = ...
     ) -> str:
         ...
 
