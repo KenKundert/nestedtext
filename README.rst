@@ -16,6 +16,9 @@ NestedText — A Human Friendly Data Format
 .. image:: https://img.shields.io/pypi/v/nestedtext.svg
     :target: https://pypi.python.org/pypi/nestedtext
 
+.. image:: https://anaconda.org/conda-forge/nestedtext/badges/version.svg
+    :target: https://anaconda.org/conda-forge/nestedtext
+
 .. image:: https://img.shields.io/pypi/pyversions/nestedtext.svg
     :target: https://pypi.python.org/pypi/nestedtext
 
