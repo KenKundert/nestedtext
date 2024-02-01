@@ -34,7 +34,18 @@ it would simply check that the input matches the given type:
 .. literalinclude:: ../examples/deploy_voluptuous.py
    :language: python
 
-This produces the same result as in the previous example.
+This produces the following data structure:
+
+.. code-block:: python
+
+    {'allowed_hosts': ['www.example.com'],
+     'database': {'engine': 'django.db.backends.mysql',
+                  'host': 'db.example.com',
+                  'port': 3306,
+                  'user': 'www'},
+     'debug': False,
+     'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
+     'webmaster_email': 'admin@example.com'}
 
 See the :ref:`PostMortem <postmortem example>` example for a more flexible 
 approach to validating with *Voluptuous*.
@@ -62,18 +73,7 @@ here:
 .. literalinclude:: ../examples/deploy_pydantic.py
    :language: python
 
-This produces the following data structure:
-
-.. code-block:: python
-
-    {'allowed_hosts': ['www.example.com'],
-     'database': {'engine': 'django.db.backends.mysql',
-                  'host': 'db.example.com',
-                  'port': 3306,
-                  'user': 'www'},
-     'debug': False,
-     'secret_key': 't=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch',
-     'webmaster_email': 'admin@example.com'}
+This produces the same result as in the previous example.
 
 
 .. _normalizing keys:

@@ -575,6 +575,7 @@ class Location:
             if col is None:
                 col = self.col
         else:
+            assert kind == "value"
             line = self.line
             col = self.col
         return line.lineno, col

@@ -9,7 +9,7 @@ Usage:
 from docopt import docopt
 from inform import codicil, display, fatal, full_stop, os_error
 import nestedtext as nt
-from voluptuous import Schema, Required, Any, MultipleInvalid
+from voluptuous import Schema, Any, MultipleInvalid
 import re
 
 contacts_file = "address.nt"
@@ -32,8 +32,8 @@ try:
         str: {
             'position': str,
             'address': str,
-            'phone': Required(Any({str:str},str)),
-            'email': Required(Any({str:str},str)),
+            'phone': Any({str:str},str),
+            'email': Any({str:str},str),
             'additional_roles': Any(list,str),
         }
     })

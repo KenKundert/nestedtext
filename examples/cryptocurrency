@@ -74,16 +74,26 @@ try:
 except nt.NestedTextError as e:
     e.terminate()
 except MultipleInvalid as exception:
+    voluptuous_error_msg_mappings = {
+        "extra keys not allowed": ("unknown key", "key"),
+        "expected a dictionary": ("expected key-value pairs", "value"),
+    }
     for e in exception.errors:
-        kind = 'key' if 'key' in e.msg else 'value'
+        msg, flag = voluptuous_error_msg_mappings.get(
+            e.msg, (e.msg, 'value')
+        )
+        culprit = nt.join_keys(e.path, keymap=keymap, sep="›")
         loc = keymap.get(tuple(e.path))
-        codicil = loc.as_line(kind) if loc else None
-        line_num, col_num = loc.as_tuple()
-        file_and_lineno = f"{settings_file!s}@{line_num}"
-        key_path = nt.join_keys(e.path, keymap=keymap, sep="›")
+        if loc:
+            codicil = loc.as_line(flag)
+            line_num, col_num = loc.as_tuple(flag)
+            file_and_lineno = f"{settings_file!s}@{line_num+1}"
+        else:  # required key is missing
+            codicil = None
+            file_and_lineno = settings_file
         error(
             full_stop(e.msg),
-            culprit = (file_and_lineno, key_path),
+            culprit = (file_and_lineno, culprit),
             codicil = codicil
         )
 except OSError as e:

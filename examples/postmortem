@@ -12,7 +12,7 @@ from pprint import pprint
 def to_str(arg):
     if isinstance(arg, str):
         return arg
-    raise Invalid('expected text')
+    raise Invalid(f"expected text, found {arg.__class__.__name__}")
 
 def to_ident(arg):
     arg = to_str(arg)
@@ -24,7 +24,7 @@ def to_list(arg):
     if isinstance(arg, str):
         return arg.split()
     if isinstance(arg, dict):
-        raise Invalid('expected list')
+        raise Invalid(f"expected list, found {arg.__class__.__name__}")
     return arg
 
 def to_paths(arg):
@@ -91,7 +91,7 @@ def expand_settings(value):
     if isinstance(value, str):
         value = value.strip()
         if value[:1] == '@':
-            value = settings[to_snake_case(value[1:])]
+            value = settings.get(to_snake_case(value[1:]))
         return value
     if isinstance(value, dict):
         return {k:expand_settings(v) for k, v in value.items()}
@@ -133,13 +133,17 @@ except MultipleInvalid as exception:
         msg, flag = voluptuous_error_msg_mappings.get(
             e.msg, (e.msg, 'value')
         )
-        line_num, col_num = keymap[tuple(e.path)].as_tuple()
-        file_and_lineno = f"{config_filepath!s}@{line_num}"
         culprit = nt.join_keys(e.path, keymap=keymap, sep="›")
+        loc = keymap.get(tuple(e.path))
+        if loc:
+            line_num, col_num = loc.as_tuple(flag)
+            file_and_lineno = f"{config_filepath!s}@{line_num+1}"
+            codicil = loc.as_line(flag)
+        else:
+            file_and_lineno = str(config_filepath)
+            codicil = None
         print(f"ERROR: {file_and_lineno}: {culprit}: {msg}.")
-        try:
-            print(keymap[tuple(e.path)].as_line(flag))
-        except KeyError:
-            pass
+        if codicil:
+            print(codicil)
 except OSError as e:
     print(f"ERROR: {config_filepath!s}: {e!s}")
