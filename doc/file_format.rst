@@ -165,6 +165,9 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     A bracket introduces an inline list and a brace introduces an inline 
     dictionary.
 
+    Inlines are confined to a single line, and so must not contain any 
+    line-break white space, such as newlines.
+
     An *inline list* starts with an open bracket (``[``), ends with a matching 
     closed bracket (``]``), contains inline values separated by commas (``,``), 
     and is contained on a single line.  The values may be inline strings, inline 
@@ -182,10 +185,13 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     lists.  They are somewhat constrained in the characters that they may 
     contain; nothing is allowed that might be confused with the syntax 
     characters used by the inline list or dictionary that contains it.  
-    Specifically, inline strings may not contain newlines or any of the 
-    following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  In addition, 
-    inline strings that are contained in inline dictionaries may not contain 
-    ``:``.  Both leading and trailing white space is ignored with inline strings.
+    Specifically, inline strings may not line-break white space such as newlines 
+    or any of the following characters: ``[``, ``]``, ``{``, ``}``, or ``,``.  
+    In addition, inline strings that are contained in inline dictionaries may 
+    not contain ``:``.  Both leading and trailing white space is ignored with 
+    inline strings.  This includes all non-line-break white space characters 
+    such as ASCII spaces and tabs, as well as the various Unicode white space 
+    characters.
 
     Both inline lists and dictionaries may be empty, and represent the only way 
     to represent empty lists or empty dictionaries in *NestedText*.  An empty 

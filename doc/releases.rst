@@ -17,6 +17,7 @@ Latest development version
 | Released: 2024-01-26
 
 - Added *offset* option to :meth:`Location.as_line()`.
+- Clarified policy on white space in inline strings.
 
 
 v3.6 (2023-05-30)
