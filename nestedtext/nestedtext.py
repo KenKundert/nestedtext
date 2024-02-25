@@ -591,12 +591,12 @@ class Location:
                 Specify either “key” or “value” depending on which token is
                 desired.
             offset:
-                If offset is None, the error pointer is not added to the line.
-                If offset is an integer, the pointer is moved to the right by
+                If *offset* is None, the error pointer is not added to the line.
+                If *offset* is an integer, the pointer is moved to the right by
                 this many characters.  The default is 0.
-                If offset is a tuple, it must have two values.  The first is the
-                row offset and the second is the column offset.  This is useful
-                for annotating errors in multiline strings.
+                If *offset* is a tuple, it must have two values.  The first is
+                the row offset and the second is the column offset.  This is
+                useful for annotating errors in multiline strings.
         """
         # get the line and the column number of the key or value
         if kind == "key":
@@ -610,6 +610,9 @@ class Location:
             assert kind == "value"
             line = self.line
             col = self.col
+
+        if not line:  # this occurs if input is completely empty
+            return ""
 
         # process the offset
         if offset is None:

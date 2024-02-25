@@ -9,6 +9,7 @@ from functools import wraps
 from io import StringIO
 from inform import Error, Info, render, indent, join, dedent
 from quantiphy import Quantity
+import subprocess
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
@@ -1229,6 +1230,82 @@ def test_load_dialect():
     data = nt.loads(document, dialect="i")
     assert data == {"[7:0] data":"", "{7:0} bits":""}
 
+# test_empty {{{2
+@parametrize(
+    "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
+)
+def test_empty_blank_lines(top, expected):
+    # just blank lines
+    document = ""
+
+    keymap = {}
+    data = nt.loads(document, top=top, keymap=keymap)
+    assert data == expected
+    assert keymap[()].as_line(offset=None) == ''
+
+# test_empty_blank_lines {{{2
+@parametrize(
+    "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
+)
+def test_empty_blank_lines(top, expected):
+    # just blank lines
+    document = "\n\n\n"
+
+    keymap = {}
+    data = nt.loads(document, top=top, keymap=keymap)
+    assert data == expected
+    assert keymap[()].as_line(offset=None) == '   4 ❬❭'
+
+# test_empty_comments {{{2
+@parametrize(
+    "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
+)
+def test_empty_comments(top, expected):
+    # just blank lines
+    document = "#comment 0\n#comment 1\n#comment 2\n# comment3"
+
+    keymap = {}
+    data = nt.loads(document, top=top, keymap=keymap)
+    assert data == expected
+    assert keymap[()].as_line(offset=None) == '   4 ❬# comment3❭'
+
+# test_empty_stdin {{{2
+@parametrize(
+    "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
+)
+def test_empty_stdin(monkeypatch, top, expected):
+    # just blank lines
+    document = ""
+    monkeypatch.setattr('sys.stdin', StringIO(document))
+
+    keymap = {}
+    data = nt.load(sys.stdin, top=top, keymap=keymap, source="❬stdin❭")
+    assert data == expected
+    assert keymap[()].as_line(offset=None) == ''
+
+# test_empty_dev_null {{{2
+@parametrize(
+    "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
+)
+def test_empty_dev_null(monkeypatch, top, expected):
+    # just blank lines
+    keymap = {}
+    data = nt.load("/dev/null", top=top, keymap=keymap, source="❬stdin❭")
+    assert data == expected
+    assert keymap[()].as_line(offset=None) == ''
+
+# test_empty_fd0 {{{2
+def test_empty_fd0(monkeypatch):
+    # I only seem to get one shot at testing 0 as a file descriptor
+
+    # load stdin, which will be empty
+    monkeypatch.setattr('sys.stdin', StringIO(''))
+    keymap = {}
+    data = nt.load(0, keymap=keymap)
+    assert data == {}
+    assert keymap[()].as_line(offset=None) == ''
+
+
 # Test dump {{{1
 # test_dump_success_cases {{{2
 @parametrize_dump_api
@@ -1898,5 +1975,36 @@ def test_dump_dialect():
         dict:
         list:
     """, strip_nl="b")
+
+# Test round-trip {{{1
+# test_file_descriptors {{{2
+def test_file_descriptors(tmp_path):
+    # program that writes out a simple NT document to stdout
+    write_data = dedent("""
+        import nestedtext
+        data = {"dict": {}, "list": [], "str": "", "mls":"\\n"}
+        nestedtext.dump(data, 1)
+    """)
+    writer = tmp_path / "writer.py"
+    # program that reads a simple NT document from stderr
+    read_data = dedent("""
+        import nestedtext
+        data = nestedtext.load(0)
+        assert data == {"dict": {}, "list": [], "str": "", "mls":"\\n"}
+    """)
+    reader = tmp_path / "reader.py"
+
+    writer.write_text(write_data)
+    reader.write_text(read_data)
+
+    results = subprocess.run(
+        f"python {writer!s} | python {reader!s}",
+        shell = True,
+        capture_output = True,
+        env = {"COVERAGE_PROCESS_START":""},
+    )
+    assert results.stdout == b""
+    assert results.stderr == b""
+    assert results.returncode == 0
 
 # vim: fdm=marker
