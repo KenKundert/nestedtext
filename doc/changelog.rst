@@ -14,8 +14,8 @@ implementation, you will see versions that include no changes to the language.
 Latest development version
 --------------------------
 
-| Version: 3.6.1
-| Released: 2024-01-26
+| Version: 3.7.dev1
+| Released: 2024-02-24
 
 - Clarified policy on white space in inline strings.
 
