@@ -797,7 +797,7 @@ def test_keymaps():
     cases = """
         president                           → 2  0    3  4    2  3    3  4
         president name                      → 3  4    3  10   3  4    3  4
-        president address                   → 4  4    5  8    4  5    5  7
+        president address                   → 4  4    5  10   4  5    5  7
         president phone                     → 7  4    8  8    7  8    8  9
         president phone cell_phone          → 8  8    8  20   8  9    8  9
         president phone work_phone          → 9  8    9  20   9  10   9  10
@@ -808,7 +808,7 @@ def test_keymaps():
         president kids 1                    → 15 8    15 10   15 16   15 16
         vice_president                      → 17 0    18 4    17 18   18 19
         vice_president name                 → 18 4    18 10   18 19   18 19
-        vice_president address              → 19 4    20 8    19 20   20 22
+        vice_president address              → 19 4    20 10   19 20   20 22
         vice_president phone                → 22 4    23 8    22 23   23 24
         vice_president phone cell_phone     → 23 9    23 21   23 24   23 24
         vice_president phone home_phone     → 23 37   23 49   23 24   23 24
@@ -820,12 +820,12 @@ def test_keymaps():
         treasurer                           → 28 0    29 4    28 29   29 30
         treasurer 0                         → 29 4    30 8    29 30   30 31
         treasurer 0 name                    → 30 8    30 14   30 31   30 31
-        treasurer 0 address                 → 31 8    32 12   31 32   32 34
+        treasurer 0 address                 → 31 8    32 14   31 32   32 34
         treasurer 0 phone                   → 34 8    34 15   34 35   34 35
         treasurer 0 email                   → 35 8    35 15   35 36   35 36
         treasurer 0 additional_roles        → 36 8    37 12   36 37   37 38
         treasurer 0 additional_roles 0      → 37 12   37 14   37 38   37 38
-        multiline↲key                       → 39 0    41 4    39 41   41 42
+        multiline↲key                       → 39 0    41 6    39 41   41 42
     """.strip().splitlines()
 
     def fix_key(key, normalize):
@@ -872,7 +872,19 @@ def test_keymaps():
 
         # check line numbers as tuples
         assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key') == (key_first_line, key_last_line), keys
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value') == (value_first_line, value_last_line), keys
+        assert nt.get_lines_from_keys(addresses, list(keys), keymap, kind='value') == (value_first_line, value_last_line), keys
+
+        # check line numbers as tuples
+        assert nt.get_line_numbers(keys, keymap, kind='key') == (key_first_line, key_last_line), keys
+        assert nt.get_line_numbers(list(keys), keymap, kind='value') == (value_first_line, value_last_line), keys
+
+        bad_keys = keys + ("does-not-exist",)
+
+        with pytest.raises(KeyError) as exception:
+            nt.get_line_numbers(bad_keys, keymap, kind='value', strict=True)
+        assert exception.value.args[0] == bad_keys
+
+        assert nt.get_line_numbers(bad_keys, keymap, kind='value', strict=False) == (value_first_line, value_last_line), keys
 
         # check line numbers as strings
         if key_first_line+1 != key_last_line:
@@ -885,6 +897,18 @@ def test_keymaps():
         else:
             value_lines = str(value_last_line)
         assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
+
+        # check line numbers as strings
+        if key_first_line+1 != key_last_line:
+            key_lines = f"{key_first_line+1}-{key_last_line}"
+        else:
+            key_lines = str(key_last_line)
+        assert nt.get_line_numbers(keys, keymap, kind='key', sep='-') == key_lines, keys
+        if value_first_line+1 != value_last_line:
+            value_lines = f"{value_first_line+1}-{value_last_line}"
+        else:
+            value_lines = str(value_last_line)
+        assert nt.get_line_numbers(keys, keymap, kind='value', sep='-') == value_lines, keys
 
     # Without key normalization
     keymap = {}
@@ -901,6 +925,25 @@ def test_keymaps():
         given, expected = case.split('→')
         keys = tuple(fix_key(n, False) for n in given.split())
         check_result(keys, expected, addresses)
+
+    addresses = nt.loads(document, keymap=keymap, normalize_key=normalize_key)
+    keys = ("president", "address")
+    loc = nt.get_location(keys, keymap)
+    assert loc.as_line('value') == dedent("""
+        ◊  6 ❬        > 138 Almond Street❭
+                        ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value', offset=None) == dedent("""
+        ◊  6 ❬        > 138 Almond Street❭
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value', offset=4) == dedent("""
+        ◊  6 ❬        > 138 Almond Street❭
+                            ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value', offset=(1,8)) == dedent("""
+        ◊  7 ❬        > Topeka, Kansas 20697❭
+                                ▲
+    """, bolm='◊', strip_nl="b")
 
 
 # test_keymaps_with_duplicates {{{2
@@ -1129,6 +1172,14 @@ def test_key_utilities():
         except TypeError:
             assert value == expected_value
 
+        # check get_value
+        value = nt.get_value(data, normalized_keys)
+        expected_value = expected_values[normalized_keys]
+        try:
+            assert isinstance(value, expected_value)
+        except TypeError:
+            assert value == expected_value
+
         # print(value)
         # try:
         #     assert index == int(value)
@@ -1148,6 +1199,35 @@ def test_key_utilities():
         assert join(*unknown_norm, sep=', ') == nt.join_keys(unknown_norm)
         assert join(*unknown_orig, sep=', ') == nt.join_keys(unknown_norm, keymap=keymap)
 
+        # check get_keys
+        assert normalized_keys == nt.get_keys(normalized_keys, keymap, original=False)
+        assert original_keys == nt.get_keys(normalized_keys, keymap, original=True)
+        assert join(*normalized_keys, sep=', ') == nt.get_keys(normalized_keys, keymap, original=False, sep=", ")
+        assert join(*original_keys, sep=', ') == nt.get_keys(normalized_keys, keymap, original=True, sep=", ")
+        assert join(*unknown_norm, sep=', ') == nt.get_keys(list(unknown_norm), keymap, original=False, strict="all", sep=", ")
+        assert join(*unknown_orig, sep=', ') == nt.get_keys(unknown_norm, keymap, original=True, strict="all", sep=", ")
+        assert join(*unknown_norm, sep=', ') == nt.get_keys(unknown_norm, keymap, original=False, strict=False, sep=", ")
+        assert join(*unknown_orig, sep=', ') == nt.get_keys(list(unknown_norm), keymap, original=True, strict=False, sep=", ")
+        assert join(*unknown_norm[:-1], sep=', ') == nt.get_keys(unknown_norm, keymap, original=False, strict="found", sep=", ")
+        assert join(*unknown_orig[:-1], sep=', ') == nt.get_keys(unknown_norm, keymap, original=True, strict="found", sep=", ")
+        assert join('unknown key', sep=', ') == nt.get_keys(unknown_norm, keymap, original=False, strict="missing", sep=", ")
+        assert join('unknown key', sep=', ') == nt.get_keys(unknown_norm, keymap, original=True, strict="missing", sep=", ")
+
+        with pytest.raises(KeyError) as exception:
+            nt.get_keys(unknown_norm, keymap, strict=True)
+        assert exception.value.args[0] == unknown_norm
+        with pytest.raises(KeyError) as exception:
+            nt.get_keys(unknown_norm, keymap, strict="error")
+        assert exception.value.args[0] == unknown_norm
+
+# test_load_dialect {{{2
+def test_load_dialect():
+    document = dedent("""
+        [7:0] data:
+        {7:0} bits:
+    """)
+    data = nt.loads(document, dialect="i")
+    assert data == {"[7:0] data":"", "{7:0} bits":""}
 
 # Test dump {{{1
 # test_dump_success_cases {{{2
@@ -1809,5 +1889,14 @@ def test_dump_map_keys_func():
     code = nt.loads(document)
     output = nt.dumps(code, map_keys=map_keys)
     assert output == expected
+
+# test_dump_dialect {{{2
+def test_dump_dialect():
+    data = {"dict":{}, "list":[]}
+    document = nt.dumps(data, dialect="i")
+    assert document.strip() == dedent("""
+        dict:
+        list:
+    """, strip_nl="b")
 
 # vim: fdm=marker

@@ -625,7 +625,7 @@ class Location:
         return line.render(col + offset)
 
     # get_line_numbers() {{{3
-    def get_line_numbers(self, kind="value", sep=None, base=None):
+    def get_line_numbers(self, kind="value", sep=None):
         """
         Returns the line numbers of a token either as a pair of integers or as a
         string.
@@ -635,15 +635,16 @@ class Location:
                 Specify either “key” or “value” depending on which token is
                 desired.
             sep:
-                The separator string. If given a string is returned and *sep* is
-                inserted between two line numbers.  Otherwise a tuple is
-                returned.
-            base:
-                An integer that is simply added to each line number. Defaults to
-                1 if *sep* is given and 0 otherwise.  Generally used to select
-                between line numbers that start at 1, which is better when
-                communicating with end users, and those that start at 0, which
-                often is better when further processing the line numbers.
+                The separator string.
+
+                If given a string is returned and *sep* is inserted between two
+                line numbers.  In this case the line numbers start at 1.
+
+                If *sep* is not given, a tuple of integers is returned.  In this
+                case the line numbers start at 0, but the second number returned
+                is the last line number plus 1.  This form is suitable to use
+                with the Python slice function to extract the lines from the
+                *NestedText* source.
         """
         if kind == "key":
             line = self.key_line
@@ -660,10 +661,10 @@ class Location:
             line = line.next_line
 
         if sep is None:
-            return (first_lineno + base, last_lineno + base + 1)
+            return (first_lineno, last_lineno + 1)
         if first_lineno != last_lineno:
-            return join(first_lineno + 1, last_lineno + 1, sep=sep)
-        return str(first_lineno + 1)
+            return join(first_lineno+1, last_lineno+1, sep=sep)
+        return str(first_lineno+1)
 
     # _get_original_key() {{{3
     def _get_original_key(self, key, strict):
@@ -1089,13 +1090,14 @@ class NestedTextLoader:
     def _read_string(self, depth, keys):
         lines = self.lines
         data = []
-        loc = Location(line=lines.next_line, col=depth)
+        loc = Location(line=lines.next_line, key_col=depth)
         while lines.still_within_string(depth):
             line = lines.get_next()
             data.append(line.value)
             if line.depth != depth:
                 lines.indentation_error(line, depth)
         value = "\n".join(data)
+        loc.col = depth + (2 if value else 1)
         return value, loc
 
     # _read_inline() {{{3
@@ -1489,7 +1491,7 @@ class NestedTextDumper:
             self.is_a_str = is_str
             self.is_a_scalar = lambda obj: obj is None or isinstance(obj, (bool, int, float))
             if is_str(default):
-                raise NotImplementedError(default)
+                raise NotImplementedError(default)  # pragma: no cover
 
     # render_key {{{3
     def render_key(self, key, keys):
@@ -2570,7 +2572,7 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
             key = loc._get_original_key(keys[i], strict) if original else keys[i]
             if strict != "missing":
                 to_return += key,
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError):
             if strict in [True, "error"]:
                 raise
             if strict != "found":
@@ -2622,7 +2624,7 @@ def get_value(data, keys):
 
 
 # get_line_numbers {{{2
-def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=None):
+def get_line_numbers(keys, keymap, kind="value", *, strict=True, sep=None):
     # description {{{3
     '''
     Get line numbers from normalized key sequence.
@@ -2636,17 +2638,14 @@ def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=
     user focuses on the whole string and not just the first line.  This only
     happens for multiline keys and multiline strings.
 
-    If *sep* is given, either one line number or both the beginning and ending
-    line numbers are returned, joined with the separator.  Otherwise, the line
-    numbers are returned as a tuple containing a pair of integers.
+    If *sep* is given, either one line number or both the beginning and ending line
+    numbers are returned, joined with the separator. In this case the line numbers
+    start from line 1.
 
-    Internally the line numbers start at 0, but the value of *base* is added to
-    line numbers before they are returned.  Generally *base* is given as either
-    0 or 1.  A value of 1 is generally used when reporting line numbers to the
-    end user.  A value of 0 is often preferred when the line numbers are used in
-    further processing.  For example, in this case the output of this function
-    is suitable to be directly used by the Python *slice function (see example).
-    The default value of *base* is 1 if *sep* is specified, otherwise it is 0.
+    If *sep* is not given, the line numbers are returned as a tuple containing a pair
+    of integers that is tailored to be suitable to be arguments to the Python slice
+    function (see example). The beginning line number and 1 plus the ending line
+    number is returned as a tuple. In this case the line numbers start at 0.
 
     If *keys* corresponds to a composite value (a dictionary or list), the
     line on which it ends cannot be easily determined, so the value is treated
@@ -2663,15 +2662,6 @@ def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=
         kind:
             Specify either “key” or “value” depending on which token is
             desired.
-        base:
-            If *base* is 1, line numbers start at 1, which is more natural when
-            reporting them to users..  If *base* is 0, line numbers start at 0,
-            which is more natural when further processing is needed.  For
-            example, 0 based line numbers can be used in a slice operation to
-            isolate the original lines of a value.
-
-            If not specified, base is taken to be 1 if *sep* is given and 0
-            otherwise.
         strict:
             If *strict* is true, a *KeyError* is raised if *keys* is not found.
             Otherwise the line number that corresponds to composite value that
@@ -2713,8 +2703,6 @@ def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=
     '''
 
     # code {{{3
-    if base is None:
-        base = 1 if sep else 0
     loc = get_location(keys, keymap)
     if not loc:
         if strict:
@@ -2722,7 +2710,7 @@ def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=
         else:
             found = get_keys(keys, keymap, original=False, strict="found")
             loc = keymap[found]
-    return loc.get_line_numbers(kind, sep, base)
+    return loc.get_line_numbers(kind, sep)
 
 
 # get_location {{{2
