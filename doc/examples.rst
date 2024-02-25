@@ -119,7 +119,8 @@ reference as a value.  So for example, in *recipients* *attach* is specified as
 attachments.  The same thing is done in *sign with*, which interpolates *my gpg 
 ids*.
 
-Here is the code for validating and transforming the *PostMortem* settings:
+Here is the code for validating and transforming the *PostMortem* settings.  For 
+more on *report_voluptuous_errors*, see :ref:`voluptuous example`.
 
 .. literalinclude:: ../examples/postmortem
    :language: python

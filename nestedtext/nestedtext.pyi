@@ -43,10 +43,16 @@ class Location:
     def as_line(
         self,
         kind: str = ...,
-        offset: str | None = ...
+        offset: int | (int, int) | None = ...
     ) -> str:
         ...
 
+    def get_line_numbers(
+        self,
+        kind: str = ...,
+        sep: str = ...,
+    ) -> tuple[int, int] | str:
+        ...
 def loads(
     content : str,
     top: str | Callable | Type[dict] | Type[list] | Type[str] = ...,
@@ -105,18 +111,43 @@ def get_lines_from_keys(
     ...
 
 def get_original_keys(
-    keys: tuple[str, ...],
+    keys: tuple[str | int, ...],
     # keymap: dict[tuple[str, ...], Location],
-    keymap: dict[tuple[str, ...], Any] = ...,
-    strict: bool = ...
+    keymap: dict[tuple[str | int, ...], Any] = ...,
+    strict: bool | str = ...
 ) -> tuple[int]:
     ...
 
 def join_keys(
-    keys: tuple[str, ...],
+    keys: tuple[str | int, ...],
     sep: str = ...,
     # keymap: dict[tuple[str], Location] = ...,
-    keymap: dict[tuple[str, ...], Any] = ...,
-    strict: bool = ...
+    keymap: dict[tuple[str | int, ...], Any] = ...,
+    strict: bool | str = ...
 ) -> str:
+    ...
+
+def get_location(
+    keys: tuple[str | int, ...],
+    keymap: dict[tuple[str | int, ...], Location],
+) -> Location:
+    ...
+
+def get_line_numbers(
+    keys: tuple[str | int, ...],
+    keymap: dict[tuple[str | int, ...], Location],
+    kind: str = ...,
+    base: int = ...,
+    strict: bool = ...,
+    sep: str = ...,
+) -> tuple[int, int] | str:
+    ...
+
+def get_keys(
+    keys: tuple[str | int, ...],
+    keymap: dict[tuple[str | int, ...], Location],
+    original: bool = ...,
+    strict: bool | string = ...,
+    sep: str = ...,
+) -> tuple[str | int, ...] | str:
     ...

@@ -51,20 +51,6 @@ import re
 import unicodedata
 
 
-# Globals {{{1
-support_inlines = True
-    # By disabling inlines it is possible to have keys that start with [ or {,
-    # but the resulting NestedText files are not compliant with the spec.
-    # Use of this feature is highly discouraged.
-
-def set_prefs(**kwargs):
-    if 'support_inlines' in kwargs:
-        global support_inlines
-        support_inlines = kwargs.pop('support_inlines')
-    if kwargs:
-        raise NestedTextError(f"unknown preferences: {', '.join(kwargs.keys())}.")
-
-
 # Utility functions {{{1
 # convert_returns {{{2
 def convert_returns(text):
@@ -307,9 +293,15 @@ def unrecognized_line(line):
 # Lines class {{{2
 class Lines:
     # constructor {{{3
-    def __init__(self, lines):
+    def __init__(self, lines, support_inlines):
         self.lines = lines
+        self.support_inlines = support_inlines
         self.generator = self.read_lines()
+        self.first_value_line = None
+        self.last_comment_line = None
+            # a location is needed for the top of the data, keys = ()
+            # use the first value given, if the data is not empty
+            # use last comment given if data is empty
         self.next_line = True
         while self.next_line:
             self.next_line = next(self.generator, None)
@@ -361,7 +353,7 @@ class Lines:
             elif stripped == ":" or stripped.startswith(": "):
                 kind = "key item"
                 value = line[depth+2:]
-            elif stripped[0:1] in ["[", "{"] and support_inlines:
+            elif stripped[0:1] in ["[", "{"] and self.support_inlines:
                 tag = stripped[0:1]
                 kind = "inline dict" if tag == "{" else "inline list"
                 value = line[depth:]
@@ -390,9 +382,10 @@ class Lines:
             if kind.endswith(" item") or kind.startswith("inline "):
                 # Create prev_line, which differs from last_line in that it
                 # is a copy of the line without a prev_line attribute of its
-                # own. This avoids keeping a chain of all previous lines. In
-                # contrast, last line is the actual this_line from the previous
-                # iteration.  Also, it is a data line, not a comment or blank.
+                # own. This avoids keeping a chain of all previous lines.
+                #
+                # In contrast, last_line is the actual this_line from the previous
+                # non-blank/comment iteration
                 prev_line = self.Line(
                     text = this_line.text,
                     value = this_line.value,
@@ -402,7 +395,7 @@ class Lines:
                 )
 
                 # add this line as next_line in prev_line if this is a continued
-                # multiline string.
+                # multiline key or multiline string.
                 if (
                     last_line                 and
                     depth == last_line.depth  and
@@ -411,7 +404,12 @@ class Lines:
                 ):
                     last_line.next_line = this_line
 
-            last_line = this_line
+            if kind in ['blank', 'comment']:
+                self.last_comment_line = this_line
+            else:
+                last_line = this_line
+                if not self.first_value_line:
+                    self.first_value_line = this_line
             yield this_line
 
     # type_of_next() {{{3e
@@ -563,7 +561,7 @@ class Location:
         column numbers are 0 based.
 
         Args:
-            kind (str):
+            kind:
                 Specify either “key” or “value” depending on which token is
                 desired.
         """
@@ -589,14 +587,18 @@ class Location:
         token.
 
         Args:
-            kind (str):
+            kind:
                 Specify either “key” or “value” depending on which token is
                 desired.
-            offset (int | None):
-                Move error pointer to the right by this many characters.
-                Default is 0.  If None is specified, error pointer is not
-                added to the line.
+            offset:
+                If offset is None, the error pointer is not added to the line.
+                If offset is an integer, the pointer is moved to the right by
+                this many characters.  The default is 0.
+                If offset is a tuple, it must have two values.  The first is the
+                row offset and the second is the column offset.  This is useful
+                for annotating errors in multiline strings.
         """
+        # get the line and the column number of the key or value
         if kind == "key":
             line = self.key_line
             col = self.key_col
@@ -608,9 +610,60 @@ class Location:
             assert kind == "value"
             line = self.line
             col = self.col
+
+        # process the offset
         if offset is None:
             return line.render()
+        try:
+            row_offset, offset = offset
+            while row_offset > 0:
+                line = line.next_line
+                row_offset -= 1
+        except TypeError:
+            pass
+
         return line.render(col + offset)
+
+    # get_line_numbers() {{{3
+    def get_line_numbers(self, kind="value", sep=None, base=None):
+        """
+        Returns the line numbers of a token either as a pair of integers or as a
+        string.
+
+        Args:
+            kind:
+                Specify either “key” or “value” depending on which token is
+                desired.
+            sep:
+                The separator string. If given a string is returned and *sep* is
+                inserted between two line numbers.  Otherwise a tuple is
+                returned.
+            base:
+                An integer that is simply added to each line number. Defaults to
+                1 if *sep* is given and 0 otherwise.  Generally used to select
+                between line numbers that start at 1, which is better when
+                communicating with end users, and those that start at 0, which
+                often is better when further processing the line numbers.
+        """
+        if kind == "key":
+            line = self.key_line
+            if line is None:
+                line = self.line
+        else:
+            assert kind == "value"
+            line = self.line
+
+        # find line numbers
+        first_lineno = line.lineno
+        while line:
+            last_lineno = line.lineno
+            line = line.next_line
+
+        if sep is None:
+            return (first_lineno + base, last_lineno + base + 1)
+        if first_lineno != last_lineno:
+            return join(first_lineno + 1, last_lineno + 1, sep=sep)
+        return str(first_lineno + 1)
 
     # _get_original_key() {{{3
     def _get_original_key(self, key, strict):
@@ -813,15 +866,25 @@ class Inline:
 # NestedTextLoader class {{{2
 class NestedTextLoader:
     # __init__() {{{3
-    def __init__(self, lines, top, source, on_dup, keymap, normalize_key):
+    def __init__(self, lines, top, source, on_dup, keymap, normalize_key, dialect):
         KeyPolicy.set_policy(on_dup)
         self.source = source
         self.keymap = keymap
         assert self.keymap is None or is_mapping(self.keymap)
         self.normalize_key = normalize_key if normalize_key else lambda k, ks: k
+        if dialect and "i" in dialect:
+            support_inlines = False
+        else:
+            support_inlines = True
 
         with set_culprit(source):
-            lines = self.lines = Lines(lines)
+            lines = self.lines = Lines(lines, support_inlines)
+            if keymap is not None:
+                # add a location for the top-level of the data set
+                if lines.first_value_line:
+                    keymap[()] = Location(line=lines.first_value_line, col=0)
+                else:
+                    keymap[()] = Location(line=lines.last_comment_line, col=0)
             next_is = lines.type_of_next()
 
             if top in ["any", any]:
@@ -1026,14 +1089,13 @@ class NestedTextLoader:
     def _read_string(self, depth, keys):
         lines = self.lines
         data = []
-        loc = Location(line=lines.next_line, key_col=depth)
+        loc = Location(line=lines.next_line, col=depth)
         while lines.still_within_string(depth):
             line = lines.get_next()
             data.append(line.value)
             if line.depth != depth:
                 lines.indentation_error(line, depth)
         value = "\n".join(data)
-        loc.col = depth + (2 if value else 1)
         return value, loc
 
     # _read_inline() {{{3
@@ -1045,7 +1107,14 @@ class NestedTextLoader:
 
 # loads {{{2
 def loads(
-    content, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=None
+    content,
+    top = "dict",
+    *,
+    source = None,
+    on_dup = None,
+    keymap = None,
+    normalize_key = None,
+    dialect = None
 ):
     # description {{{3
     r'''
@@ -1122,6 +1191,20 @@ def loads(
             and the tuple of normalized keys for its parent values.  It then
             transforms the given key into the desired normalized form.  Only
             called on dictionary keys, so the key will always be a string.
+
+        dialect (str):
+            Specifies support for particular variations in *NestedText*.
+
+            In general you are discouraged from using a dialect as it can result
+            in *NestedText* documents that are not compliant with the standard.
+
+            The following deviant dialects are supported.
+
+            *support inlines*:
+                If "i" is included in *dialect*, support for inline lists and
+                dictionaries is dropped.  The default is "I", which enables
+                support for inlines.  The main effect of disabling inlines in
+                the load functions is that keys may begin with ``[`` or ``{``.
 
     Returns:
         The extracted data.  The type of the return value is specified by the
@@ -1216,12 +1299,23 @@ def loads(
 
     # code {{{3
     lines = convert_returns(content).split("\n")
-    loader = NestedTextLoader(lines, top, source, on_dup, keymap, normalize_key)
+    loader = NestedTextLoader(
+        lines, top, source, on_dup, keymap, normalize_key, dialect
+    )
     return loader.get_decoded()
 
 
 # load {{{2
-def load(f, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=None):
+def load(
+    f,
+    top = "dict",
+    *,
+    source = None,
+    on_dup = None,
+    keymap = None,
+    normalize_key = None,
+    dialect = None
+):
     # description {{{3
     r"""
     Loads *NestedText* from file or stream.
@@ -1297,7 +1391,9 @@ def load(f, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=
     if isinstance(f, collections.abc.Iterator):
         if not source:
             source = getattr(f, "name", None)
-        loader = NestedTextLoader(f, top, source, on_dup, keymap, normalize_key)
+        loader = NestedTextLoader(
+            f, top, source, on_dup, keymap, normalize_key, dialect
+        )
         return loader.get_decoded()
     else:
         if not source:
@@ -1306,7 +1402,9 @@ def load(f, top="dict", *, source=None, on_dup=None, keymap=None, normalize_key=
             else:
                 source = str(f)
         with open(f, encoding="utf-8") as fp:
-            loader = NestedTextLoader(fp, top, source, on_dup, keymap, normalize_key)
+            loader = NestedTextLoader(
+                fp, top, source, on_dup, keymap, normalize_key, dialect
+            )
             return loader.get_decoded()
 
 
@@ -1345,7 +1443,15 @@ def grow(base, ext):
 class NestedTextDumper:
     # constructor {{{3
     def __init__(
-        self, width, inline_level, sort_keys, indent, converters, default, map_keys
+        self,
+        width,
+        inline_level,
+        sort_keys,
+        indent,
+        converters,
+        default,
+        map_keys,
+        dialect
     ):
         assert indent > 0
         self.width = width
@@ -1354,6 +1460,9 @@ class NestedTextDumper:
         self.converters = converters
         self.map_keys = map_keys
         self.default = default
+        self.support_inlines = True
+        if dialect and "i" in dialect:
+            self.support_inlines = False
 
         # define key sorting function {{{4
         if sort_keys:
@@ -1404,7 +1513,8 @@ class NestedTextDumper:
             not key
             or "\n" in key
             or key.strip() != key
-            or (key[:1] in "#[{" and support_inlines)
+            or key[:1] == "#"
+            or (key[:1] in "[{" and self.support_inlines)
             or key[:2] in ["- ", "> ", ": "]
             or ": " in key
         )
@@ -1499,6 +1609,8 @@ class NestedTextDumper:
         if self.is_a_dict(obj):
             self.check_for_cyclic_reference(obj, keys, values)
             try:
+                if not self.support_inlines:
+                    raise NotSuitableForInline from None
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or len(obj) > self.width/5):
@@ -1521,6 +1633,8 @@ class NestedTextDumper:
         elif self.is_a_list(obj):
             self.check_for_cyclic_reference(obj, keys, values)
             try:
+                if not self.support_inlines:
+                    raise NotSuitableForInline from None
                 if level < self.inline_level:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or len(obj) > self.width/3):
@@ -1634,6 +1748,7 @@ def dumps(
     converters = None,
     map_keys = None,
     default = None,
+    dialect = None
 ):
     # description {{{3
     '''Recursively convert object to *NestedText* string.
@@ -1705,6 +1820,22 @@ def dumps(
             any needed conversion has been performed, and the tuple of parent
             keys.  The value returned is used as the key and so must be a
             string.  If no value is returned, the key is not modified.
+
+        dialect (str):
+            Specifies support for particular variations in *NestedText*.
+
+            In general you are discouraged from using a dialect as it can result
+            in *NestedText* documents that are not compliant with the standard.
+
+            The following deviant dialects are supported.
+
+            *support inlines*:
+                If "i" is included in *dialect*, support for inline lists and
+                dictionaries is dropped.  The default is "I", which enables
+                support for inlines.  The main effect of disabling inlines in
+                the dump functions is that empty lists and dictionaries are
+                output using an empty value, which is normally interpreted by
+                *NestedText* as an empty string.
 
     Returns:
         The *NestedText* content without a trailing newline.  *NestedText* files
@@ -1960,7 +2091,8 @@ def dumps(
 
     # code {{{3
     dumper = NestedTextDumper(
-        width, inline_level, sort_keys, indent, converters, default, map_keys
+        width, inline_level, sort_keys, indent, converters, default,
+        map_keys, dialect
     )
     return dumper.render_value(obj, (), ())
 
@@ -2057,15 +2189,21 @@ def dump(obj, dest, **kwargs):
 # Extras that are useful when using NestedText.
 
 # get_value_from_keys {{{2
-def get_value_from_keys(obj, keys):
+def get_value_from_keys(data, keys):
+    # description {{{3
     '''
     Get value from keys.
 
+    Deprecated in version 3.7 and is to be removed in future versions.
+    :func:`get_value_from_keys` is replaced :func:`get_value`, which is
+    identical.
+
     Args:
-        obj:
+        data:
             Your data set as returned by :meth:`load` or :meth:`loads`.
         keys:
-            A tuple of keys taken from a *keymap*.
+            The sequence of normalized keys that identify a value in the
+            dataset.
 
     Returns:
         The value that corresponds to a tuple of keys from a keymap.
@@ -2088,15 +2226,21 @@ def get_value_from_keys(obj, keys):
             'Fumiko'
 
     '''
+
+    # code {{{3
     for key in keys:
-        obj = obj[key]
-    return obj
+        data = data[key]
+    return data
 
 
 # get_lines_from_keys {{{2
-def get_lines_from_keys(obj, keys, keymap, kind="value", sep=None):
+def get_lines_from_keys(data, keys, keymap, kind="value", sep=None):
+    # description {{{3
     '''
     Get line numbers from normalized keys.
+
+    Deprecated in version 3.7 and is to be removed in future versions.
+    Use :func:`get_line_numbers` as a replacement.
 
     This function returns the line numbers of the key or value selected by
     *keys*.  It is used when reporting an error in a value that is possibly a
@@ -2123,7 +2267,7 @@ def get_lines_from_keys(obj, keys, keymap, kind="value", sep=None):
     leaf values, which are always strings.
 
     Args:
-        obj:
+        data:
             Your data set as returned by :meth:`load` or :meth:`loads`.
         keys:
             The collection of keys that identify a value in the dataset.
@@ -2161,8 +2305,13 @@ def get_lines_from_keys(obj, keys, keymap, kind="value", sep=None):
             > this is line 3
 
     '''
+
+    # code {{{3
+    if type(keys) is not tuple:
+        keys = tuple(keys)
+
     line, col = keymap[keys].as_tuple(kind)
-    value = get_value_from_keys(obj, keys)
+    value = get_value_from_keys(data, keys)
     if kind == "value":
         num_lines = len(value.splitlines()) if is_str(value) else 1
     else:
@@ -2172,14 +2321,17 @@ def get_lines_from_keys(obj, keys, keymap, kind="value", sep=None):
         return (line, line + num_lines)
     if num_lines > 1:
         return join(line + 1, line + num_lines, sep=sep)
-    else:
-        return str(line + 1)
+    return str(line + 1)
 
 
 # get_original_keys {{{2
 def get_original_keys(keys, keymap, strict=False):
+    # description {{{3
     '''
     Get original keys from normalized keys.
+
+    Deprecated in version 3.7 and is to be removed in future versions.
+    Use :func:`get_keys` as a replacement.
 
     This function is used when the *normalize_key* argument is used with
     :meth:`load` or :meth:`loads` to transform the keys to a standard form.
@@ -2230,6 +2382,8 @@ def get_original_keys(keys, keymap, strict=False):
             KeyError: ('names', 'surname')
 
     '''
+
+    # code {{{3
     original_keys = ()
     for i in range(len(keys)):
         try:
@@ -2244,8 +2398,12 @@ def get_original_keys(keys, keymap, strict=False):
 
 # join_keys {{{2
 def join_keys(keys, sep=", ", keymap=None, strict=False):
+    # description {{{3
     '''
     Joins the keys into a string.
+
+    Deprecated in version 3.7 and is to be removed in future versions.
+    Use :func:`get_keys` as a replacement.
 
     Args:
         keys:
@@ -2300,9 +2458,295 @@ def join_keys(keys, sep=", ", keymap=None, strict=False):
             KeyError: ('names', 'surname')
 
     '''
+
+    # code {{{3
     if keymap:
         keys = get_original_keys(keys, keymap, strict=strict)
     return sep.join(str(k) for k in keys)
 
+
+# get_keys {{{2
+def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
+    # description {{{3
+    '''
+    Returns a key sequence given a normalized key sequence.
+
+    Keys in the dataset output by the load functions are referred to as
+    normalized keys, even though no key normalization may have occurred.  This
+    distinguishes them from the original keys, which are the keys given in the
+    NestedText document read by the load functions.  The original keys are
+    mapped to normalized keys by the *normalize_key* argument to the load
+    function.  If normalization is not performed, the normalized keys are
+    the same as the original keys.
+
+    By default this function returns the original key sequence that corresponds
+    to *keys*, a normalized key sequence.
+
+    Args:
+        keys:
+            The sequence of normalized keys that identify a value in the
+            dataset.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`.
+        original:
+            If true, return keys as originally given in the NestedText document
+            (pre-normalization). Otherwise return keys as they exist in the
+            dataset (post-normalization).  The value of this argument has no
+            effect if the keys were not normalized.
+        strict:
+            *strict* controls what happens if the given keys are not found in
+            *keymap*.
+
+            The various options can be helpful when reporting errors on key
+            sequences that do not exist in the data set.  Since they are not in
+            the dataset, the original keys are not available.
+
+            True or "error":
+                A *KeyError* is raised.
+            False or "all":
+                All keys given in *keys* are returned.
+            "found":
+                Only the initial available keys are returned.
+            "missing":
+                Only the missing final keys are returned.
+
+            When returning keys, the initial available keys are converted to
+            their original form if *original* is true,  The missing keys are
+            always returned as given.
+
+    Returns:
+        A tuple containing the desired keys.
+
+    Examples:
+
+        .. code-block:: python
+
+            >>> import nestedtext as nt
+
+            >>> contents = """
+            ... Names:
+            ...     Given: Fumiko
+            ... """
+
+            >>> def normalize_key(key, keys):
+            ...     return key.lower()
+
+            >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
+
+            >>> print(get_keys(("names", "given"), keymap))
+            ('Names', 'Given')
+
+            >>> print(get_keys(("names", "given"), keymap, sep="❭"))
+            Names❭Given
+
+            >>> print(get_keys(("names", "given"), keymap, original=False))
+            ('names', 'given')
+
+            >>> keys = get_keys(("names", "surname"), keymap, strict=True)
+            Traceback (most recent call last):
+            ...
+            KeyError: ('names', 'surname')
+
+            >>> print(get_keys(("names", "surname"), keymap, strict="found"))
+            ('Names',)
+
+            >>> print(get_keys(("names", "surname"), keymap, strict="missing"))
+            ('surname',)
+
+            >>> print(get_keys(("names", "surname"), keymap, strict="all"))
+            ('Names', 'surname')
+
+    '''
+
+    # code {{{3
+    assert strict in [True, False, "missing", "error", "all", "found"], strict
+    if type(keys) is not tuple:
+        keys = tuple(keys)
+
+    to_return = ()
+    for i in range(len(keys)):
+        try:
+            loc = keymap[tuple(keys[:i+1])]
+            key = loc._get_original_key(keys[i], strict) if original else keys[i]
+            if strict != "missing":
+                to_return += key,
+        except (KeyError, IndexError) as e:
+            if strict in [True, "error"]:
+                raise
+            if strict != "found":
+                to_return += keys[i],
+    if sep:
+        return sep.join(str(k) for k in to_return)
+    return to_return
+
+
+# get_value{{{2
+def get_value(data, keys):
+    # description {{{3
+    '''
+    Get value from keys.
+
+    Args:
+        data:
+            Your data set as returned by :meth:`load` or :meth:`loads`.
+        keys:
+            The sequence of normalized keys that identify a value in the
+            dataset.
+
+    Returns:
+        The value that corresponds to a tuple of keys from a keymap.
+
+    Examples:
+
+        .. code-block:: python
+
+            >>> import nestedtext as nt
+
+            >>> contents = """
+            ... names:
+            ...     given: Fumiko
+            ...     surname: Purvis
+            ... """
+
+            >>> data = nt.loads(contents, "dict")
+
+            >>> get_value_from_keys(data, ("names", "given"))
+            'Fumiko'
+
+    '''
+
+    # code {{{3
+    for key in keys:
+        data = data[key]
+    return data
+
+
+# get_line_numbers {{{2
+def get_line_numbers(keys, keymap, kind="value", *, base=None, strict=True, sep=None):
+    # description {{{3
+    '''
+    Get line numbers from normalized key sequence.
+
+    This function returns the line numbers of the key or value selected by
+    *keys*.  It is used when reporting an error in a value that is possibly a
+    multiline string.  If the location contained in a keymap were used the user
+    would only see the line number of the first line, which may confuse some
+    users into believing the error is actually contained in the first line.
+    Using this function gives both the starting and ending line number so the
+    user focuses on the whole string and not just the first line.  This only
+    happens for multiline keys and multiline strings.
+
+    If *sep* is given, either one line number or both the beginning and ending
+    line numbers are returned, joined with the separator.  Otherwise, the line
+    numbers are returned as a tuple containing a pair of integers.
+
+    Internally the line numbers start at 0, but the value of *base* is added to
+    line numbers before they are returned.  Generally *base* is given as either
+    0 or 1.  A value of 1 is generally used when reporting line numbers to the
+    end user.  A value of 0 is often preferred when the line numbers are used in
+    further processing.  For example, in this case the output of this function
+    is suitable to be directly used by the Python *slice function (see example).
+    The default value of *base* is 1 if *sep* is specified, otherwise it is 0.
+
+    If *keys* corresponds to a composite value (a dictionary or list), the
+    line on which it ends cannot be easily determined, so the value is treated
+    as if it consists of a single line.  This is considered tolerable as it is
+    expected that this function is primarily used to return the line number of
+    leaf values, which are always strings.
+
+    Args:
+        keys:
+            The sequence of normalized keys that identify a value in the
+            dataset.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`.
+        kind:
+            Specify either “key” or “value” depending on which token is
+            desired.
+        base:
+            If *base* is 1, line numbers start at 1, which is more natural when
+            reporting them to users..  If *base* is 0, line numbers start at 0,
+            which is more natural when further processing is needed.  For
+            example, 0 based line numbers can be used in a slice operation to
+            isolate the original lines of a value.
+
+            If not specified, base is taken to be 1 if *sep* is given and 0
+            otherwise.
+        strict:
+            If *strict* is true, a *KeyError* is raised if *keys* is not found.
+            Otherwise the line number that corresponds to composite value that
+            would contain *keys* if it existed.  This composite value
+            corresponds to the largest sequence of keys that does actually exist
+            in the dataset.
+        sep:
+            The separator string. If given a string is returned and *sep* is
+            inserted between two line numbers.  Otherwise a tuple is returned.
+
+    Raises:
+        KeyError:
+            If keys are not in *keymap* and *strict* is true.
+
+    Example:
+        >>> import nestedtext as nt
+
+        >>> doc = """
+        ... key:
+        ...     > this is line 1
+        ...     > this is line 2
+        ...     > this is line 3
+        ... """
+
+        >>> data = nt.loads(doc, keymap=(keymap:={}))
+        >>> keys = ("key",)
+        >>> lines = nt.get_line_numbers(keys, keymap, sep="-")
+        >>> text = doc.splitlines()
+        >>> print(
+        ...     f"Lines {lines}:",
+        ...     *text[slice(*nt.get_line_numbers(keys, keymap))],
+        ...     sep="\\n"
+        ... )
+        Lines 3-5:
+            > this is line 1
+            > this is line 2
+            > this is line 3
+
+    '''
+
+    # code {{{3
+    if base is None:
+        base = 1 if sep else 0
+    loc = get_location(keys, keymap)
+    if not loc:
+        if strict:
+            raise KeyError(keys)
+        else:
+            found = get_keys(keys, keymap, original=False, strict="found")
+            loc = keymap[found]
+    return loc.get_line_numbers(kind, sep, base)
+
+
+# get_location {{{2
+def get_location(keys, keymap):
+    # description {{{3
+    '''
+    Finds location information from the keys.
+    None is returned if location is unknown.
+
+    Args:
+        keys:
+            The sequence of normalized keys that identify a value in the
+            dataset.
+        keymap:
+            The keymap returned from :meth:`load` or :meth:`loads`.
+    '''
+
+    # code {{{3
+    if type(keys) is not tuple:
+        keys = tuple(keys)
+
+    try:
+        return keymap[keys]
+    except KeyError:
+        return None
 
 # vim: set sw=4 sts=4 tw=80 fo=croqj foldmethod=marker et spell:

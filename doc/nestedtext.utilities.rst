@@ -1,9 +1,23 @@
-﻿Utilities
+﻿.. currentmodule:: nestedtext
+
+Utilities
 =========
 
-.. currentmodule:: nestedtext
-
 Extras that are useful when using *NestedText*.
+
+.. autofunction:: get_keys
+
+.. autofunction:: get_value
+
+.. autofunction:: get_line_numbers
+
+.. autofunction:: get_location
+
+
+Deprecated functions
+--------------------
+
+These are to be removed in future versions.
 
 .. autofunction:: get_value_from_keys
 

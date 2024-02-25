@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+from inform import error, os_error, terminate
 import nestedtext as nt
 from pathlib import Path
 from voluptuous import (
     Schema, Invalid, MultipleInvalid, Extra, Required, REMOVE_EXTRA
 )
+from voluptuous_errors import report_voluptuous_errors
 from pprint import pprint
 
 # Settings schema
@@ -128,22 +130,8 @@ try:
 
 except nt.NestedTextError as e:
     e.report()
-except MultipleInvalid as exception:
-    for e in exception.errors:
-        msg, flag = voluptuous_error_msg_mappings.get(
-            e.msg, (e.msg, 'value')
-        )
-        culprit = nt.join_keys(e.path, keymap=keymap, sep="›")
-        loc = keymap.get(tuple(e.path))
-        if loc:
-            line_num, col_num = loc.as_tuple(flag)
-            file_and_lineno = f"{config_filepath!s}@{line_num+1}"
-            codicil = loc.as_line(flag)
-        else:
-            file_and_lineno = str(config_filepath)
-            codicil = None
-        print(f"ERROR: {file_and_lineno}: {culprit}: {msg}.")
-        if codicil:
-            print(codicil)
+except MultipleInvalid as e:
+    report_voluptuous_errors(e, keymap, config_filepath)
 except OSError as e:
-    print(f"ERROR: {config_filepath!s}: {e!s}")
+    error(os_error(e))
+terminate()

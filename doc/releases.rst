@@ -16,7 +16,12 @@ Latest development version
 | Version: 3.6.1
 | Released: 2024-01-26
 
-- Added *offset* option to :meth:`Location.as_line()`.
+- Added ability to disable support for inlines.
+- Added :func:`get_keys()`, :func:`get_value()`, :func:`get_line_numbers()`, and 
+  :func:`get_location()`.
+- Deprecated :func:`get_value_from_keys()`, :func:`get_lines_from_keys()`,
+  :func:`get_original_keys()`, and :func:`join_keys()`.
+- Added *offset* argument to :meth:`Location.as_line()`.
 - Clarified policy on white space in inline strings.
 
 

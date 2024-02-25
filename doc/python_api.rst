@@ -8,10 +8,8 @@ Python API
 
 .. toctree::
 
-   nestedtext.dumps
-   nestedtext.dump
-   nestedtext.loads
-   nestedtext.load
+   nestedtext.dumpers
+   nestedtext.loaders
    nestedtext.Location
    nestedtext.utilities
    nestedtext.NestedTextError

@@ -18,7 +18,10 @@ class Config(BaseModel):
     database: Database
     webmaster_email: EmailStr
 
-obj = nt.load('deploy.nt')
+def normalize_key(key, parent_keys):
+    return '_'.join(key.lower().split())
+
+obj = nt.load('deploy.nt', normalize_key=normalize_key)
 config = Config.parse_obj(obj)
 
 pprint(config.dict())

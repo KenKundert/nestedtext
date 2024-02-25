@@ -28,8 +28,8 @@ any one library specifically:
 - valideer_: Define schema using strings
 - jsonschema_: Define schema using JSON
 
-See the :doc:`examples` page for examples of how to use some of these libraries 
-with *NestedText*.
+See the :doc:`techniques` page for examples of how to use some of these 
+libraries with *NestedText*.
 
 The approach of using separate tools for parsing and interpreting the data has 
 two significant advantages that are worth briefly highlighting.  First is that 

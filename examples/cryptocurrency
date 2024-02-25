@@ -2,6 +2,7 @@
 
 import nestedtext as nt
 from voluptuous import Schema, Required, All, Length, MultipleInvalid, Coerce
+from voluptuous_errors import report_voluptuous_errors
 from inform import (
     codicil, display, error, is_collection, os_error, render_bar, full_stop,
     terminate
@@ -73,29 +74,8 @@ try:
 
 except nt.NestedTextError as e:
     e.terminate()
-except MultipleInvalid as exception:
-    voluptuous_error_msg_mappings = {
-        "extra keys not allowed": ("unknown key", "key"),
-        "expected a dictionary": ("expected key-value pairs", "value"),
-    }
-    for e in exception.errors:
-        msg, flag = voluptuous_error_msg_mappings.get(
-            e.msg, (e.msg, 'value')
-        )
-        culprit = nt.join_keys(e.path, keymap=keymap, sep="›")
-        loc = keymap.get(tuple(e.path))
-        if loc:
-            codicil = loc.as_line(flag)
-            line_num, col_num = loc.as_tuple(flag)
-            file_and_lineno = f"{settings_file!s}@{line_num+1}"
-        else:  # required key is missing
-            codicil = None
-            file_and_lineno = settings_file
-        error(
-            full_stop(e.msg),
-            culprit = (file_and_lineno, culprit),
-            codicil = codicil
-        )
+except MultipleInvalid as e:
+    report_voluptuous_errors(e, keymap, settings_file)
 except OSError as e:
     error(os_error(e))
 except KeyboardInterrupt:

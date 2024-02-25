@@ -1,7 +1,7 @@
 debug: false
-secret_key: t=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch
+secret key: t=)40**y&883y9gdpuw%aiig+wtc033(ui@^1ur72w#zhw3_ch
 
-allowed_hosts:
+allowed hosts:
   - www.example.com
 
 database:
@@ -10,4 +10,4 @@ database:
   port: 3306
   user: www
 
-webmaster_email: admin@example.com
+webmaster email: admin@example.com

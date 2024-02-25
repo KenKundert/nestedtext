@@ -797,7 +797,7 @@ def test_keymaps():
     cases = """
         president                           → 2  0    3  4    2  3    3  4
         president name                      → 3  4    3  10   3  4    3  4
-        president address                   → 4  4    5  10   4  5    5  7
+        president address                   → 4  4    5  8    4  5    5  7
         president phone                     → 7  4    8  8    7  8    8  9
         president phone cell_phone          → 8  8    8  20   8  9    8  9
         president phone work_phone          → 9  8    9  20   9  10   9  10
@@ -808,7 +808,7 @@ def test_keymaps():
         president kids 1                    → 15 8    15 10   15 16   15 16
         vice_president                      → 17 0    18 4    17 18   18 19
         vice_president name                 → 18 4    18 10   18 19   18 19
-        vice_president address              → 19 4    20 10   19 20   20 22
+        vice_president address              → 19 4    20 8    19 20   20 22
         vice_president phone                → 22 4    23 8    22 23   23 24
         vice_president phone cell_phone     → 23 9    23 21   23 24   23 24
         vice_president phone home_phone     → 23 37   23 49   23 24   23 24
@@ -820,12 +820,12 @@ def test_keymaps():
         treasurer                           → 28 0    29 4    28 29   29 30
         treasurer 0                         → 29 4    30 8    29 30   30 31
         treasurer 0 name                    → 30 8    30 14   30 31   30 31
-        treasurer 0 address                 → 31 8    32 14   31 32   32 34
+        treasurer 0 address                 → 31 8    32 12   31 32   32 34
         treasurer 0 phone                   → 34 8    34 15   34 35   34 35
         treasurer 0 email                   → 35 8    35 15   35 36   35 36
         treasurer 0 additional_roles        → 36 8    37 12   36 37   37 38
         treasurer 0 additional_roles 0      → 37 12   37 14   37 38   37 38
-        multiline↲key                       → 39 0    41 6    39 41   41 42
+        multiline↲key                       → 39 0    41 4    39 41   41 42
     """.strip().splitlines()
 
     def fix_key(key, normalize):
@@ -862,6 +862,10 @@ def test_keymaps():
         assert location.as_line('value') == rendered
         rendered = f"{key_lineno+1:>4} ❬{doc_lines[key_lineno]}❭\n      {key_colno*' '}▲"
         assert location.as_line('key') == rendered
+        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭\n      {(colno+5)*' '}▲"
+        assert location.as_line(offset=5) == rendered
+        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭"
+        assert location.as_line(offset=None) == rendered
         assert str(location.line) == doc_lines[lineno]
         assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"

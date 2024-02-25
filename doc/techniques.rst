@@ -34,6 +34,12 @@ it would simply check that the input matches the given type:
 .. literalinclude:: ../examples/deploy_voluptuous.py
    :language: python
 
+This example uses the following code to adapt error reporting in *Voluptuous* to 
+*NestedText*.
+
+.. literalinclude:: ../examples/voluptuous_errors.py
+   :language: python
+
 This produces the following data structure:
 
 .. code-block:: python
