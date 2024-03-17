@@ -1,0 +1,40 @@
+feedback:
+    @xmlns:xsd: http://www.w3.org/2001/XMLSchema
+    @xmlns:xsi: http://www.w3.org/2001/XMLSchema-instance
+    version: 1.0
+    report_metadata:
+        org_name: Enterprise Outlook
+        email: dmarcreport@microsoft.com
+        report_id: 2c9ff66e0868713ebdff30x2e3f9121c
+        date_range:
+            begin: 1709596800
+            end: 1709683200
+    policy_published:
+        domain: tenaya-networks.net
+        adkim: r
+        aspf: r
+        p: none
+        sp: none
+        pct: 100
+        fo: 0
+    record:
+        row:
+            source_ip: 187.27.98.108
+            count: 2
+            policy_evaluated:
+                disposition: none
+                dkim: pass
+                spf: pass
+        identifiers:
+            envelope_to: westeros.com
+            envelope_from: tenaya-networks.net
+            header_from: tenaya-networks.net
+        auth_results:
+            dkim:
+                domain: tenaya-networks.net
+                selector: default
+                result: pass
+            spf:
+                domain: tenaya-networks.net
+                scope: mfrom
+                result: pass

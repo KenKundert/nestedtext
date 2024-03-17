@@ -23,7 +23,7 @@ file and it demonstrates how to use the *keymap* argument from :func:`loads` or
 
 The input file in this case specifies deployment settings for a web server:
 
-.. literalinclude:: ../examples/deploy.nt
+.. literalinclude:: ../examples/validation/deploy.nt
    :language: nestedtext
 
 Below is the code to parse this file.  Note how the structure of the data is 
@@ -31,13 +31,13 @@ specified using basic Python objects.  The :func:`Coerce()` function is
 necessary to have Voluptuous convert string input to the given type; otherwise 
 it would simply check that the input matches the given type:
 
-.. literalinclude:: ../examples/deploy_voluptuous.py
+.. literalinclude:: ../examples/validation/deploy_voluptuous.py
    :language: python
 
 This example uses the following code to adapt error reporting in *Voluptuous* to 
 *NestedText*.
 
-.. literalinclude:: ../examples/voluptuous_errors.py
+.. literalinclude:: ../examples/validation/voluptuous_errors.py
    :language: python
 
 This produces the following data structure:
@@ -66,7 +66,7 @@ This example shows how to use pydantic_ to validate and parse a *NestedText*
 file.  The input file is the same as in the previous example, i.e. deployment 
 settings for a web server:
 
-.. literalinclude:: ../examples/deploy.nt
+.. literalinclude:: ../examples/validation/deploy.nt
    :language: nestedtext
 
 Below is the code to parse this file.  Note that basic types like integers, 
@@ -76,7 +76,7 @@ possible to reference one model from within another.  Pydantic_ also has
 built-in support for validating email addresses, which we can take advantage of 
 here:
 
-.. literalinclude:: ../examples/deploy_pydantic.py
+.. literalinclude:: ../examples/validation/deploy_pydantic.py
    :language: python
 
 This produces the same result as in the previous example.
@@ -105,7 +105,7 @@ keys and the associated error reporting.  In this case, the first level of keys
 contains the names of the contacts and should not be normalized. Keys at all 
 other levels are considered keywords and so should be normalized.
 
-.. literalinclude:: ../examples/address
+.. literalinclude:: ../examples/addresses/address
    :language: python
 
 This program takes a name as a command line argument and prints out the 
@@ -114,7 +114,7 @@ the contact information.  *Voluptuous* checks the validity of the contacts
 database, which is shown next. Notice the variability in the keys given in 
 Fumiko's entry:
 
-.. literalinclude:: ../examples/address.nt
+.. literalinclude:: ../examples/addresses/address.nt
    :language: nestedtext
 
 There are two display statements near the end of the program, the first of which 
@@ -150,13 +150,13 @@ keys.  However, you can pass a function to the *on_dup* argument that
 de-duplicates the keys, making them safe for Python dictionaries.  For example 
 the following *NestedText* document that contains duplicate keys:
 
-.. literalinclude:: ../examples/michael_jordan.nt
+.. literalinclude:: ../examples/deduplication/michael_jordan.nt
    :language: nestedtext
 
 In the following, the *de_dup* function adds “#*N*” to the end of the key where 
 *N* starts at 2 and increases as more duplicates are found.
 
-.. literalinclude:: ../examples/michael_jordan
+.. literalinclude:: ../examples/deduplication/michael_jordan
    :language: python
 
 As shown below, this code outputs the data twice, the first time with the 
@@ -196,7 +196,7 @@ sort of the keys at each level, which you get by simply specifying
 
 .. code-block:: python
 
-    >>> addresses = nt.load( 'examples/address.nt')
+    >>> addresses = nt.load( 'examples/addresses/address.nt')
     >>> print(nt.dumps(addresses, sort_keys=True))
     Fumiko Purvis:
         Additional  Roles:
@@ -357,7 +357,11 @@ of the *map_keys* argument.
     ...     return '_'.join(key.lower().split())
 
     >>> keymap = {}
-    >>> addresses = nt.load('examples/address.nt', normalize_key=normalize_key, keymap=keymap)
+    >>> addresses = nt.load(
+    ...     'examples/addresses/address.nt',
+    ...     normalize_key=normalize_key,
+    ...     keymap=keymap
+    ... )
     >>> filtered = {k:v for k,v in addresses.items() if 'fumiko' in k.lower()}
 
     >>> print(nt.dumps(filtered))
@@ -437,17 +441,48 @@ same ingredients, but this time they are listed separately in the final summary.
 Finally, on 23 March they specify oatmeal using a parametrized reference so as 
 to override the number of tangerines consumed and add some almonds.
 
-..  literalinclude:: ../examples/diet
+..  literalinclude:: ../examples/references/diet
    :language: python
 
 It produces the following output:
 
-.. literalinclude:: ../examples/diet.nt
+.. literalinclude:: ../examples/references/diet.nt
    :language: nestedtext
 
 In this example the content for the references was pulled from a different 
 *NestedText* document.  See the :ref:`PostMortem <postmortem example>` as an 
 example that pulls the referenced content from the same document.
+
+
+.. _accumulation:
+
+Accumulation
+============
+
+This example demonstrates how to used *NestedText* so that it supports some 
+common paradigms used in settings files; specifically you can override or 
+accumulate to previously specified settings by repeating its name.
+
+It implements an example settings file reader that supports a small variety of 
+settings.  *NestedText* is configured to de-duplicate the keys (the names of the 
+settings) with the result being processed to identify and report errors and to 
+implement overrides, accumulations, and simple conversions.  Accumulation is 
+indicated by preceding the name of a setting with a plus sign.  All keys are 
+converted to snake case identifiers (all lower case, contiguous spaces replace 
+by a single underscore).
+
+..  literalinclude:: ../examples/accumulation/settings.py
+   :language: python
+
+It would interpret this settings file:
+
+.. literalinclude:: ../examples/accumulation/example.in.nt
+   :language: nestedtext
+
+as equivalent to this settings file:
+
+.. literalinclude:: ../examples/accumulation/example.out.nt
+   :language: nestedtext
 
 
 .. _pretty printing example:
@@ -471,7 +506,7 @@ stripping leading multiline string tags.
     ...     except nt.NestedTextError as e:
     ...         e.report()
 
-    >>> addresses = nt.load('examples/address.nt')
+    >>> addresses = nt.load('examples/addresses/address.nt')
 
     >>> pp(addresses['Katheryn McDaniel'])
     position: president

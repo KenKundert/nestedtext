@@ -782,8 +782,13 @@ def test_keymaps():
         37              - accounting task force
         38
         39  : multiline
-        40  : key
-        41      > it's value
+        40  :
+        41  : key
+        42      > it’s value
+        43      >
+        44      > it’s a long value
+        45  :
+        46      >
 
     """).strip()
 
@@ -826,7 +831,7 @@ def test_keymaps():
         treasurer 0 email                   → 35 8    35 15   35 36   35 36
         treasurer 0 additional_roles        → 36 8    37 12   36 37   37 38
         treasurer 0 additional_roles 0      → 37 12   37 14   37 38   37 38
-        multiline↲key                       → 39 0    41 6    39 41   41 42
+        multiline↲↲key                      → 39 0    42 6    39 42   42 45
     """.strip().splitlines()
 
     def fix_key(key, normalize):
@@ -863,8 +868,12 @@ def test_keymaps():
         assert location.as_line('value') == rendered
         rendered = f"{key_lineno+1:>4} ❬{doc_lines[key_lineno]}❭\n      {key_colno*' '}▲"
         assert location.as_line('key') == rendered
-        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭\n      {(colno+5)*' '}▲"
-        assert location.as_line(offset=5) == rendered
+        line = location.as_line(kind='value', offset=None)
+        margin = 6
+        offset = 5
+        shift = min(margin + offset + colno, len(line) - 1)
+        rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭\n{shift*' '}▲"
+        assert location.as_line(offset=offset) == rendered
         rendered = f"{lineno+1:>4} ❬{doc_lines[lineno]}❭"
         assert location.as_line(offset=None) == rendered
         assert str(location.line) == doc_lines[lineno]
@@ -918,6 +927,44 @@ def test_keymaps():
         given, expected = case.split('→')
         keys = tuple(fix_key(n, True) for n in given.split())
         check_result(keys, expected, addresses)
+
+    ml_keys = ("multiline\n\nkey",)
+    loc = nt.get_location(ml_keys, keymap)
+    assert loc.as_line('key') == dedent("""
+        ◊ 40 ❬: multiline❭
+              ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('key', offset=(1,0)) == dedent("""
+        ◊ 41 ❬:❭
+              ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('key', offset=(2,0)) == dedent("""
+        ◊ 42 ❬: key❭
+              ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value') == dedent("""
+        ◊ 43 ❬    > it’s value❭
+                    ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value', offset=(1,0)) == dedent("""
+        ◊ 44 ❬    >❭
+                   ▲
+    """, bolm='◊', strip_nl="b")
+        # the above misplacement of the pointer is expected
+    assert loc.as_line('value', offset=(2,0)) == dedent("""
+        ◊ 45 ❬    > it’s a long value❭
+                    ▲
+    """, bolm='◊', strip_nl="b")
+    ml_keys = ("",)
+    loc = nt.get_location(ml_keys, keymap)
+    assert loc.as_line('key') == dedent("""
+        ◊ 46 ❬:❭
+              ▲
+    """, bolm='◊', strip_nl="b")
+    assert loc.as_line('value') == dedent("""
+        ◊ 47 ❬    >❭
+                   ▲
+    """, bolm='◊', strip_nl="b")
 
     # With key normalization
     keymap = {}

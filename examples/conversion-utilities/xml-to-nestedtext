@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+# USAGE {{{1
 """
-Read a JSON file and convert it to NestedText.
+Read an XML file and convert it to NestedText.
 
 usage:
-    json-to-nestedtext [options] [<filename>]
+    xml-to-nestedtext [options] [<filename>]
 
 options:
     -f, --force            force overwrite of output file
@@ -13,19 +14,23 @@ options:
                            use of single-line lists and dictionaries as long
                            as the fit in given width [default: 0]
 
-If <filename> is not given, JSON input is taken from stdin and NestedText output 
+If <filename> is not given, XML input is taken from stdin and NestedText output␣
 is written to stdout.
 """
 
+# IMPORTS {{{1
 from docopt import docopt
-from inform import done, fatal, full_stop, os_error, warn, full_stop
-from pathlib import Path
-import json
+import xmltodict
 import nestedtext as nt
+from inform import done, fatal, full_stop, os_error, warn
+from pathlib import Path
+from xml.parsers.expat import ExpatError, errors
 import sys
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
 
+
+# COMMAND LINE {{{1
 cmdline = docopt(__doc__)
 input_filename = cmdline['<filename>']
 try:
@@ -39,15 +44,18 @@ except Exception:
     warn('expected non-negative integer for width.', culprit=cmdline['--width'])
     width = 0
 
+
+# READ XML {{{1
 try:
-    # read JSON content; from file or from stdin
+    # read XML content; from file or from stdin
     if input_filename:
         input_path = Path(input_filename)
-        json_content = input_path.read_text(encoding='utf-8')
+        xml_content = input_path.read_text(encoding='utf-8')
     else:
-        json_content = sys.stdin.read()
-    data = json.loads(json_content)
+        xml_content = sys.stdin.read()
+    data = xmltodict.parse(xml_content)
 
+# CONVERT TO NESTEDTEXT {{{1
     # convert to NestedText
     nestedtext_content = nt.dumps(
         data,
@@ -56,6 +64,7 @@ try:
         sort_keys = cmdline['--sort']
     )
 
+# WRITE NESTEDTEXT {{{1
     # output NestedText content; to file or to stdout
     if input_filename:
         output_path = input_path.with_suffix('.nt')
@@ -66,6 +75,7 @@ try:
     else:
         sys.stdout.write(nestedtext_content + "\n")
 
+# EXCEPTION HANDLING {{{1
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
@@ -74,26 +84,17 @@ except UnicodeError as e:
     fatal(full_stop(e))
 except KeyboardInterrupt:
     done()
-except json.JSONDecodeError as e:
-    # create a nice error message with surrounding context
-    msg = e.msg
-    culprit = input_filename
-    codicil = None
-    try:
-        lineno = e.lineno
-        culprit = (culprit, lineno)
-        colno = e.colno
-        lines_before = e.doc.split('\n')[max(lineno-2, 0):lineno]
-        lines = []
-        for i, l in zip(range(lineno-len(lines_before), lineno), lines_before):
-            lines.append(f'{i+1:>4}> {l}')
-        lines_before = '\n'.join(lines)
-        lines_after = e.doc.split('\n')[lineno:lineno+1]
-        lines = []
-        for i, l in zip(range(lineno, lineno + len(lines_after)), lines_after):
-            lines.append(f'{i+1:>4}> {l}')
-        lines_after = '\n'.join(lines)
-        codicil = f"{lines_before}\n     {colno*' '}▲\n{lines_after}"
-    except Exception:
-        pass
+except ExpatError as e:
+    msg = errors.messages[e.code]
+    if input_filename:
+        culprit = f"{filename}@{e.lineno}"
+    else:
+        culprit = e.lineno
+    if xml_content:
+        lines = xml_content.splitlines()
+        line = lines[e.lineno-1]
+        pointer = e.offset*" " + "▲"
+        codicil = (line, pointer)
+    else:
+        codicil = None
     fatal(full_stop(msg), culprit=culprit, codicil=codicil)

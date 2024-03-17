@@ -12,7 +12,7 @@ understood and used by both programmers and non-programmers.
 """
 
 # MIT License {{{1
-# Copyright (c) 2020-2023 Ken and Kale Kundert
+# Copyright (c) 2020-2024 Ken and Kale Kundert
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -313,6 +313,9 @@ class Lines:
         def render(self, col=None):
             result = [f"{self.lineno+1:>4} ❬{self.text}❭"]
             if col is not None:
+                l = len(self.text)
+                if l < col:
+                    col = l
                 result += ["      " + (col*" ") + "▲"]
             return "\n".join(result)
 
@@ -597,6 +600,9 @@ class Location:
                 If *offset* is a tuple, it must have two values.  The first is
                 the row offset and the second is the column offset.  This is
                 useful for annotating errors in multiline strings.
+
+        Raises:
+            *IndexError* if row offset is out of range.
         """
         # get the line and the column number of the key or value
         if kind == "key":
@@ -617,15 +623,18 @@ class Location:
         # process the offset
         if offset is None:
             return line.render()
+        col_offset = offset
         try:
-            row_offset, offset = offset
+            row_offset, col_offset = offset
             while row_offset > 0:
                 line = line.next_line
                 row_offset -= 1
+                if line is None:
+                    raise IndexError(offset[0])
         except TypeError:
             pass
 
-        return line.render(col + offset)
+        return line.render(col + col_offset)
 
     # get_line_numbers() {{{3
     def get_line_numbers(self, kind="value", sep=None):
@@ -2720,7 +2729,7 @@ def get_line_numbers(keys, keymap, kind="value", *, strict=True, sep=None):
 def get_location(keys, keymap):
     # description {{{3
     '''
-    Finds location information from the keys.
+    Returns :class:`Location` information from the keys.
     None is returned if location is unknown.
 
     Args:

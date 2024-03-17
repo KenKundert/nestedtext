@@ -17,7 +17,7 @@ This example implements a command-line utility that converts a *JSON* file to
 *NestedText*.  It demonstrates the use of :func:`dumps()` and 
 :exc:`NestedTextError`.
 
-.. literalinclude:: ../examples/json-to-nestedtext
+.. literalinclude:: ../examples/conversion-utilities/json-to-nestedtext
    :language: python
 
 Be aware that not all *JSON* data can be converted to *NestedText*, and in the 
@@ -48,21 +48,22 @@ This example implements a command-line utility that converts a *NestedText* file
 to *JSON*.  It demonstrates the use of :func:`load()` and 
 :exc:`NestedTextError`.
 
-.. literalinclude:: ../examples/nestedtext-to-json
+.. literalinclude:: ../examples/conversion-utilities/nestedtext-to-json
    :language: python
 
 
-.. _csv-to-nestedtext example:
+.. ignore:
+    .. _csv-to-nestedtext example:
 
-CSV to NestedText
-=================
+    CSV to NestedText
+    =================
 
-This example implements a command-line utility that converts a *CSV* file to 
-*NestedText*.  It demonstrates the use of the *converters* argument to 
-:func:`dumps()`, which is used to cull empty dictionary fields.
+    This example implements a command-line utility that converts a *CSV* file to 
+    *NestedText*.  It demonstrates the use of the *converters* argument to 
+    :func:`dumps()`, which is used to cull empty dictionary fields.
 
-.. literalinclude:: ../examples/csv-to-nestedtext
-   :language: python
+    .. literalinclude:: ../examples/conversion-utilities/csv-to-nestedtext
+    :language: python
 
 
 .. _parametrize-from-file example:
@@ -80,12 +81,12 @@ to be literal Python code.
 
 The test cases:
 
-.. literalinclude:: ../examples/test_misc.nt
+.. literalinclude:: ../examples/parametrize_from_file/test_misc.nt
    :language: nestedtext
 
 And the corresponding test code:
 
-.. literalinclude:: ../examples/test_misc.py
+.. literalinclude:: ../examples/parametrize_from_file/test_misc.py
    :language: python
 
 
@@ -108,7 +109,7 @@ program that uses the data prefers the keys to be lower case identifiers.
 Here is a configuration file that Odin might use to generate packets for his 
 wife and kids:
 
-.. literalinclude:: ../examples/postmortem.nt
+.. literalinclude:: ../examples/postmortem/postmortem.nt
     :language: nestedtext
 
 Notice that *estate docs* is defined at the top level. It is not a *PostMortem* 
@@ -122,7 +123,7 @@ ids*.
 Here is the code for validating and transforming the *PostMortem* settings.  For 
 more on *report_voluptuous_errors*, see :ref:`voluptuous example`.
 
-.. literalinclude:: ../examples/postmortem
+.. literalinclude:: ../examples/postmortem/postmortem
    :language: python
 
 This code uses *expand_settings* to implement references, and it uses the 
@@ -149,7 +150,7 @@ as *Python* or *JSON*.
 
 Here are the processed settings:
 
-.. literalinclude:: ../examples/postmortem.expanded.nt
+.. literalinclude:: ../examples/postmortem/postmortem.expanded.nt
    :language: nestedtext
 
 

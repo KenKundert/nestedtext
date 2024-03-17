@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+Display Contact Information
+
+Usage:
+    contact <name>...
+"""
+
+from docopt import docopt
+from inform import codicil, display, fatal, full_stop, os_error
+import nestedtext as nt
+from voluptuous import Schema, Required, Any, MultipleInvalid
+import re
+
+contacts_file = "address.nt"
+
+def normalize_key(key, parent_keys):
+    if len(parent_keys) == 0:
+        return key
+    return '_'.join(key.lower().split())
+
+def render_contact(data, keymap=None):
+    text = nt.dumps(data, map_keys=keymap)
+    return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
+
+def last_name_first(key, parent_keys):
+    if len(parent_keys) == 0:
+        # rearrange names so that last name is given first
+        names = key.split()
+        return f"{names[-1]}, {' '.join(names[:-1])}"
+
+def sort_key(key, parent_keys):
+    debug(key)
+    return key[1] if len(parent_keys) == 0 else ''  # only sort first level keys
+
+cmdline = docopt(__doc__)
+names = cmdline['<name>']
+
+try:
+    # define structure of contacts database
+    contacts_schema = Schema({
+        str: {
+            'position': str,
+            'address': str,
+            'phone': Required(Any({str:str},str)),
+            'email': Required(Any({str:str},str)),
+            'additional_roles': Any(list,str),
+        }
+    })
+
+    # read contacts database
+    contacts = contacts_schema(
+        nt.load(
+            contacts_file,
+            top = 'dict',
+            normalize_key = normalize_key,
+            keymap = (keymap:={})
+        )
+    )
+    print(nt.dumps(contacts, map_keys=last_name_first, sort_keys=sort_key))
+
+    # display requested contact information, excluding additional_roles
+    filtered = {}
+    for fullname, contact_info in contacts.items():
+        for name in names:
+            if name in fullname.lower():
+                filtered[fullname] = contact_info
+                if 'additional_roles' in contact_info:
+                    del contact_info['additional_roles']
+
+    # display contact using normalized keys
+    # display(render_contact(filtered))
+
+    # display contact using original keys
+    display(render_contact(filtered, keymap))
+
+except nt.NestedTextError as e:
+    e.report()
+except MultipleInvalid as exception:
+    for e in exception.errors:
+        kind = 'key' if 'key' in e.msg else 'value'
+        keys = tuple(e.path)
+        codicil = keymap[keys].as_line(kind) if keys in keymap else None
+        fatal(
+            full_stop(e.msg),
+            culprit = (contacts_file, nt.join_keys(keys, keymap=keymap)),
+            codicil = codicil
+        )
+except OSError as e:
+    fatal(os_error(e))

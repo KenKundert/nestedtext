@@ -55,12 +55,12 @@ The following examples illustrate the difference between JSON and *NestedText*:
 
 .. collapse:: JSON
 
-    .. literalinclude:: ../examples/fumiko.json
+    .. literalinclude:: ../examples/addresses/fumiko.json
         :language: json
 
 .. collapse:: NestedText
 
-    .. literalinclude:: ../examples/fumiko.nt
+    .. literalinclude:: ../examples/addresses/fumiko.nt
         :language: nestedtext
 
 |
@@ -91,7 +91,7 @@ integration using Python:
 
 .. collapse:: YAML
 
-    .. literalinclude:: ../examples/github-orig.yaml
+    .. literalinclude:: ../examples/conversion-utilities/github-orig.yaml
         :language: yaml
 
 |
@@ -100,7 +100,7 @@ integration using Python:
 
 .. collapse:: YAML (round-trip)
 
-    .. literalinclude:: ../examples/github-rt.yaml
+    .. literalinclude:: ../examples/conversion-utilities/github-rt.yaml
         :language: yaml
 
 |
@@ -125,7 +125,7 @@ misinterpretation.
 
 .. collapse:: NestedText
 
-    .. literalinclude:: ../examples/github-intent.nt
+    .. literalinclude:: ../examples/conversion-utilities/github-intent.nt
         :language: nestedtext
 
 |
@@ -166,12 +166,12 @@ Here is an example of a configuration file in TOML and *NestedText*:
 
 .. collapse:: TOML
 
-    .. literalinclude:: ../examples/sparekeys.toml
+    .. literalinclude:: ../examples/conversion-utilities/sparekeys.toml
         :language: toml
 
 .. collapse:: NestedText
 
-    .. literalinclude:: ../examples/sparekeys.nt
+    .. literalinclude:: ../examples/conversion-utilities/sparekeys.nt
         :language: nestedtext
 
 |
@@ -201,12 +201,12 @@ Here is an example data file in CSV and *NestedText*.
 
 .. collapse:: CSV
 
-    .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.csv
+    .. literalinclude:: ../examples/conversion-utilities/percent_bachelors_degrees_women_usa.csv
         :language: text
 
 .. collapse:: NestedText
 
-    .. literalinclude:: ../examples/percent_bachelors_degrees_women_usa.nt
+    .. literalinclude:: ../examples/conversion-utilities/percent_bachelors_degrees_women_usa.nt
         :language: nestedtext
 
 |

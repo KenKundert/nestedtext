@@ -20,7 +20,7 @@ try:
 except OSError as e:
     fatal(os_error(e))
 except nt.NestedTextError as e:
-    e.terminate(culprit=input_filename)
+    e.terminate()
 except yaml.YAMLError as e:
     # create a nice error message with surrounding context
     fatal(full_stop(e))

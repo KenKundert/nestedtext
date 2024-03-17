@@ -17,7 +17,7 @@ Extras that are useful when using *NestedText*.
 Deprecated functions
 --------------------
 
-These are to be removed in future versions.
+These functions are to be removed in future versions.
 
 .. autofunction:: get_value_from_keys
 

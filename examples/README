@@ -1,7 +1,0 @@
-Run unpack to decrypt and unpack your archive using::
-
-    ./unpack <yourname>-<date>.tgz.gpg
-
-It will create a directory <yourname>-<date> that contains your information.
-This directory contains sensitive information, so keep it secure.  
-I recommend that you just copy out the information you need, then delete it.

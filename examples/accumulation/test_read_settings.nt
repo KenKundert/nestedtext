@@ -1,0 +1,168 @@
+basic_tests:
+    no_accumulation:
+        given:
+            > name: terminus
+            > actions:
+            >     default: clean
+            > patterns: ..
+        expected:
+            name: terminus
+            actions:
+                default: clean
+            patterns:
+                [..]
+
+    basic_accumulation:
+        given:
+            > name: terminus
+            > actions:
+            >     default: clean
+            > patterns: ..
+            > +patterns: ../**/{name}.nt
+            > + patterns: ../**/*.{name}:*.nt
+            > + actions:
+            >     final: archive
+        expected:
+            name: terminus
+            actions:
+                default: clean
+                final: archive
+            patterns:
+                - ..
+                - ../**/{name}.nt
+                - ../**/*.{name}:*.nt
+
+    accumulation_from_nothing:
+        given:
+            > + patterns: ..
+            > + patterns: ../**/{name}.nt
+            > + patterns: ../**/*.{name}:*.nt
+            > + actions:
+            >     default: clean
+            > + actions:
+            >     final: archive
+        expected:
+            actions:
+                default: clean
+                final: archive
+            patterns:
+                - ..
+                - ../**/{name}.nt
+                - ../**/*.{name}:*.nt
+
+    accumulation_with_multiline_keys:
+        given:
+            > : name
+            >     > terminus
+            > : actions
+            >     default: clean
+            > : +
+            > : actions
+            >     final: archive
+            > : patterns
+            >     - ..
+            > : + patterns
+            >     - ../**/{name}.nt
+            > : +
+            > : patterns
+            >     > ../**/*.{name}:*.nt
+        expected:
+            name: terminus
+            actions:
+                default: clean
+                final: archive
+            patterns:
+                - ..
+                - ../**/{name}.nt
+                - ../**/*.{name}:*.nt
+
+    empty_dict:
+        given:
+            > actions:
+            > + actions:
+            >     final: archive
+        expected:
+            actions:
+                final: archive
+
+    empty_list:
+        given:
+            > patterns:
+            > + patterns: ../**/*.{name}:*.nt
+        expected:
+            patterns:
+                - ../**/*.{name}:*.nt
+
+    duplicate_setting:
+        given:
+            > name: terminus
+            > name: trantor
+        expected:
+            name: trantor
+
+    cast_to_float:
+        given:
+            > limit: 60
+        expected:
+            > !dict(limit=60.0)
+
+    adding_dict_to_list:
+        given:
+            > patterns: ..
+            > + patterns:
+            >     final: archive
+        error: expected list, found dict.
+
+    adding_list_to_dict:
+        given:
+            > actions:
+            >     default: clean
+            > + actions:
+            >     - ../**/{name}.nt
+        error: expected dict, found list.
+
+    adding_str_to_dict:
+        given:
+            > actions:
+            >     default: clean
+            > + actions: ../**/{name}.nt
+        error: expected dict, found str.
+
+    unknown_setting:
+        given:
+            > action:
+            >     default: clean
+        error: unknown setting.
+
+    expected_list:
+        given:
+            > patterns:
+            >     default: clean
+        error: expected list, found dict.
+
+    expected_dict_found_str:
+        given:
+            > actions: Hari Seldon
+        error: expected dict, found str.
+
+    expected_dict_found_list:
+        given:
+            > actions:
+            >     - ..
+        error: expected dict, found list.
+
+    plus_must_precede_setting_name:
+        given:
+            > left + right:
+        error: ‘+’ must precede setting name.
+
+    expected_identifier:
+        given:
+            > top & bottom: middle
+        error: expected identifier.
+
+    not_suitable_for_accumulation:
+        given:
+            > name: terminus
+            > +name: trantor
+        error: setting is unsuitable for accumulation.

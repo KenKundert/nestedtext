@@ -1,0 +1,8 @@
+name: terminus
+actions:
+    default: clean
+patterns: ..
++patterns: ../**/{name}.nt
++ patterns: ../**/*.{name}:*.nt
++ actions:
+    final: archive

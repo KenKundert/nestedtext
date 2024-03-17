@@ -15,69 +15,76 @@ def strip_comments(text):
     )
 
 def test_nestedtext_to_json():
-     with cd(tests_dir):
-        stimulus = Path('address.nt').read_text()
-        expected = Path('address.json').read_text()
+     with cd(tests_dir / "conversion-utilities"):
+        stimulus = Path('../addresses/address.nt').read_text()
+        expected = Path('../addresses/address.json').read_text()
         nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
         assert nt2json.stdout.strip() == expected.strip()
 
 def test_nestedtext_to_json_fumiko():
-     with cd(tests_dir):
-        stimulus = Path('fumiko.nt').read_text()
-        expected = Path('fumiko.json').read_text()
+     with cd(tests_dir / "conversion-utilities"):
+        stimulus = Path('../addresses/fumiko.nt').read_text()
+        expected = Path('../addresses/fumiko.json').read_text()
         nt2json = Run('./nestedtext-to-json', stdin=stimulus, modes='sOEW')
         assert nt2json.stdout.strip() == expected.strip()
 
 def test_json_to_nestedtext():
-     with cd(tests_dir):
-        stimulus = Path('address.json').read_text()
-        expected = strip_comments(Path('address.nt').read_text())
+     with cd(tests_dir / "conversion-utilities"):
+        stimulus = Path('../addresses/address.json').read_text()
+        expected = strip_comments(Path('../addresses/address.nt').read_text())
         json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert json2nt.stdout.strip() == expected.strip()
 
 def test_json_to_nestedtext_fumiko():
-     with cd(tests_dir):
-        stimulus = Path('fumiko.json').read_text()
-        expected = strip_comments(Path('fumiko.nt').read_text())
+     with cd(tests_dir / "conversion-utilities"):
+        stimulus = Path('../addresses/fumiko.json').read_text()
+        expected = strip_comments(Path('../addresses/fumiko.nt').read_text())
         json2nt = Run('./json-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert json2nt.stdout.strip() == expected.strip()
 
 def test_yaml_to_nestedtext():
-     with cd(tests_dir):
+     with cd(tests_dir / "conversion-utilities"):
         stimulus = Path('github-orig.yaml').read_text()
         expected = strip_comments(Path('github-orig.nt').read_text())
         yaml2nt = Run('./yaml-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert yaml2nt.stdout.strip() == expected.strip()
 
 def test_nestedtext_to_yaml():
-     with cd(tests_dir):
+     with cd(tests_dir / "conversion-utilities"):
         stimulus = Path('github-intent.nt').read_text()
         expected = Path('github-intent.yaml').read_text()
         nt2yaml = Run('./nestedtext-to-yaml', stdin=stimulus, modes='sOEW')
         assert nt2yaml.stdout.strip() == expected.strip()
 
 def test_toml_to_nestedtext():
-     with cd(tests_dir):
+     with cd(tests_dir / "conversion-utilities"):
         stimulus = Path('sparekeys.toml').read_text()
         expected = Path('sparekeys.nt').read_text()
         toml2nt = Run('./toml-to-nestedtext', stdin=stimulus, modes='sOEW')
         assert toml2nt.stdout.strip() == expected.strip()
 
 def test_csv_to_nestedtext():
-     with cd(tests_dir):
+     with cd(tests_dir / "conversion-utilities"):
         stimulus = Path('percent_bachelors_degrees_women_usa.csv').read_text()
         expected = Path('percent_bachelors_degrees_women_usa.nt').read_text()
         csv2nt = Run('./csv-to-nestedtext -n', stdin=stimulus, modes='sOEW')
         assert csv2nt.stdout.strip() == expected.strip()
 
+def test_xml_to_nestedtext():
+     with cd(tests_dir / "conversion-utilities"):
+        stimulus = Path('dmarc.xml').read_text()
+        expected = Path('dmarc.nt').read_text()
+        xml2nt = Run('./xml-to-nestedtext', stdin=stimulus, modes='sOEW')
+        assert xml2nt.stdout.strip() == expected.strip()
+
 def test_deploy_pydantic():
-     with cd(tests_dir):
+     with cd(tests_dir / "validation"):
         expected = Path('deploy_pydantic.out').read_text()
         dp = Run('python3 deploy_pydantic.py', modes='sOEW')
         assert dp.stdout.strip() == expected.strip()
 
 def test_deploy_voluptuous():
-     with cd(tests_dir):
+     with cd(tests_dir / "validation"):
         expected = Path('deploy_voluptuous.out').read_text()
         dv = Run('python3 deploy_voluptuous.py', modes='sOEW')
         assert dv.stdout.strip() == expected.strip()
@@ -85,7 +92,7 @@ def test_deploy_voluptuous():
 def test_address():
      if sys.version_info < (3, 8):
          return  # address example uses walrus operator
-     with cd(tests_dir):
+     with cd(tests_dir / "addresses"):
         fumiko = Run('./address fumiko', modes='sOEW')
         assert fumiko.stdout.strip() == dedent("""
             Fumiko Purvis:
@@ -100,7 +107,7 @@ def test_address():
 def test_michael_jordan():
      if sys.version_info < (3, 8):
          return  # address example uses walrus operator
-     with cd(tests_dir):
+     with cd(tests_dir / "deduplication"):
         mj = Run('./michael_jordan', modes='sOEW')
         expected = Path('./michael_jordan.out').read_text()
         assert mj.stdout.strip() == expected.strip()
@@ -108,7 +115,7 @@ def test_michael_jordan():
 def test_cryptocurrency():
      if sys.version_info < (3, 8):
          return  # cryptocurrency example uses walrus operator
-     with cd(tests_dir):
+     with cd(tests_dir / "cryptocurrency"):
         # the cryptocurrency example outputs the current prices, so just do some
         # simple sanity checking on the output.
         cc = Run('./cryptocurrency', modes='sOEW')
@@ -119,7 +126,7 @@ def test_cryptocurrency():
 def test_postmortem():
      if sys.version_info < (3, 8):
          return  # postmortem example uses walrus operator
-     with cd(tests_dir):
+     with cd(tests_dir / "postmortem"):
         expected = Path('postmortem.expanded.nt').read_text()
         user_home_dir = str(to_path('~'))
         expected = expected.replace('~', user_home_dir)
@@ -128,7 +135,7 @@ def test_postmortem():
         assert pm.stdout.strip() == expected.strip()
 
 def test_diet():
-     with cd(tests_dir):
+     with cd(tests_dir / "references"):
         mj = Run('./diet', modes='sOEW')
         expected = Path('./diet.nt').read_text()
         assert mj.stdout.strip() == expected.strip()

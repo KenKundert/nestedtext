@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""
+Display Contact Information
+
+Usage:
+    contact <name>...
+"""
+
+from docopt import docopt
+from inform import codicil, display, error, full_stop, os_error, terminate, Color
+import nestedtext as nt
+from voluptuous import Schema, Required, Any, MultipleInvalid
+from voluptuous_errors import report_voluptuous_errors
+import re
+
+blue = Color('blue', enable=Color.isTTY())
+
+contacts_file = "address.nt"
+
+def normalize_key(key, parent_keys):
+    if len(parent_keys) == 0:
+        return key
+    return '_'.join(key.lower().split())
+
+def format_key(key, parent_keys):
+    orig_keys = nt.get_keys(parent_keys + (key,), keymap)
+    return blue(orig_keys[-1])
+
+def render_contact(data, keymap=None):
+    text = nt.dumps(data, map_keys=format_key)
+    return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
+
+cmdline = docopt(__doc__)
+names = cmdline['<name>']
+
+try:
+    # define structure of contacts database
+    contacts_schema = Schema({
+        str: {
+            'position': str,
+            'address': str,
+            'phone': Required(Any({str:str},str)),
+            'email': Required(Any({str:str},str)),
+            'additional_roles': Any(list,str),
+        }
+    })
+
+    # read contacts database
+    contacts = contacts_schema(
+        nt.load(
+            contacts_file,
+            top = 'dict',
+            normalize_key = normalize_key,
+            keymap = (keymap:={})
+        )
+    )
+
+    # display requested contact information, excluding additional_roles
+    filtered = {}
+    for fullname, contact_info in contacts.items():
+        for name in names:
+            if name in fullname.lower():
+                filtered[fullname] = contact_info
+                if 'additional_roles' in contact_info:
+                    del contact_info['additional_roles']
+
+    # display contact using normalized keys
+    # display(render_contact(filtered))
+
+    # display contact using original keys
+    display(render_contact(filtered, keymap))
+
+except nt.NestedTextError as e:
+    e.report()
+except MultipleInvalid as e:
+    report_voluptuous_errors(e, keymap, contacts_file)
+except OSError as e:
+    error(os_error(e))
+terminate()
