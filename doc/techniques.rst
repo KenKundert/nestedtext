@@ -461,7 +461,7 @@ Accumulation
 
 This example demonstrates how to used *NestedText* so that it supports some 
 common paradigms used in settings files; specifically you can override or 
-accumulate to previously specified settings by repeating its name.
+accumulate to previously specified settings by repeating their names.
 
 It implements an example settings file reader that supports a small variety of 
 settings.  *NestedText* is configured to de-duplicate the keys (the names of the 
