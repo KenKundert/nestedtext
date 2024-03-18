@@ -6,3 +6,4 @@ patterns:
     - ..
     - ../**/{name}.nt
     - ../**/*.{name}:*.nt
+limit: 60.0

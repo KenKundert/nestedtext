@@ -17,11 +17,8 @@ def de_dup(key, state):
     state[key] += 1
     return f"{key}#{state[key]}"
 
-def to_snake_case(key):
-    return '_'.join(key.lower().split())
-
 def normalize_key(key, parent_keys):
-    return to_snake_case(key)
+    return '_'.join(key.lower().split())  # convert key to snake case
 
 def read_settings(path, processed=None):
     if processed is None:
@@ -60,8 +57,7 @@ def read_settings(path, processed=None):
             if cruft:
                 report_error("‘+’ must precede setting name")
 
-        if '#' in key:
-            # a duplicate key
+        if '#' in key:  # get original name for duplicate key
             key, _, _ = key.partition('#')
 
         key = key.strip('_')
@@ -89,7 +85,7 @@ def read_settings(path, processed=None):
         elif key in schema:
             if accumulate:
                 report_error(f"setting is unsuitable for accumulation")
-            value = schema[key](value)
+            value = schema[key](value)  # cast to desired type
         else:
             report_error(f"unknown setting")
         processed[key] = value

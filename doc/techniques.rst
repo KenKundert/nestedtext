@@ -460,16 +460,16 @@ Accumulation
 ============
 
 This example demonstrates how to used *NestedText* so that it supports some 
-common paradigms used in settings files; specifically you can override or 
+common common aspects of settings files; specifically you can override or 
 accumulate to previously specified settings by repeating their names.
 
 It implements an example settings file reader that supports a small variety of 
-settings.  *NestedText* is configured to de-duplicate the keys (the names of the 
-settings) with the result being processed to identify and report errors and to 
-implement overrides, accumulations, and simple conversions.  Accumulation is 
-indicated by preceding the name of a setting with a plus sign.  All keys are 
-converted to snake case identifiers (all lower case, contiguous spaces replace 
-by a single underscore).
+settings.  *NestedText* is configured to normalize and de-duplicate the keys 
+(the names of the settings) with the result being processed to identify and 
+report errors and to implement overrides, accumulations, and simple conversions.  
+Accumulation is indicated adding a plus sign to the beginning of the key.  The 
+keys are normalized by converting them to snake case (all lower case, contiguous 
+spaces replaced by a single underscore).
 
 ..  literalinclude:: ../examples/accumulation/settings.py
    :language: python

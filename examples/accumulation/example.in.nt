@@ -1,8 +1,12 @@
-name: terminus
+name: trantor
 actions:
     default: clean
 patterns: ..
+limit: 60
+
+name: terminus
 +patterns: ../**/{name}.nt
-+ patterns: ../**/*.{name}:*.nt
++patterns: ../**/*.{name}:*.nt
+
 + actions:
     final: archive
