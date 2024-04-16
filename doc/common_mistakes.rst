@@ -128,10 +128,10 @@ This restriction is easily removed using *top*:
     ...     e.report()
     ['a', 'b']
 
-The *top* argument can take any of the following values: *"dict"*, *dict*, 
-*"list"*, *list*, *"str"*, *str*, *"any"*, or *any*.  The default value is 
-*dict*.  The value given for *top* also determines the value returned by 
-:func:`load` and :func:`loads` if the *NestedText* document is empty.
+The *top* argument can take any of the values shown in the table below.  The 
+default value is *dict*.  The value given for *top* also determines the value 
+returned by :func:`load` and :func:`loads` if the *NestedText* document is 
+empty.
 
 ================ =================================
 *top*            value returned for empty document
