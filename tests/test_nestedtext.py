@@ -992,6 +992,9 @@ def test_keymaps():
         ◊  7 ❬        > Topeka, Kansas 20697❭
                                 ▲
     """, bolm='◊', strip_nl="b")
+    with pytest.raises(IndexError) as exception:
+        loc.as_line('value', offset=(2,8))
+    assert exception.value.args == (2,)
 
 
 # test_keymaps_with_duplicates {{{2

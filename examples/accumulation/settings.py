@@ -84,10 +84,10 @@ def read_settings(path, processed=None):
                 value = base
         elif key in schema:
             if accumulate:
-                report_error(f"setting is unsuitable for accumulation")
+                report_error("setting is unsuitable for accumulation")
             value = schema[key](value)  # cast to desired type
         else:
-            report_error(f"unknown setting")
+            report_error("unknown setting")
         processed[key] = value
 
     return processed
