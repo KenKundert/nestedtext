@@ -10,7 +10,7 @@ Common mistakes
 
 .. currentmodule:: nestedtext
 
-Two Values for One Key
+Two values for one key
 ----------------------
 
 When :func:`load()` or :func:`loads()` complains of errors it is important to 
@@ -91,7 +91,7 @@ trailing whitespace.  To do so in Vim, add::
 to your ~/.vimrc file.
 
 
-Lists or Strings at the Top Level
+Lists or strings at the top level
 ---------------------------------
 
 Most *NestedText* files start with key-value pairs at the top-level and we 
