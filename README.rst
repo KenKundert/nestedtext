@@ -24,8 +24,8 @@ NestedText — A Human Friendly Data Format
 
 
 | Authors: Ken & Kale Kundert
-| Version: 3.7.dev2
-| Released: 2024-03-18
+| Version: 3.7.dev3
+| Released: 2024-04-26
 | Documentation: nestedtext.org_
 | Please post all questions, suggestions, and bug reports to GitHub_.
 |

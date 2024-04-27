@@ -13,8 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
-| Version: 3.7.dev2
-| Released: 2024-03-18
+| Version: 3.7.dev3
+| Released: 2024-04-26
 
 - Added ability to disable support for inlines.
 - Added :func:`get_keys()`, :func:`get_value()`, :func:`get_line_numbers()`, and 
