@@ -10,6 +10,7 @@ from io import StringIO
 from inform import Error, Info, render, indent, join, dedent
 from quantiphy import Quantity
 import subprocess
+import json
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
@@ -2056,5 +2057,28 @@ def test_file_descriptors(tmp_path):
     assert results.stdout == b""
     assert results.stderr == b""
     assert results.returncode == 0
+
+# test_andyde {{{2
+def test_andyde(tmp_path):
+    data_python = {
+        "http://www.kde.org/standards/kcfg/1.0}kcfgfile": None,
+        "http://www.kde.org/standards/kcfg/1.0}group": {
+            "http://www.kde.org/standards/kcfg/1.0}entry": [
+                {"{http://www.kde.org/standards/kcfg/1.0}default": 250},
+                {"{http://www.kde.org/standards/kcfg/1.0}default": "krunner,yakuake"}
+            ]
+        }
+    }
+    data_after_round_trip = {
+        "http://www.kde.org/standards/kcfg/1.0}kcfgfile": "",
+        "http://www.kde.org/standards/kcfg/1.0}group": {
+            "http://www.kde.org/standards/kcfg/1.0}entry": [
+                {"{http://www.kde.org/standards/kcfg/1.0}default": "250"},
+                {"{http://www.kde.org/standards/kcfg/1.0}default": "krunner,yakuake"}
+            ]
+        }
+    }
+    data_as_nt = nt.dumps(data_python)
+    assert nt.loads(data_as_nt) == data_after_round_trip
 
 # vim: fdm=marker

@@ -1534,12 +1534,14 @@ class NestedTextDumper:
         )
         if multiline_key_required:
             key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
+            if self.is_a_dict(value) or self.is_a_list(value):
+                return key + self.render_value(value, keys, values)
             if is_str(value):
                 # force use of multiline value with multiline keys
                 value = convert_returns(value)
-                return key + "\n" + add_leader(value, self.indent*" " + "> ")
             else:
-                return key + self.render_value(value, keys, values)
+                value = self.render_value(value, keys, values)
+            return key + "\n" + add_leader(value, self.indent*" " + "> ")
         else:
             return add_prefix(key + ":", self.render_value(value, keys, values))
 
