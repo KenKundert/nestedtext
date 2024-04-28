@@ -14,8 +14,8 @@ implementation, you will see versions that include no changes to the language.
 Latest development version
 --------------------------
 
-| Version: 3.7.dev3
-| Released: 2024-04-26
+| Version: 3.7
+| Released: 2024-04-27
 
 
 v3.7 (2024-04-27)
