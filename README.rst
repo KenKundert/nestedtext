@@ -1,26 +1,7 @@
 NestedText — A Human Friendly Data Format
 =========================================
 
-.. image:: https://pepy.tech/badge/nestedtext/month
-    :target: https://pepy.tech/project/nestedtext
-
-.. image:: https://img.shields.io/readthedocs/nestedtext.svg
-   :target: https://nestedtext.readthedocs.io/en/latest/?badge=latest
-
-..  image:: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml/badge.svg
-    :target: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml
-
-.. image:: https://coveralls.io/repos/github/KenKundert/nestedtext/badge.svg?branch=master
-    :target: https://coveralls.io/github/KenKundert/nestedtext?branch=master
-
-.. image:: https://img.shields.io/pypi/v/nestedtext.svg
-    :target: https://pypi.python.org/pypi/nestedtext
-
-.. image:: https://anaconda.org/conda-forge/nestedtext/badges/version.svg
-    :target: https://anaconda.org/conda-forge/nestedtext
-
-.. image:: https://img.shields.io/pypi/pyversions/nestedtext.svg
-    :target: https://pypi.python.org/pypi/nestedtext
+|downloads| |build status| |coverage| |rtd status| |pypi version| |anaconda version| |python version|
 
 
 | Authors: Ken & Kale Kundert
@@ -188,3 +169,25 @@ Also, please consider using *NestedText* for any applications you create.
 .. _pytest: https://docs.pytest.org
 .. _github: https://github.com/KenKundert/nestedtext/issues
 .. _nestedtext.org: https://nestedtext.org
+
+.. |downloads| image:: https://pepy.tech/badge/nestedtext/month
+    :target: https://pepy.tech/project/nestedtext
+
+.. |rtd status| image:: https://img.shields.io/readthedocs/nestedtext.svg
+   :target: https://nestedtext.readthedocs.io/en/latest/?badge=latest
+
+.. |build status| image:: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml/badge.svg
+    :target: https://github.com/KenKundert/nestedtext/actions/workflows/build.yaml
+
+.. |coverage| image:: https://coveralls.io/repos/github/KenKundert/nestedtext/badge.svg?branch=master
+    :target: https://coveralls.io/github/KenKundert/nestedtext?branch=master
+
+.. |pypi version| image:: https://img.shields.io/pypi/v/nestedtext.svg
+    :target: https://pypi.python.org/pypi/nestedtext
+
+.. |anaconda version| image:: https://anaconda.org/conda-forge/nestedtext/badges/version.svg
+    :target: https://anaconda.org/conda-forge/nestedtext
+
+.. |python version| image:: https://img.shields.io/pypi/pyversions/nestedtext.svg
+    :target: https://pypi.python.org/pypi/nestedtext
+
