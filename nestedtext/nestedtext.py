@@ -141,6 +141,9 @@ class NestedTextError(Error, ValueError):
         ... except nt.NestedTextError as e:
         ...     print(str(e))
         2: duplicate key: name1.
+               1 ❬name1: value1❭
+               2 ❬name1: value2❭
+                  ▲
 
     You can also use the *report* method to print the message directly. This is
     appropriate if you are using *inform* for your messaging as it follows
@@ -207,6 +210,9 @@ class NestedTextError(Error, ValueError):
         ...         template = "llave duplicada: {}."
         ...     print(e.render(template=template))
         2: llave duplicada: name1.
+               1 ❬name1: value1❭
+               2 ❬name1: value2❭
+                  ▲
 
     '''
 
@@ -1266,11 +1272,10 @@ def loads(
             ...         addresses = nt.loads(f.read(), source=filename)
             ... except nt.NestedTextError as e:
             ...     print(e.render())
-            ...     print(*e.get_codicil(), sep="\n")
             examples/duplicate-keys.nt, 5: duplicate key: name.
-               4 ❬name:❭
-               5 ❬name:❭
-                  ▲
+                   4 ❬name:❭
+                   5 ❬name:❭
+                      ▲
 
         Notice in the above example the encoding is explicitly specified as
         "utf-8".  *NestedText* files should always be read and written using
@@ -1293,6 +1298,9 @@ def loads(
             Traceback (most recent call last):
             ...
             nestedtext.nestedtext.NestedTextError: 3: duplicate key: key.
+                   2 ❬key: value 1❭
+                   3 ❬key: value 2❭
+                      ▲
 
             >>> print(nt.loads(content, on_dup="ignore"))
             {'key': 'value 1', 'name': 'value 4'}

@@ -17,6 +17,10 @@ Latest development version
 | Version: 3.7.dev3
 | Released: 2024-04-26
 
+
+v3.7 (2024-04-27)
+-----------------
+
 - Clarified policy on white space in inline strings.
 
 

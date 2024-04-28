@@ -16,12 +16,17 @@ Latest development version
 | Version: 3.7.dev3
 | Released: 2024-04-26
 
-- Added ability to disable support for inlines.
+
+v3.7 (2024-04-27)
+-----------------
+- Added ability to disable support for inlines using *dialect* argument to 
+  :func:`load()` and :func:`loads()`.
 - Added :func:`get_keys()`, :func:`get_value()`, :func:`get_line_numbers()`, and 
   :func:`get_location()`.
 - Deprecated :func:`get_value_from_keys()`, :func:`get_lines_from_keys()`,
   :func:`get_original_keys()`, and :func:`join_keys()`.
 - Added *offset* argument to :meth:`Location.as_line()`.
+- Add ability to specify *source* to :func:`load()`.
 - Clarified policy on white space in inline strings.
 
 
