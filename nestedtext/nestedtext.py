@@ -911,9 +911,8 @@ class NestedTextLoader:
                     self.values, self.keymap = None, None
                 else:
                     self.values, self.keymap = self._read_value(0, ())
-                return
 
-            if top in ["dict", dict]:
+            elif top in ["dict", dict]:
                 if next_is in ["dict item", "key item", "inline dict"]:
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
@@ -923,9 +922,8 @@ class NestedTextLoader:
                         "content must start with key or brace ({{).",
                         lines.get_next()
                     )
-                return
 
-            if top in ["list", list]:
+            elif top in ["list", list]:
                 if next_is in ["list item", "inline list"]:
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
@@ -935,9 +933,8 @@ class NestedTextLoader:
                         "content must start with dash (-) or bracket ([).",
                         lines.get_next(),
                     )
-                return
 
-            if top in ["str", str]:
+            elif top in ["str", str]:
                 if next_is == "string item":
                     self.values, self.keymap = self._read_value(0, ())
                 elif next_is is None:
@@ -947,9 +944,12 @@ class NestedTextLoader:
                         "content must start with greater-than sign (>).",
                         lines.get_next(),
                     )
-                return
 
-            raise NotImplementedError(top)
+            else:
+                raise NotImplementedError(top)
+
+            if lines.type_of_next():
+                report('extra content', lines.get_next())
 
     # get_decoded() {{{3
     def get_decoded(self):
