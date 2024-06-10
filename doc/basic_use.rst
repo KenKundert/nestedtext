@@ -10,9 +10,17 @@ The *NestedText* Python API is similar to that of *JSON*, *YAML*, *TOML*, etc.
 Installation
 ------------
 
+*NestedText* is also available from *pip*.  Install it with:
+
 .. code-block:: text
 
    pip3 install --user nestedtext
+
+Alternately, *Inform* is also available in *Conda*.  Install it with:
+
+.. code-block:: text
+
+    conda install nestedtext --channel conda-forge
 
 
 NestedText Reader
