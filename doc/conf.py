@@ -1,5 +1,4 @@
 import sys, os
-import nestedtext
 
 # General
 
@@ -36,3 +35,13 @@ def setup(app):
     if os.path.exists('.static/css/custom.css'):
         app.add_css_file('css/custom.css')
 
+# The following are needed by the ReadTheDocs website.  KSK 240726
+
+# Define the canonical URL if you are using a custom domain on Read the Docs
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+# Tell Jinja2 templates the build is running on Read the Docs
+if os.environ.get("READTHEDOCS", "") == "True":
+    if "html_context" not in globals():
+        html_context = {}
+    html_context["READTHEDOCS"] = True
