@@ -14,7 +14,7 @@ Installation
 
 .. code-block:: text
 
-   pip3 install --user nestedtext
+   pip3 install nestedtext
 
 Alternately, *Inform* is also available in *Conda*.  Install it with:
 
