@@ -163,23 +163,8 @@ As shown below, this code outputs the data twice, the first time with the
 de-duplicated keys and the second time using the original keys.  Notice that the 
 first contains the duplication markers whereas the second does not.
 
-.. code-block:: nestedtext
-
-    With de-duplicated keys:
-    Michael Jordan:
-        occupation: basketball player
-    Michael Jordan#2:
-        occupation: actor
-    Michael Jordan#3:
-        occupation: football player
-
-    With original keys:
-    Michael Jordan:
-        occupation: basketball player
-    Michael Jordan:
-        occupation: actor
-    Michael Jordan:
-        occupation: football player
+.. literalinclude:: ../examples/deduplication/michael_jordan.out
+   :language: nestedtext
 
 
 .. _sorting keys:

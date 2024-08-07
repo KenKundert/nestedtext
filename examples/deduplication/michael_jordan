@@ -8,7 +8,7 @@ def de_dup(key, state):
     if key not in state:
         state[key] = 1
     state[key] += 1
-    return f"{key}#{state[key]}"
+    return f"{key} #{state[key]}"
 
 try:
     # read contacts database
