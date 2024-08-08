@@ -23,33 +23,63 @@ Official *NestedText* test suite.  Also included as submodule in
 Implementations
 ---------------
 
-`Go: nestex <https://github.com/npillmayer/nestext>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""
-`Go <https://golang.org/>`_ implementation of *NestedText*
-(supports :ref:`NestedText v3.0 <v3.0>`).
+Go
+""
+
+`nestex <https://github.com/npillmayer/nestext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Go <https://golang.org/>`_ implementation of *NestedText*.
+Supports :ref:`NestedText v3.0 <v3.0>`.
 
 
-`Janet: janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-`Janet <https://janet-lang.org/>`_ implementation of *NestedText*
-(supports :ref:`NestedText v3.0 <v3.0>`).
+Janet
+"""""
+
+`janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Janet <https://janet-lang.org/>`_ implementation of *NestedText*.
+Supports :ref:`NestedText v3.0 <v3.0>`.
 
 
-`NodeJS: @rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-nodejs ( es module ) implementation of *NestedText*.
-Use https://github.com/npillmayer/nestext wasm for nestedtext decode 
-(supports :ref:`NestedText v3.0 <v3.0>`).
+JavaScript
+""""""""""
+
+`NestedText <https://www.npmjs.com/package/nestedtext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Native JavaScript implementation of *NestedText*. It's not a WASM build of 
+a compiled project, so it is significantly lighter in weight than 
+*@rmw/nestedtext*.  Also available from `GitHub 
+<https://github.com/fidian/nestedtext>`_.  Supports :ref:`NestedText v3.0 
+<v3.0>`.
 
 
-`Ruby: nestedtext-ruby <https://github.com/erikw/nestedtext-ruby>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-`Ruby <https://www.ruby-lang.org/en/>`_ implementation of *NestedText*
-(supports :ref:`NestedText v3.0 <v3.0>`).
+`@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+NodeJS (es module) implementation of *NestedText*.  Uses `WASM 
+<https://en.wikipedia.org/wiki/WebAssembly>`_ for *NestedText* decode.  Supports 
+:ref:`NestedText v3.0 <v3.0>`.
 
 
-`Zig: zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Ruby
+""""
+
+`nestedtext-ruby <https://github.com/erikw/nestedtext-ruby>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Ruby <https://www.ruby-lang.org/en/>`_ implementation of *NestedText*.  
+Supports :ref:`NestedText v3.0 <v3.0>`.
+
+
+Zig
+"""
+
+`zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 `Zig <https://ziglang.org>`_ implementation of *NestedText*
 (slight subset of :ref:`NestedText v2.0 <v2.0>`).  Also contains *nt-cli*, an 
 efficient command line utility for converting between *NestedText* and *JSON*.
