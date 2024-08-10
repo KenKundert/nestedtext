@@ -52,8 +52,8 @@ import unicodedata
 
 
 # Utility functions {{{1
-# convert_returns {{{2
-def convert_returns(text):
+# convert_line_terminators {{{2
+def convert_line_terminators(text):
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -1320,7 +1320,7 @@ def loads(
     '''
 
     # code {{{3
-    lines = convert_returns(content).split("\n")
+    lines = convert_line_terminators(content).split("\n")
     loader = NestedTextLoader(
         lines, top, source, on_dup, keymap, normalize_key, dialect
     )
@@ -1407,7 +1407,7 @@ def load(
     # code {{{3
     # Do not invoke the read method as that would read in the entire contents of
     # the file, possibly consuming a lot of memory. Instead pass the file
-    # pointer into _read_all(), it will iterate through the lines, discarding
+    # pointer into loader, it will iterate through the lines, discarding
     # them once they are no longer needed, which reduces the memory usage.
 
     if isinstance(f, collections.abc.Iterator):
@@ -1527,7 +1527,7 @@ class NestedTextDumper:
             raise NestedTextError(
                 key, template="keys must be strings.", culprit=keys
             ) from None
-        return convert_returns(key)
+        return convert_line_terminators(key)
 
     # render_dict_item {{{3
     def render_dict_item(self, key, value, keys, values):
@@ -1546,7 +1546,7 @@ class NestedTextDumper:
                 return key + self.render_value(value, keys, values)
             if is_str(value):
                 # force use of multiline value with multiline keys
-                value = convert_returns(value)
+                value = convert_line_terminators(value)
             else:
                 value = self.render_value(value, keys, values)
             return key + "\n" + add_leader(value, self.indent*" " + "> ")
@@ -1674,7 +1674,7 @@ class NestedTextDumper:
                 content = "\n".join(content)
 
         elif self.is_a_str(obj):
-            text = convert_returns(obj)
+            text = convert_line_terminators(obj)
             if "\n" in text or level == 0:
                 content = add_leader(text, "> ")
                 need_indented_block = True

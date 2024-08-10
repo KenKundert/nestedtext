@@ -547,6 +547,9 @@ This example uses the pretty-print function from the previous example.
         Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
+An alternative to using a backslash to escape the newline is to simply join 
+lines that end with a space.  This might be more natural for non-programmers and 
+can work well for prose.
 
 .. _voluptuous: https://github.com/alecthomas/voluptuous
 .. _pydantic: https://pydantic-docs.helpmanual.io

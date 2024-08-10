@@ -73,8 +73,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     item*.  After comments and blank lines have been removed, adjacent string 
     items with the same indentation level are combined in order into 
     a multiline string.  The string value is the multiline string with the 
-    tags removed. Any leading white space that follows the tag is retained, as 
-    is any trailing white space and all newlines except the last.
+    tags removed.  Any leading white space that follows the tag is retained, as 
+    is any trailing white space. The last newline is removed and all other 
+    newlines are converted to the default line terminator for the current 
+    operating system.
 
     String values may contain any printing UTF-8 character.
 
@@ -105,9 +107,10 @@ The *NestedText* format follows a small number of simple rules. Here they are.
     immediately by an ASCII space (``:␣``) or a line break, the line is a *key 
     item*.  After comments and blank lines have been removed, adjacent key items 
     with the same indentation level are combined in order into a multiline key.  
-    The key itself is the multiline string with the tags removed. Any leading 
-    white space that follows the tag is retained, as is any trailing white space 
-    and all newlines except the last.
+    The key itself is the multiline string with the tags removed.  Any leading 
+    white space that follows the tag is retained, as is any trailing white 
+    space. The last newline is removed and all other newlines are converted to 
+    the default line terminator for the current operating system.
 
     Key values may contain any printing UTF-8 character.
 
