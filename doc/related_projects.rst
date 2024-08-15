@@ -108,8 +108,7 @@ from your `PyTest <https://docs.pytest.org>`_ test code.
 `pygments <https://github.com/KenKundert/pygments>`_
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 Version of the popular *pygments* Python library that supports :ref:`NestedText 
-v3.0 <v3.0>`.  Expect v2.16 of `base repository
-<https://github.com/pygments/pygments>`_ to support v3.0 of *NestedText*.
+v3.0 <v3.0>`.
 
 
 `vim-nestedtext <https://github.com/kenkundert/vim-nestedtext>`_
