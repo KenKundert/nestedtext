@@ -23,6 +23,16 @@ Official *NestedText* test suite.  Also included as submodule in
 Implementations
 ---------------
 
+.NET
+""""
+
+`NestedText <https://www.nuget.org/packages/NestedText>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`.NET <https://dotnet.microsoft.com/>`_ implementation of *NestedText*.
+Supports :ref:`NestedText v3.7 <v3.7>`.
+
+
 Go
 ""
 
