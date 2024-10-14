@@ -18,11 +18,15 @@ Latest development version
 | Released: 2024-04-27
 
 
+.. _v3.7:
+
 v3.7 (2024-04-27)
 -----------------
 
 - Clarified policy on white space in inline strings.
 
+
+.. _v3.6:
 
 v3.6 (2023-05-30)
 -----------------
@@ -30,17 +34,23 @@ v3.6 (2023-05-30)
 - No changes.
 
 
+.. _v3.5:
+
 v3.5 (2022-11-04)
 -----------------
 
 - No changes.
 
 
+.. _v3.4:
+
 v3.4 (2022-06-15)
 -----------------
 
 - No changes.
 
+
+.. _v3.3:
 
 v3.3 (2022-06-07)
 -----------------
@@ -49,11 +59,15 @@ v3.3 (2022-06-07)
 - *NestedText* document files should end with a newline.
 
 
+.. _v3.2:
+
 v3.2 (2022-01-17)
 -----------------
 
 - No changes.
 
+
+.. _v3.1:
 
 v3.1 (2021-07-23)
 -----------------
