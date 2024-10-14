@@ -18,7 +18,7 @@ print("### test_api:", test_api)
 for i, each in enumerate(sys.path):
     print(f"### path component {i}", str(each))
 for dir in [test_api.parent.parent, test_api.parent, test_api]:
-    for each in test_api.iterdir():
+    for each in dir.iterdir():
         print(f"### contents of {dir!s}:", str(each))
 import nestedtext_official_tests as official
 
