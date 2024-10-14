@@ -14,8 +14,11 @@ import json
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
-print(test_api)
-print(sys.path)
+print("### test_api:", test_api)
+for i, each in enumerate(sys.path):
+    print(f"### path component {i}", str(each))
+for each in test_api.iterdir():
+    print(f"### contents of test_api:", str(each))
 import nestedtext_official_tests as official
 
 # Parametrization {{{1
