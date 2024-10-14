@@ -1,9 +1,3 @@
-GitHub is now recommending using setup-python, however they do not support the 
-older versions of python using this mechanism.  Also, I tried to test on the mac 
-and gave up.
-        uses: actions/setup-python@v5
-
-
 name: NestedText
 on: [push, pull_request]
 jobs:
