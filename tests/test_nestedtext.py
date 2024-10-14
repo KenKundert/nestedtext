@@ -14,6 +14,8 @@ import json
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
+print(test_api)
+print(sys.path)
 import nestedtext_official_tests as official
 
 # Parametrization {{{1
