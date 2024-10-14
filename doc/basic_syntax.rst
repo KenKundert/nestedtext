@@ -53,7 +53,7 @@ on the next line, which must be further indented.
         > first line of value 5
         > second line of value 5
 
-Which is equivalent to the following JSON code:
+This is equivalent to the following JSON code:
 
 .. code-block:: json
 

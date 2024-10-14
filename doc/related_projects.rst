@@ -23,16 +23,6 @@ Official *NestedText* test suite.  Also included as submodule in
 Implementations
 ---------------
 
-.NET
-""""
-
-`NestedText <https://www.nuget.org/packages/NestedText>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`.NET <https://dotnet.microsoft.com/>`_ implementation of *NestedText*.
-Supports :ref:`NestedText v3.7 <v3.7>`.
-
-
 Go
 ""
 
@@ -64,6 +54,16 @@ a compiled project, so it is significantly lighter in weight than
 *@rmw/nestedtext*.  Also available from `GitHub 
 <https://github.com/fidian/nestedtext>`_.  Supports :ref:`NestedText v3.0 
 <v3.0>`.
+
+
+.NET
+""""
+
+`NestedText <https://www.nuget.org/packages/NestedText>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`.NET <https://dotnet.microsoft.com/>`_ implementation of *NestedText*.
+Supports :ref:`NestedText v3.7 <v3.7>`.
 
 
 `@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_

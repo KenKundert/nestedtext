@@ -57,8 +57,8 @@ describe to your users if you decide to use it for your application.
     structured data.  It is intended to be easily entered, edited, or viewed by 
     people.  As such, the syntax is very simple and intuitive.
 
-    It organizes the data into a nested collection of lists and name-value 
-    pairs where the lowest level values are all strings.  For example, a simple 
+    It organizes the data into a nested collection of lists and name-value pairs 
+    where the lowest level values are all simple text.  For example, a simple 
     collection of name-value pairs represented using:
 
     .. code-block:: nestedtext

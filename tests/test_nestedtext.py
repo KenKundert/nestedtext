@@ -1977,7 +1977,7 @@ def test_dump_map_keys_keymap():
     output = nt.dumps(people, map_keys=keymap)
     assert output == document
 
-    # withkey normalization
+    # with key normalization
     def normalize_key(key, parent_keys):
         return key.lower()
 

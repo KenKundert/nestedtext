@@ -1,5 +1,5 @@
-def pytest_ignore_collect(path):
-    components = str(path).split('/')
+def pytest_ignore_collect(collection_path):
+    components = collection_path.parts
     name = components[-1]
     if name.startswith('deploy_') and name.endswith('.py'):
         return True

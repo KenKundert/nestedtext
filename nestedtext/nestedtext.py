@@ -1622,7 +1622,7 @@ class NestedTextDumper:
             raise NotSuitableForInline from None
         return value
 
-    # render content {{{3
+    # render value {{{3
     def render_value(self, obj, keys, values):
         level = len(keys)
         error = None
