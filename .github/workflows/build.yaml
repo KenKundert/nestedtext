@@ -11,7 +11,10 @@ jobs:
       max-parallel: 6
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
