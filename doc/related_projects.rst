@@ -55,6 +55,14 @@ a compiled project, so it is significantly lighter in weight than
 <https://github.com/fidian/nestedtext>`_.  Supports :ref:`NestedText v3.0 
 <v3.0>`.
 
+`@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+NodeJS (es module) implementation of *NestedText*.  Uses `WASM 
+<https://en.wikipedia.org/wiki/WebAssembly>`_ for *NestedText* decode.  Supports 
+:ref:`NestedText v3.0 <v3.0>`.
+
+
 
 .NET
 """"
@@ -64,14 +72,6 @@ a compiled project, so it is significantly lighter in weight than
 
 `.NET <https://dotnet.microsoft.com/>`_ implementation of *NestedText*.
 Supports :ref:`NestedText v3.7 <v3.7>`.
-
-
-`@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-NodeJS (es module) implementation of *NestedText*.  Uses `WASM 
-<https://en.wikipedia.org/wiki/WebAssembly>`_ for *NestedText* decode.  Supports 
-:ref:`NestedText v3.0 <v3.0>`.
 
 
 Ruby
