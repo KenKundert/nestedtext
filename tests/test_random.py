@@ -45,11 +45,12 @@ def add_spaces(content, targets):
     return re.sub(f'[{re.escape(targets)}]', pad_randomly, content).lstrip(' ')
 
 
-@settings(max_examples=max_examples)
-@given(st.from_type(bool | None | int | float))
-def test_types(v):
-    expected = None if v is None else str(v)
-    assert nt.loads(nt.dumps(v), top=any) == expected
+if sys.version_info[:3] > (3,10):
+    @settings(max_examples=max_examples)
+    @given(st.from_type(bool | None | int | float))
+    def test_types(v):
+        expected = None if v is None else str(v)
+        assert nt.loads(nt.dumps(v), top=any) == expected
 
 @settings(max_examples=max_examples)
 @given(st.text())
