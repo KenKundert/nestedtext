@@ -288,8 +288,7 @@ code more robust with little to no increase in complexity:
     The type of the value ``2`` is ambiguous; it may be integer or real.  This 
     may cause problems when combined into an array, such as ``[1.85, 1.94, 2, 
     2.09]``.  A casually written program may choke on a non-homogeneous array 
-    that consists of an integer among the floats.  This is the reason that JSON 
-    does not distinguish between integers and reals.
+    that consists of an integer among the floats.
 
     YAML is notorious for ambiguities because it allows unquoted strings.  ``2`` 
     is a valid integer, real, and string.  Similarly, ``no`` is a valid Boolean 
@@ -390,8 +389,7 @@ code more robust with little to no increase in complexity:
 
 .. collapse::
     Support for non-string types creates the requirement for quoting and 
-    escaping, and ultimately leads to either verbosity (JSON) or ambiguity 
-    (YAML).
+    escaping, and ultimately leads to either clutter (JSON) or ambiguity (YAML).
 
     Every additional supported data type brings a challenge; how to 
     unambiguously distinguish it from the others.  The challenge is particularly 

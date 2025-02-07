@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 shopt -s globstar
-rm -rf generated_settings
+rm -rf generated_settings .tox
 rm -rf .cache
 rm -rf data.nt tests/data.nt
 rm -rf /tmp/pytest-of-$USER
