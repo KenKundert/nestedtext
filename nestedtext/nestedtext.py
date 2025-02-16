@@ -2538,8 +2538,13 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
             their original form if *original* is true,  The missing keys are
             always returned as given.
 
+        sep:
+            A join string.  If given the keys are interleaved with *sep* and
+            joined into a string before being returned.
+
     Returns:
-        A tuple containing the desired keys.
+        A tuple containing the desired keys if *sep* is not given.
+        A string formed by joining the keys with *sep* if *sep* is given.
 
     Examples:
 
@@ -2641,7 +2646,10 @@ def get_value(data, keys):
 
     # code {{{3
     for key in keys:
-        data = data[key]
+        try:
+            data = data[key]
+        except TypeError:
+            raise KeyError(key)
     return data
 
 

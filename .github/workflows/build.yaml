@@ -15,7 +15,6 @@ jobs:
         with:
           submodules: true
       - name: Set up Python ${{ matrix.python-version }}
-        # uses: actions/setup-python@v5
         uses: actions/setup-node@v2
         with:
           python-version: ${{ matrix.python-version }}
