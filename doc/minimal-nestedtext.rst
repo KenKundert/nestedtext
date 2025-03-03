@@ -58,8 +58,8 @@ describe to your users if you decide to use it for your application.
     people.  As such, the syntax is very simple and intuitive.
 
     It organizes the data into a nested collection of lists and name-value pairs 
-    where the lowest level values are all simple text.  For example, a simple 
-    collection of name-value pairs represented using:
+    where the leaf-level values are all simple text.  For example, a simple 
+    collection of name-value pairs is represented using:
 
     .. code-block:: nestedtext
 
@@ -69,7 +69,7 @@ describe to your users if you decide to use it for your application.
     The name and value are separated by a colon followed immediately by a space.  
     The characters that follow the space are the value.
 
-    A simple list represented with:
+    A simple list is represented with:
 
     .. code-block:: nestedtext
 
@@ -107,7 +107,7 @@ describe to your users if you decide to use it for your application.
         Name: Value
 
     The name in a name-value pair is referred to as a key.  In *Minimal 
-    NestedText* keys can not start with a space, an opening bracket (``[``) or 
+    NestedText* keys cannot start with a space, an opening bracket (``[``) or 
     brace (``{``), or a dash followed by a space.  Nor can it contain a colon 
     followed by a space.  Other that that, there are no restrictions on the 
     characters that make up a key or value, and any characters given are taken 
