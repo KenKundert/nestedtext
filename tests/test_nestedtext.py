@@ -11,6 +11,7 @@ from inform import Error, Info, render, indent, join, dedent
 from quantiphy import Quantity
 import subprocess
 import json
+import os
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
 import sys; sys.path.append(str(test_api))
@@ -1232,6 +1233,10 @@ def test_key_utilities():
         except TypeError:
             assert value == expected_value
 
+        with pytest.raises(KeyError) as exception:
+            value = nt.get_value("", normalized_keys)
+        assert exception.value.args == (normalized_keys[0],)
+
         # print(value)
         # try:
         #     assert index == int(value)
@@ -2027,8 +2032,8 @@ def test_dump_dialect():
         list:
     """, strip_nl="b")
 
-# Test round-trip {{{1
-# test_file_descriptors {{{2
+# Misc tests {{{1
+# test_file_descriptors() {{{2
 def test_file_descriptors(tmp_path):
     # program that writes out a simple NT document to stdout
     write_data = dedent("""
@@ -2052,14 +2057,29 @@ def test_file_descriptors(tmp_path):
         f"python {writer!s} | python {reader!s}",
         shell = True,
         capture_output = True,
-        env = {"COVERAGE_PROCESS_START":""},
+        env = {"COVERAGE_PROCESS_START":"", "PATH": os.environ["PATH"]}
     )
-    assert results.stdout == b""
-    assert results.stderr == b""
+    assert results.stdout.decode('utf8') == ""
+    assert results.stderr.decode('utf8') == ""
     assert results.returncode == 0
 
-# test_andyde {{{2
-def test_andyde(tmp_path):
+# test_binary_files() {{{2
+def test_binary_round_trip(tmp_path):
+    orig_data = {"dict": {}, "list": [], "str": "", "mls":"\\n"}
+    nt_path = tmp_path / "test.nt"
+
+    # dump nestedtext to a binary file
+    with nt_path.open('wb') as f:
+        test_nt = nt.dump(orig_data, f)
+
+    # read nestedtext from a binary file
+    with nt_path.open('rb') as f:
+        data_as_read = nt.load(f)
+
+    assert data_as_read == orig_data
+
+# test_round_trip() {{{2
+def test_round_trip(tmp_path):
     data_python = {
         "http://www.kde.org/standards/kcfg/1.0}kcfgfile": None,
         "http://www.kde.org/standards/kcfg/1.0}group": {

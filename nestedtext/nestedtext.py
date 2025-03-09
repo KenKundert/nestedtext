@@ -12,7 +12,7 @@ understood and used by both programmers and non-programmers.
 """
 
 # MIT License {{{1
-# Copyright (c) 2020-2024 Ken and Kale Kundert
+# Copyright (c) 2020-2025 Ken and Kale Kundert
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -338,6 +338,11 @@ class Lines:
         for lineno, line in enumerate(self.lines):
             key = None
             value = None
+            try:
+                # decode to utf8 if a byte string or binary file is given
+                line = line.decode('utf8')
+            except AttributeError:
+                pass
             line = line.rstrip("\n")
 
             # compute indentation
@@ -2197,16 +2202,21 @@ def dump(obj, dest, **kwargs):
 
     try:
         dest.write(content + "\n")
-    except AttributeError:
+    except (AttributeError, TypeError) as e:
         # Avoid nested try-except blocks, since they lead to chained exceptions
         # (e.g. if the file isn’t found, etc.) that unnecessarily complicate the
         # stack trace.
-        pass
+        exception = e
     else:
         return
 
-    with open(dest, "w", encoding="utf-8") as f:
-        f.write(content + "\n")
+    if isinstance(exception, TypeError):
+        # file may be binary, encode in utf8 and try again
+        dest.write((content + "\n").encode('utf8'))
+    else:
+        # dest is a file name rather than a file pointer
+        with open(dest, "w", encoding="utf-8") as f:
+            f.write(content + "\n")
 
 
 # NestedText Utilities {{{1

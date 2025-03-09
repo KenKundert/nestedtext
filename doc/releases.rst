@@ -16,6 +16,8 @@ Latest development version
 | Version: 3.7
 | Released: 2024-04-27
 
+- Allow binary files to be passed to :func:`load()` and :func:`dump()`.
+
 
 v3.7 (2024-04-27)
 -----------------
