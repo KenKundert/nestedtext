@@ -1,5 +1,5 @@
 # NestedText
-__version__ = "3.8.dev1"
+__version__ = "3.8.dev2"
 __released__ = "2025-04-05"
 
 from .nestedtext import (
