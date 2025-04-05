@@ -1310,7 +1310,7 @@ def test_empty_blank_lines(top, expected):
     keymap = {}
     data = nt.loads(document, top=top, keymap=keymap)
     assert data == expected
-    assert keymap[()].as_line(offset=None) == '   4 ❬❭'
+    assert keymap[()].as_line(offset=None) == '   3 ❬❭'
 
 # test_empty_comments {{{2
 @parametrize(

@@ -4,17 +4,18 @@ Related projects
 Reference Material
 ------------------
 
-`nestedtext docs <https://nestedtext.org>`_
-"""""""""""""""""""""""""""""""""""""""""""
+`NestedText Documentation <https://nestedtext.org>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""
 *NestedText* documentation and language specification.
 
 
-`nestedtext source <https://github.com/kenkundert/nestedtext>`_
+`NestedText Source <https://github.com/kenkundert/nestedtext>`_
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Source code repository for language documentation and Python implementation.  
 Report any issues here.
 
-`nestedtext_tests <https://github.com/kenkundert/nestedtext_tests>`_
+
+`NestedText Tests <https://github.com/kenkundert/nestedtext_tests>`_
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Official *NestedText* test suite.  Also included as submodule in
 `nestedtext <https://github.com/kenkundert/nestedtext>`_.
@@ -61,7 +62,6 @@ a compiled project, so it is significantly lighter in weight than
 NodeJS (es module) implementation of *NestedText*.  Uses `WASM 
 <https://en.wikipedia.org/wiki/WebAssembly>`_ for *NestedText* decode.  Supports 
 :ref:`NestedText v3.0 <v3.0>`.
-
 
 
 .NET

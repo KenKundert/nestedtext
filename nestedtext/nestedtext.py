@@ -47,6 +47,7 @@ from inform import (
     Info,
 )
 import collections.abc
+import io
 import re
 import unicodedata
 
@@ -445,7 +446,9 @@ class Lines:
             )
 
     # still_within_key() {{{3
-    def still_within_key(self, depth):
+    def still_within_key(self, line, depth):
+        if not self.next_line:
+            report("indented value must follow multi-line key", line)
         return (
             self.next_line.kind == "key item" and
             self.next_line.depth == depth
@@ -1104,7 +1107,7 @@ class NestedTextLoader:
     def _read_key(self, line, depth):
         lines = self.lines
         data = [line.value]
-        while lines.still_within_key(depth):
+        while lines.still_within_key(line, depth):
             line = lines.get_next()
             data.append(line.value)
         return "\n".join(data)
@@ -1325,9 +1328,11 @@ def loads(
     '''
 
     # code {{{3
-    lines = convert_line_terminators(content).split("\n")
+    if isinstance(content, bytes):
+        content = content.decode('utf-8-sig', errors='strict')
+    f = io.StringIO(content, newline=None)
     loader = NestedTextLoader(
-        lines, top, source, on_dup, keymap, normalize_key, dialect
+        f, top, source, on_dup, keymap, normalize_key, dialect
     )
     return loader.get_decoded()
 
@@ -1428,7 +1433,7 @@ def load(
                 source = '<stdin>'
             else:
                 source = str(f)
-        with open(f, encoding="utf-8") as fp:
+        with open(f, encoding="utf-8-sig") as fp:
             loader = NestedTextLoader(
                 fp, top, source, on_dup, keymap, normalize_key, dialect
             )

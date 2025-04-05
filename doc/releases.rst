@@ -16,7 +16,18 @@ Latest development version
 | Version: 3.7
 | Released: 2024-04-27
 
+**Bug Fixes**:
+
+- Catch multi-line key not followed by indented value.
+- Make line-ending recognition consistent for files and strings.
+- Fix bug in :func:`get_value()`.
+- Report error if there is content that follows top-level inline dictionary.
+
+**Enhancements**:
+
+- Support files that have utf8 byte-order marker (BOM).
 - Allow binary files to be passed to :func:`load()` and :func:`dump()`.
+- Allow byte strings to be passed to :func:`loads()`.
 
 
 v3.7 (2024-04-27)
