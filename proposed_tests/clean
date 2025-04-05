@@ -1,0 +1,10 @@
+#!/bin/csh -f
+
+set nonomatch
+
+foreach path (*/{load,dump}_{in,out,err}.{nt,json,yaml})
+    if (-e $path) then
+        set dir=$path:h
+        /bin/rm -rf $dir
+    endif
+end

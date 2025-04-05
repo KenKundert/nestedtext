@@ -1,0 +1,3266 @@
+# NestedText Official Test Cases {{{1
+#
+# These test cases are focused on assuring that valid NestedText input is 
+# properly read and invalid NestedText is properly identified by an 
+# implementation of NestedText.
+#
+# No attempt is made to assure that an implementation produces valid NestedText.  
+# There is considerably flexibility in the way that NestedText may be generated.  
+# In light of this flexibility the best way to test a NestedText generator is to 
+# couple it with a NestedText reader and perform a round trip through both, 
+# which can be performed with these test cases.
+#
+# The test cases are contained in tests.nt.  The convert command converts these 
+# test cases into JSON.  It may also add an additional field, types, which is 
+# a dictionary that contains the count of each possible line type that may be 
+# found in a NestedText document.  The line types are:
+#     blank
+#     comment
+#     dict item
+#     inline dict
+#     inline list
+#     key item
+#     list item
+#     string item
+#     unrecognized
+#
+# These counts can be used to filter the tests to be run if desired.
+#
+# It is expected that the JSON file (tests.json) will be used to test NestedText 
+# implementations).  The NestedText file of test cases (tests.nt) is used to 
+# generate tests.json, and it only needed if you plan to add or modify tests.  
+# Do not modify the JSON file directly, as any changes will be overridden 
+# whenever convert is run.
+#
+# Each test case in tests.nt is a dictionary entry.  The key is used as the name 
+# of the test.  The keys must be unique and are largely chosen at random, but 
+# any words that are expected to be found within the test cases are rejected.  
+# This allows test cases to be quickly found by searching for their name.
+#
+# The fields that may be specified are:
+#
+# description (str):
+#     Simply describes the test.  Is optional and unused.
+#
+# string_in (str):
+#     This is a string that will be fed into a NestedText load function.  This 
+#     string should be NestedText, though it may contain errors.
+#
+# load_out (None | str | list | dict):
+#     The expected output from the NestedText load function if no errors are 
+#     expected.  If a string is given and if the first character in the string 
+#     is ‘!’, then the mark is removed and what remains is evaluated by Python, 
+#     with the result being the expected output.
+#
+# load_err (dict):
+#     Details about the error that is expected to be found and reported by the 
+#     NestedText load function.  It consists of 4 fields:
+#
+#     message (str):
+#         The error message that is emitted by the Python implementation of 
+#         NestedText.
+#
+#     line (str):
+#         The text of the line in the NestedText input from string_in that 
+#         contains the error.
+#
+#     lineno (None, int):
+#         The line number of the line that contains the error.  The first line 
+#         is line 0.
+#
+#     colno (None, int):
+#         The number of the column where the error is likely to be.  The first 
+#         column is column 0.
+#
+# Control characters and Unicode white space characters are expected to be 
+# backslash escaped in string_in, load_out, and load_err.lines.
+
+
+# alpine  {{{1
+alpine:
+    description: empty single line multiline string
+    string_in:
+        > >
+    load_out:
+        >
+
+# medical  {{{1
+medical:
+    description: empty multiple line multiline string
+    string_in:
+        > >
+        > >
+    load_out:
+        >
+        >
+
+# terrier  {{{1
+terrier:
+    description: single line multiline string
+    string_in:
+        > > Those who can make you believe absurdities can make you commit atrocities.  — Voltaire
+    load_out:
+        > Those who can make you believe absurdities can make you commit atrocities.  — Voltaire
+
+# perimeter  {{{1
+perimeter:
+    description: multiple line multiline string
+    string_in:
+        > > “The worth of a man to his society can be measured by the contribution he
+        > >  makes to it — less the cost of sustaining himself and his mistakes in it.”
+        > >
+        > >                                                — Erik Jonsson
+        > >
+    load_out:
+        > “The worth of a man to his society can be measured by the contribution he
+        >  makes to it — less the cost of sustaining himself and his mistakes in it.”
+        >
+        >                                                — Erik Jonsson
+        >
+
+# precipice  {{{1
+precipice:
+    description: dictionary with one key-value pair, both are empty strings
+    string_in:
+        > :
+        >   >
+    load_out: !{'':''}
+
+# province  {{{1
+province:
+    description: simple single-level dictionary with eof linefeed
+    string_in:
+        > key 1: value 1
+        > key 2: value 2
+        > key 3: value 3
+        >
+    load_out:
+        key 1: value 1
+        key 2: value 2
+        key 3: value 3
+
+# detonator  {{{1
+detonator:
+    description: simple single-level dictionary, no eof linefeed
+    string_in:
+        > key 1: value 1
+        > key 2: value 2
+        > key 3: value 3
+    load_out:
+        key 1: value 1
+        key 2: value 2
+        key 3: value 3
+
+# theater  {{{1
+theater:
+    description: top-level dictionary with a second level of nesting
+    string_in:
+        > key 1: value 1
+        > key 2:
+        > key 3:
+        >     - value 3a
+        >     - value 3b
+        > key 4:
+        >     key 4a: value 4a
+        >     key 4b: value 4b
+        > key 5:
+        >     > first line of value 5
+        >     > second line of value 5
+    load_out:
+        key 1: value 1
+        key 2:
+        key 3:
+            - value 3a
+            - value 3b
+        key 4:
+            key 4a: value 4a
+            key 4b: value 4b
+        key 5:
+            > first line of value 5
+            > second line of value 5
+
+# crescent  {{{1
+crescent:
+    description: list with one empty string
+    string_in: -
+    load_out: !['']
+
+# automaton  {{{1
+automaton:
+    description: simple single-level list with eof linefeed
+    string_in:
+        > - value 1
+        > - value 2
+        > - value 3
+        >
+    load_out:
+        - value 1
+        - value 2
+        - value 3
+
+# wally  {{{1
+wally:
+    description: simple single-level list, no eof linefeed
+    string_in:
+        > - value 1
+        > - value 2
+        > - value 3
+    load_out:
+        - value 1
+        - value 2
+        - value 3
+
+# native  {{{1
+native:
+    description: top-level list with a second level of nesting
+    string_in:
+        > - value 1
+        > -
+        > -
+        >     - value 3a
+        >     - value 3b
+        > -
+        >     key 4a: value 4a
+        >     key 4b: value 4b
+        > -
+        >     > first line of value 5
+        >     > second line of value 5
+    load_out:
+        - value 1
+        -
+        -
+            - value 3a
+            - value 3b
+        -
+            key 4a: value 4a
+            key 4b: value 4b
+        -
+            > first line of value 5
+            > second line of value 5
+
+# answer  {{{1
+answer:
+    description: nested dictionaries with empty strings as keys and value
+    string_in:
+        > :
+        >     :
+        >         >
+    load_out:
+        > !{'':{'':''}}
+
+# screwy  {{{1
+screwy:
+    description: dictionary with multiline keys
+    string_in:
+        > : key 1
+        > :     the first key
+        >     > value 1
+        > : key 2: the second key
+        >     - value 2a
+        >     - value 2b
+    load_out:
+        : key 1
+        :     the first key
+            > value 1
+        : key 2: the second key
+            - value 2a
+            - value 2b
+
+# socialize  {{{1
+socialize:
+    description: empty inline dictionary
+    string_in: {}
+    load_out: !{}
+
+# abound  {{{1
+abound:
+    description: inline dictionary with one key-value pair, both empty strings
+    string_in: {:}
+    load_out: !{'':''}
+
+# washday  {{{1
+washday:
+    description: a simple top-level inline dictionary
+    string_in: {key 1: value 1, key 2: value 2, key 3: value 3}
+    load_out:
+        {key 1: value 1, key 2: value 2, key 3: value 3}
+
+# exhume  {{{1
+exhume:
+    description: a nested top-level inline dictionary
+    string_in: {key 1: value 1, key 2: [value 2a, value 2b], key 3: {key 3a: value 3a, key 3b: value 3b}}
+    load_out:
+        {key 1: value 1, key 2: [value 2a, value 2b], key 3: {key 3a: value 3a, key 3b: value 3b}}
+
+# ointment  {{{1
+ointment:
+    description: empty inline list
+    string_in: []
+    load_out: ![]
+
+# banquet  {{{1
+banquet:
+    description: inline list containing one empty string
+    string_in: [ ]
+    load_out: !['']
+
+# cliff  {{{1
+cliff:
+    description: another inline list containing one empty string
+    string_in: [  ]
+    load_out: !['']
+
+# stingray  {{{1
+stingray:
+    description: a simple top-level inline lies
+    string_in: [value 1, value 2, value 3]
+    load_out:
+        [value 1, value 2, value 3]
+
+# spastic  {{{1
+spastic:
+    description: a nested top-level inline list
+    string_in: [value 1, [value 2a, value 2b], {key 3a: value 3a, key 3b: value 3b}]
+    load_out:
+        [value 1, [value 2a, value 2b], {key 3a: value 3a, key 3b: value 3b}]
+
+# brother  {{{1
+brother:
+    description: empty document
+    string_in:
+    load_out: !None
+
+# cosmology  {{{1
+cosmology:
+    description: empty document with comment
+    string_in: #
+    load_out: !None
+
+# clone  {{{1
+clone:
+    description: empty document with blank line
+    string_in:
+        >
+        >
+    load_out: !None
+
+# spillage  {{{1
+spillage:
+    description: dictionaries and lists with deep nesting
+    string_in:
+        > a:
+        >  -
+        >   b:
+        >    -
+        >     c:
+        >      -
+        >       d:
+        >        -
+        >         e:
+        >          -
+        >           f:
+        >            -
+        >             g:
+        >              -
+        >               h:
+        >                -
+        >                 i:
+        >                  -
+        >                   j:
+        >                    -
+        >                     k:
+        >                      -
+        >                       l:
+        >                        -
+        >                         m:
+        >                          -
+        >                           n:
+        >                            -
+        >                             o:
+        >                              -
+        >                               p:
+        >                                -
+        >                                 q:
+        >                                  -
+        >                                   r:
+        >                                    -
+        >                                     s:
+        >                                      -
+        >                                       t:
+        >                                        -
+        >                                         u:
+        >                                          -
+        >                                           v:
+        >                                            -
+        >                                             w:
+        >                                              -
+        >                                               x:
+        >                                                -
+        >                                                 y:
+        >                                                  -
+        >                                                   z:
+        >                                                    -
+        >                                                     α:
+        >                                                      -
+        >                                                       β:
+        >                                                        -
+        >                                                         γ:
+        >                                                          -
+        >                                                           δ:
+        >                                                            -
+        >                                                             ε:
+        >                                                              -
+        >                                                               ζ:
+        >                                                                -
+        >                                                                 η:
+        >                                                                  -
+        >                                                                   θ:
+        >                                                                    -
+        >                                                                     ι:
+        >                                                                      -
+        >                                                                       κ:
+        >                                                                        -
+        >                                                                         λ:
+        >                                                                          -
+        >                                                                           μ:
+        >                                                                            -
+        >                                                                             ν:
+        >                                                                              -
+        >                                                                               ξ:
+        >                                                                                -
+        >                                                                                 ο:
+        >                                                                                  -
+        >                                                                                   π:
+        >                                                                                    -
+        >                                                                                     ρ:
+        >                                                                                      -
+        >                                                                                       σ:
+        >                                                                                        -
+        >                                                                                         τ:
+        >                                                                                          -
+        >                                                                                           υ:
+        >                                                                                            -
+        >                                                                                             φ:
+        >                                                                                              -
+        >                                                                                               χ:
+        >                                                                                                -
+        >                                                                                                 ψ:
+        >                                                                                                  -
+        >                                                                                                   ω:
+        >                                                                                                    -
+        >
+    load_out:
+        a:
+         -
+          b:
+           -
+            c:
+             -
+              d:
+               -
+                e:
+                 -
+                  f:
+                   -
+                    g:
+                     -
+                      h:
+                       -
+                        i:
+                         -
+                          j:
+                           -
+                            k:
+                             -
+                              l:
+                               -
+                                m:
+                                 -
+                                  n:
+                                   -
+                                    o:
+                                     -
+                                      p:
+                                       -
+                                        q:
+                                         -
+                                          r:
+                                           -
+                                            s:
+                                             -
+                                              t:
+                                               -
+                                                u:
+                                                 -
+                                                  v:
+                                                   -
+                                                    w:
+                                                     -
+                                                      x:
+                                                       -
+                                                        y:
+                                                         -
+                                                          z:
+                                                           -
+                                                            α:
+                                                             -
+                                                              β:
+                                                               -
+                                                                γ:
+                                                                 -
+                                                                  δ:
+                                                                   -
+                                                                    ε:
+                                                                     -
+                                                                      ζ:
+                                                                       -
+                                                                        η:
+                                                                         -
+                                                                          θ:
+                                                                           -
+                                                                            ι:
+                                                                             -
+                                                                              κ:
+                                                                               -
+                                                                                λ:
+                                                                                 -
+                                                                                  μ:
+                                                                                   -
+                                                                                    ν:
+                                                                                     -
+                                                                                      ξ:
+                                                                                       -
+                                                                                        ο:
+                                                                                         -
+                                                                                          π:
+                                                                                           -
+                                                                                            ρ:
+                                                                                             -
+                                                                                              σ:
+                                                                                               -
+                                                                                                τ:
+                                                                                                 -
+                                                                                                  υ:
+                                                                                                   -
+                                                                                                    φ:
+                                                                                                     -
+                                                                                                      χ:
+                                                                                                       -
+                                                                                                        ψ:
+                                                                                                         -
+                                                                                                          ω:
+                                                                                                           -
+
+# moccasin  {{{1
+moccasin:
+    description: inline dictionaries and lists with deep nesting
+    string_in:
+        > {a:[{b:[{c:[{d:[{e:[{f:[{g:[{h:[{i:[{j:[{k:[{l:[{m:[{n:[{o:[{p:[{q:[{r:[{s:[{t:[{u:[{v:[{w:[{x:[{y:[{z:[ ]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}
+    load_out:
+        a:
+         -
+          b:
+           -
+            c:
+             -
+              d:
+               -
+                e:
+                 -
+                  f:
+                   -
+                    g:
+                     -
+                      h:
+                       -
+                        i:
+                         -
+                          j:
+                           -
+                            k:
+                             -
+                              l:
+                               -
+                                m:
+                                 -
+                                  n:
+                                   -
+                                    o:
+                                     -
+                                      p:
+                                       -
+                                        q:
+                                         -
+                                          r:
+                                           -
+                                            s:
+                                             -
+                                              t:
+                                               -
+                                                u:
+                                                 -
+                                                  v:
+                                                   -
+                                                    w:
+                                                     -
+                                                      x:
+                                                       -
+                                                        y:
+                                                         -
+                                                          z:
+                                                           -
+
+# insulate  {{{1
+insulate:
+    description: dictionary with a variety of end-of-line strings
+    string_in:
+        > code   : input signed [7:0] level
+        > regex  : [+-]?([0-9]*[.])?[0-9]+\\s*\\w*
+        > math   : $x = \\frac{{-b \\pm \\sqrt {b^2 - 4ac}}}{2a}$
+        > unicode: José and François
+    load_out:
+        code   : input signed [7:0] level
+        regex  : [+-]?([0-9]*[.])?[0-9]+\\s*\\w*
+        math   : $x = \\frac{{-b \\pm \\sqrt {b^2 - 4ac}}}{2a}$
+        unicode: José and François
+
+# scent  {{{1
+scent:
+    description: simple multiline string
+    string_in:
+        > >     This is the first line of a multiline string, it is indented.
+        > > This is the second line, it is not indented.
+    load_out:
+        >     This is the first line of a multiline string, it is indented.
+        > This is the second line, it is not indented.
+
+# smithy  {{{1
+smithy:
+    description: empty document
+    string_in:
+        > # this line is ignored
+        >
+        > # this line is also ignored, as is the blank line above.
+        >
+        > # this is a comment that contains unicode: “αβγ ΩƱ 𝄞🁒 🌀”
+        >
+    load_out: !None
+
+# import  {{{1
+import:
+    description: multiline string interrupted with a comment
+    string_in:
+        > > this is the first line of a multiline string
+        > # this line is ignored
+        > > this is the second line of the multiline string
+    load_out:
+        > this is the first line of a multiline string
+        > this is the second line of the multiline string
+
+# unlearn  {{{1
+unlearn:
+    description: address book example
+    string_in:
+        > # Contact information for our officers
+        >
+        > Katheryn McDaniel:
+        >     position: president
+        >     address:
+        >         > 138 Almond Street
+        >         > Topeka, Kansas 20697
+        >     phone:
+        >         cell: 1-210-555-5297
+        >         work: 1-210-555-3423
+        >         home: 1-210-555-8470
+        >             # Katheryn prefers that we always call her on her cell phone.
+        >     email: KateMcD@aol.com
+        >     kids:
+        >         - Joanie
+        >         - Terrance
+        >
+        > Margaret Hodge:
+        >     position: vice president
+        >     address:
+        >         > 2586 Marigold Lane
+        >         > Topeka, Kansas 20697
+        >     phone:
+        >         {cell: 1-470-555-0398, home: 1-470-555-7570}
+        >     email: margaret.hodge@ku.edu
+        >     kids:
+        >         [Arnie, Zach, Maggie]
+    load_out:
+        Katheryn McDaniel:
+            position: president
+            address:
+                > 138 Almond Street
+                > Topeka, Kansas 20697
+            phone:
+                cell: 1-210-555-5297
+                work: 1-210-555-3423
+                home: 1-210-555-8470
+            email: KateMcD@aol.com
+            kids:
+                - Joanie
+                - Terrance
+        Margaret Hodge:
+            position: vice president
+            address:
+                > 2586 Marigold Lane
+                > Topeka, Kansas 20697
+            phone:
+                {cell: 1-470-555-0398, home: 1-470-555-7570}
+            email: margaret.hodge@ku.edu
+            kids:
+                [Arnie, Zach, Maggie]
+
+# amnesty  {{{1
+amnesty:
+    description: too many values error
+    string_in:
+        > treasurer:
+        >     name: Fumiko Purvis
+        >     address: Home
+        >         > 3636 Buffalo Ave
+        >         > Topeka, Kansas 20692
+    load_err:
+        message: invalid indentation.
+        line:         > 3636 Buffalo Ave
+        lineno: 3
+        colno: 4
+
+# subdue  {{{1
+subdue:
+    description: another too many values error
+    bytes_in:
+        > treasurer:
+        >     name: Fumiko Purvis
+        >     address: \x20
+        >         > 3636 Buffalo Ave
+        >         > Topeka, Kansas 20692
+    load_err:
+        message: invalid indentation.
+        line:         > 3636 Buffalo Ave
+        lineno: 3
+        colno: 4
+
+# balloon  {{{1
+balloon:
+    description: multiline key without a value
+    string_in: :
+    load_err:
+        message: indented value must follow multi-line key.
+        line: :
+        lineno: 0
+
+# lolly  {{{1
+lolly:
+    description: nested multiline key without a value
+    string_in:
+        > :
+        >     :
+    load_err:
+        message: indented value must follow multi-line key.
+        line:     :
+        lineno: 1
+
+# cornea  {{{1
+cornea:
+    description: multiple line multiline string with and embedded whitespace
+    string_in:
+        > > Lorem Ipsum
+        > >
+        > >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > > culpa qui officia deserunt mollit anim id est laborum.
+    load_out:
+        > Lorem Ipsum
+        > 
+        >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > culpa qui officia deserunt mollit anim id est laborum.
+
+# tacky  {{{1
+tacky:
+    description:
+        > multiple line multiline string with leading, trailing and embedded 
+        > whitespace
+    string_in:
+        > >
+        > > Lorem Ipsum
+        > >
+        > >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > > culpa qui officia deserunt mollit anim id est laborum.
+        > >
+    load_out:
+        >
+        > Lorem Ipsum
+        >
+        >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > culpa qui officia deserunt mollit anim id est laborum.
+        >
+
+# mailbox  {{{1
+mailbox:
+    description:
+        > multiple line multiline string with leading, trailing and embedded 
+        > comments
+    string_in:
+        > >
+        > > Lorem Ipsum
+        > >
+        > >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > > culpa qui officia deserunt mollit anim id est laborum.
+        > >
+        >
+        > # Here is a bit more that one rarely sees ...
+        > >     Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+        > > accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae 
+        > > ab illo inventore veritatis et quasi architecto beatae vitae dicta 
+        > > sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit 
+        > > aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos 
+        > > qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui 
+        > > dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed 
+        > > quia non numquam eius modi tempora incidunt ut labore et dolore magnam 
+        > > aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum 
+        > > exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex 
+        > > ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in 
+        > > ea voluptate velit esse quam nihil molestiae consequatur, vel illum 
+        > > qui dolorem eum fugiat quo voluptas nulla pariatur?"
+        > >
+        >
+        > # There is more, but let's stop here.
+    load_out:
+        >
+        > Lorem Ipsum
+        >
+        >     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+        > eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad 
+        > minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+        > aliquip ex ea commodo consequat. Duis aute irure dolor in 
+        > reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla 
+        > pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
+        > culpa qui officia deserunt mollit anim id est laborum.
+        >
+        >     Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+        > accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae 
+        > ab illo inventore veritatis et quasi architecto beatae vitae dicta 
+        > sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit 
+        > aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos 
+        > qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui 
+        > dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed 
+        > quia non numquam eius modi tempora incidunt ut labore et dolore magnam 
+        > aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum 
+        > exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex 
+        > ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in 
+        > ea voluptate velit esse quam nihil molestiae consequatur, vel illum 
+        > qui dolorem eum fugiat quo voluptas nulla pariatur?"
+        >
+
+# reprobate  {{{1
+reprobate:
+    description:
+        > Check ability of NestedText to hold some special characters.
+        > The CR and LF characters will be lost in the conversion to NT.
+    bytes_in:
+        > the backslash character: \\
+        > the single quote character: '
+        > the double quote character: "
+        > the bell character: \a
+        > the back space character: \b
+        > the form feed character: \f
+        > the line feed character: \n
+        > the carriage return character: \r
+        > the horizontal tab character: \t
+        > the vertical tab character: \v
+        > the escape character: \x1b
+        > the delete character: \x7f
+        >
+    load_out:
+        the backslash character: \\
+        the single quote character: '
+        the double quote character: "
+        the bell character: \x07
+        the back space character: \x08
+        the form feed character: \x0c
+        the line feed character:
+        the carriage return character:
+        the horizontal tab character: \t
+        the vertical tab character: \x0b
+        the escape character: \x1b
+        the delete character: \x7f
+
+# incision  {{{1
+incision:
+    description:
+        > Check ability of NestedText to hold some special characters.
+        > The CR and LF characters will be lost in the conversion to NT.
+        > Window line terminators (CR-LF) are used.
+    bytes_in:
+        > the backslash character: \\\r\n
+        > the single quote character: '\r\n
+        > the double quote character: "\r\n
+        > the bell character: \a\r\n
+        > the back space character: \b\r\n
+        > the form feed character: \f\r\n
+        > the line feed character: \n\r\n
+        > the carriage return character: \r\r\n
+        > the horizontal tab character: \t\r\n
+        > the vertical tab character: \v\r\n
+        > the escape character: \x1b\r\n
+        > the delete character: \x7f\r\n
+        > \r\n
+    load_out:
+        the backslash character: \\
+        the single quote character: '
+        the double quote character: "
+        the bell character: \x07
+        the back space character: \b
+        the form feed character: \f
+        the line feed character: 
+        the carriage return character: 
+        the horizontal tab character: \t
+        the vertical tab character: \x0b
+        the escape character: \x1b
+        the delete character: \x7f
+
+# pelvis  {{{1
+pelvis:
+    description:
+        > Check ability of NestedText to hold some special characters.
+        > The CR and LF characters will be lost in the conversion to NT.
+        > Mac line terminators (CR) are used.
+    bytes_in:
+        > the backslash character: \\\r
+        > the single quote character: '\r
+        > the double quote character: "\r
+        > the bell character: \a\r
+        > the back space character: \b\r
+        > the form feed character: \f\r
+        > the line feed character: \n\r
+        > the carriage return character: \r\r
+        > the horizontal tab character: \t\r
+        > the vertical tab character: \v\r
+        > the escape character: \x1b\r
+        > the delete character: \x7f\r
+        > \r
+    load_out:
+        the backslash character: \\
+        the single quote character: '
+        the double quote character: "
+        the bell character: \x07
+        the back space character: \b
+        the form feed character: \f
+        the line feed character: 
+        the carriage return character: 
+        the horizontal tab character: \t
+        the vertical tab character: \x0b
+        the escape character: \x1b
+        the delete character: \x7f
+
+# pursuit  {{{1
+pursuit:
+    description:
+        > Check ability of NestedText to hold some special characters.
+        > The CR and LF characters will be lost in the conversion to NT.
+        > Mixed line terminators (LF, CR, CR-LF) are used.
+    bytes_in:
+        > the backslash character: \\\r\n
+        > the single quote character: '\r
+        > the double quote character: "\n
+        > the bell character: \a\r\n
+        > the back space character: \b\r
+        > the form feed character: \f\n
+        > the line feed character: \n\r\n
+        > the carriage return character: \r\r
+        > the horizontal tab character: \t\n
+        > the vertical tab character: \v\r\n
+        > the escape character: \x1b\r\n
+        > the delete character: \x7f\r\n
+        > \r\n
+    load_out:
+        the backslash character: \\
+        the single quote character: '
+        the double quote character: "
+        the bell character: \x07
+        the back space character: \b
+        the form feed character: \f
+        the line feed character: 
+        the carriage return character: 
+        the horizontal tab character: \t
+        the vertical tab character: \x0b
+        the escape character: \x1b
+        the delete character: \x7f
+
+# beset  {{{1
+beset:
+    description:
+        > various multiline strings with leading, trailing, and internal 
+        > newlines and comments
+    string_in:
+        > no newlines:
+        >     > line 1
+        >     > line 2
+        > leading newline:
+        >     >
+        >     > line 1
+        >     > line 2
+        > internal newline:
+        >     > line 1
+        >     >
+        >     > line 2
+        > trailing newline:
+        >     > line 1
+        >     > line 2
+        >     >
+        > leading, internal, and trailing newline:
+        >     >
+        >     > line 1
+        >     >
+        >     > line 2
+        >     >
+        > leading newlines:
+        >     >
+        >     >
+        >     > line 1
+        >     > line 2
+        > internal newlines:
+        >     > line 1
+        >     >
+        >     >
+        >     > line 2
+        > trailing newlines:
+        >     > line 1
+        >     > line 2
+        >     >
+        >     >
+        > leading, internal, and trailing newlines:
+        >     >
+        >     >
+        >     > line 1
+        >     >
+        >     >
+        >     > line 2
+        >     >
+        >     >
+        > leading blank line:
+        >
+        >     > line 1
+        >     > line 2
+        > internal blank line:
+        >     > line 1
+        >
+        >     > line 2
+        > trailing blank line:
+        >     > line 1
+        >     > line 2
+        >
+        > leading comment:
+        >   # ignore me
+        >     > line 1
+        >     > line 2
+        > internal comment:
+        >     > line 1
+        >         # ignore me
+        >     > line 2
+        > trailing comment:
+        >     > line 1
+        >     > line 2
+        >   # ignore me
+        >
+        >             # ignore me
+        >
+        >                        
+    load_out:
+        no newlines:
+            > line 1
+            > line 2
+        leading newline:
+            >
+            > line 1
+            > line 2
+        internal newline:
+            > line 1
+            > 
+            > line 2
+        trailing newline:
+            > line 1
+            > line 2
+            >
+        leading, internal, and trailing newline:
+            >
+            > line 1
+            >
+            > line 2
+            >
+        leading newlines:
+            >
+            >
+            > line 1
+            > line 2
+        internal newlines:
+            > line 1
+            >
+            >
+            > line 2
+        trailing newlines:
+            > line 1
+            > line 2
+            >
+            >
+        leading, internal, and trailing newlines:
+            >
+            >
+            > line 1
+            >
+            >
+            > line 2
+            >
+            >
+        leading blank line:
+            > line 1
+            > line 2
+        internal blank line:
+            > line 1
+            > line 2
+        trailing blank line:
+            > line 1
+            > line 2
+        leading comment:
+            > line 1
+            > line 2
+        internal comment:
+            > line 1
+            > line 2
+        trailing comment:
+            > line 1
+            > line 2
+
+# gendarme  {{{1
+gendarme:
+    description: error due to inconsistent indent level
+    string_in:
+        > ingredients:
+        >   > green chilies
+        >     > red chilies
+    load_err:
+        message: invalid indentation.
+        line:     > red chilies
+        lineno: 2
+        colno: 2
+
+# sketchy  {{{1
+sketchy:
+    description: error because content does not start in column 1
+    string_in:
+        >      > green chilies
+        >      > red chilies
+    load_err:
+        message: top-level content must start in column 1.
+        line:      > green chilies
+        lineno: 0
+        colno: 0
+
+# prankster  {{{1
+prankster:
+    description: error because the indents are tabs
+    string_in:
+        > ingredients:
+        > \t> green chilies
+        > \t> red chilies
+    load_err:
+        message: invalid character in indentation: '\t'.
+        line: \t> green chilies
+        lineno: 1
+        colno: 0
+
+# streamer  {{{1
+streamer:
+    description: error because indentation contains a unicode space
+    string_in:
+        > ingredients:
+        >         > green chilies
+        >     \xa0   > red chilies
+        > #   ↑ this is a non-breaking space
+    load_err:
+        message: invalid character in indentation: '\xa0' (NO-BREAK SPACE).
+        line:     \xa0   > red chilies
+        lineno: 2
+        colno: 4
+
+# guinea  {{{1
+guinea:
+    description: dictionary with empty values
+    string_in:
+        > key1:
+        > key2:
+    load_out:
+        > !{'key1': '', 'key2': ''}
+
+# dusty  {{{1
+dusty:
+    description: dictionary with empty values
+    string_in:
+        > key1: 
+        > key2: 
+    load_out:
+        > !{'key1': '', 'key2': ''}
+
+# jaunt  {{{1
+jaunt:
+    description: dictionary with multiline key
+    string_in:
+        > : apricot
+        > :
+        >     > 8
+    load_out:
+        : apricot
+        :
+            > 8
+
+# abide  {{{1
+abide:
+    description: dictionary with multiline key
+    string_in:
+        > :  key-a" : key-b' : key-c 
+        >     > value
+    load_out:
+        > !{""" key-a" : key-b' : key-c """: 'value'}
+
+# benchmark  {{{1
+benchmark:
+    description: empty dictionary
+    string_in:
+        > {}
+    load_out:
+        > !{}
+
+# milligram  {{{1
+milligram:
+    description: error because top dictionary is indented
+    string_in:
+        >     key: value
+    load_err:
+        message: top-level content must start in column 1.
+        line:     key: value
+        lineno: 0
+        colno: 0
+
+# fifth  {{{1
+fifth:
+    description:
+        > error because value is specified twice for the same dictionary key
+        > first as an end-of-line string that contains only a single space
+        > second as an indented dictionary
+    string_in:
+        > key 1:  
+        >         # notice the extra space at the end of the above line
+        >
+        >         # that, combined with the indent in the line below is an error
+        >         key 2: value 2
+    load_err:
+        message: invalid indentation.
+        line:         key 2: value 2
+        lineno: 4
+        colno: 0
+
+# chatterer  {{{1
+chatterer:
+    description: error because there is a tab in the indentation
+    string_in:
+        > # invalid indentation, tab in indentation
+        > key 1:
+        >     \t    key 1.1: value 1.1
+        > 
+    load_err:
+        message: invalid character in indentation: '\t'.
+        line:     \t    key 1.1: value 1.1
+        lineno: 2
+        colno: 4
+
+# concuss  {{{1
+concuss:
+    description: error because the sublist is not indented
+    string_in:
+        > ingredients:
+        > - green chilies
+    load_err:
+        message: expected dictionary item.
+        line: - green chilies
+        lineno: 1
+        colno: 0
+
+# marinade  {{{1
+marinade:
+    description: error because the two list items do not have the same indent
+    string_in:
+        > ingredients:
+        >   - green chilies
+        >     - red chilies
+    load_err:
+        message: invalid indentation.
+        line:     - red chilies
+        lineno: 2
+        colno: 2
+
+# detract  {{{1
+detract:
+    description: error because the two dict items do not have the same indent
+    string_in:
+        > candidates:
+        >     name:
+        >   phone:
+    load_err:
+        message: invalid indentation, partial dedent.
+        line:   phone:
+        lineno: 2
+        colno: 0
+
+# silky  {{{1
+silky:
+    description: error because the two list items do not have the same indent
+    string_in:
+        > ingredients:
+        >     - green chilies
+        >   - red chilies
+    load_err:
+        message: invalid indentation, partial dedent.
+        line:   - red chilies
+        lineno: 2
+        colno: 0
+
+# matinee  {{{1
+matinee:
+    description: error because differing types at same level of indentation
+    string_in:
+        > ingredients: red chilies
+        > - green chilies
+    load_err:
+        message: expected dictionary item.
+        line: - green chilies
+        lineno: 1
+        colno: 0
+
+# slipknot  {{{1
+slipknot:
+    description: error because there is no tag on line 2
+    string_in:
+        > ingredients:
+        >     green chilies
+    load_err:
+        message: unrecognized line.
+        line:     green chilies
+        lineno: 1
+        colno: 4
+
+# facet  {{{1
+facet:
+    description: error because there are duplicate keys
+    string_in:
+        > key: value 1
+        > key: value 2
+    load_err:
+        message: duplicate key: key.
+        line: key: value 2
+        lineno: 1
+        colno: 0
+
+# smudge  {{{1
+smudge:
+    description: error because of tab in indentation
+    string_in:
+        > key:
+        >     \t    > first line
+        >     \t    > second line
+    load_err:
+        message: invalid character in indentation: '\t'.
+        line:     \t    > first line
+        lineno: 1
+        colno: 4
+
+# spindly  {{{1
+spindly:
+    description: checks for support of : in key
+    string_in:
+        > key::
+    load_out:
+        > !{"key:": ""}
+
+# charter  {{{1
+charter:
+    description: dictionary with a mix of multiline keys and unicode nonsense
+    string_in:
+        > :
+        >     >
+        > ~!@#$%^&*()_+-1234567890{}[]|;<>?,./: ~!@#$%^&*()_+-1234567890{}[]|:;<>?,./
+        > : - key 3
+        >     > - value 3
+        > : key 4: 
+        >     > value 4: 
+        > : > key 5
+        >     > > value 5
+        > : # key 6
+        >     > #value 6
+        > : : key 7
+        >     > : value 7
+        > " key 8 ": " value 8 "
+        > ' key 9 ': ' value 9 '
+        > key 10: value '" 10
+        > key 11: And Fred said 'yabba dabba doo!' to Barney.
+        > key " 12: value ' 12
+        > $€¥£₩₺₽₹ɃΞȄ: $€¥£₩₺₽₹ɃΞȄ
+        > YZEPTGMKk_cmuµμnpfazy: YZEPTGMKk_cmuµμnpfazy
+        > a-zA-Z%√{us}{cur}][-^/()·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧: a-zA-Z%√{us}{cur}][-^/()·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧
+    load_out:
+        > !{
+        > "": "",
+        > "~!@#$%^&*()_+-1234567890{}[]|;<>?,./": "~!@#$%^&*()_+-1234567890{}[]|:;<>?,./",
+        > "- key 3": "- value 3",
+        > "key 4: ": "value 4: ",
+        > "> key 5": "> value 5",
+        > "# key 6": "#value 6",
+        > ": key 7": ": value 7",
+        > '" key 8 "': '" value 8 "',
+        > "' key 9 '": "' value 9 '",
+        > "key 10": """value '" 10""",
+        > "key 11": "And Fred said 'yabba dabba doo!' to Barney.",
+        > 'key " 12': "value ' 12",
+        > "$€¥£₩₺₽₹ɃΞȄ": "$€¥£₩₺₽₹ɃΞȄ",
+        > "YZEPTGMKk_cmuµμnpfazy": "YZEPTGMKk_cmuµμnpfazy",
+        > "a-zA-Z%√{us}{cur}][-^/()·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧": "a-zA-Z%√{us}{cur}][-^/()·⁻⁰¹²³⁴⁵⁶⁷⁸⁹°ÅΩƱΩ℧"
+        > }
+
+# patchy  {{{1
+patchy:
+    description: dictionary with key that contains quote characters
+    string_in:
+        > key 1: value 1
+        > key'"2: value 2
+    load_out:
+        > !{
+        >     'key 1': 'value 1',
+        >     """key'"2""": 'value 2'
+        > }
+
+# excuse  {{{1
+excuse:
+    description: dictionary with white space after keys
+    string_in:
+        > k1: v1
+        > k2 : v2
+        > k3  : v3
+        > k4\t: v4
+    load_out:
+        {k1: v1, k2: v2, k3: v3, k4: v4}
+
+# sandstorm  {{{1
+sandstorm:
+    description: various valid dictionary items with unusual unquoted keys
+    string_in:
+        > -#:'>: -#:">:
+        > -#:">: -#:'>:
+        > -#'\'>:: -#"\">::
+        > -#"\">:: -#'\'>::
+        >     # indented comment
+        > :-#:'>: :-#:">:
+        > :-#:">: :-#:'>:
+        > :-#'\'>:: :-#"\">::
+        > :-#"\">:: :-#'\'>::
+        >         # indented comment
+        > >:-#:'>: >:-#:">:
+        > >:-#:">: >:-#:'>:
+        > >:-#'\'>:: >:-#"\">::
+        > >:-#"\">:: >:-#'\'>::
+    load_out:
+        > !{
+        >   "-#:'>": '-#:">:',
+        >   '-#:">': "-#:'>:",
+        >   "-#'\'>:": '-#"\">::',
+        >   '-#"\">:': "-#'\'>::",
+        >   ":-#:'>": ':-#:">:',
+        >   ':-#:">': ":-#:'>:",
+        >   ":-#'\'>:": ':-#"\">::',
+        >   ':-#"\">:': ":-#'\'>::",
+        >   ">:-#:'>": '>:-#:">:',
+        >   '>:-#:">': ">:-#:'>:",
+        >   ">:-#'\'>:": '>:-#"\">::',
+        >   '>:-#"\">:': ">:-#'\'>::"
+        > }
+
+# shard  {{{1
+shard:
+    description: keys contain quote character and value contains dict item key.
+    string_in:
+        > 'a: ': a:
+        > : 'b: 
+        >     > ': b:
+    load_out:
+        > !{"'a": "': a:", "'b: ": "': b:"}
+
+# beach  {{{1
+beach:
+    description: long multiline keys
+    string_in:
+        > : This is a key that is
+        > : spread over multiple lines.
+        > : Like normal multiline strings,
+        > : it can contain any character
+        > : without restriction.
+        >     > This is its value
+        >
+        > : Here is another multiline key.
+        > : But in this case it has an empty value.
+        >     >
+        >
+        > : This is another multiline key,
+        > : this one with a multiline value.
+        >     > Here is the multiline value.
+        >     > It is paired with a multiline key.
+        >
+        > here is a simple key: with a simple value
+        >
+        > : Here is a multiline key
+        > : with a list value.
+        >     - 0
+        >     - 1
+        >
+        > : Here is a multiline key
+        > : with a dictionary value.
+        >     a: a
+        >     b: b
+        >
+        > here is another simple key: with another simple value
+        >
+        > : here is a multiline key: that kind of looks a dict item
+        >     > a multiline value
+        >
+        > : This is another multiline key,
+        > : this one with a dictionary as a value that has a multiline key.
+        >     : This is another multiline key,
+        >     : this one with a multiline value.
+        >         > Here is the multiline value.
+        >         > It is paired with a multiline key.
+        >
+        > : This a multiline key with a blank second line.
+        > :
+        >     > yabba dabba doo
+    load_out:
+        : This is a key that is
+        : spread over multiple lines.
+        : Like normal multiline strings,
+        : it can contain any character
+        : without restriction.
+            > This is its value
+        : Here is another multiline key.
+        : But in this case it has an empty value.
+            >
+        : This is another multiline key,
+        : this one with a multiline value.
+            > Here is the multiline value.
+            > It is paired with a multiline key.
+        here is a simple key: with a simple value
+        : Here is a multiline key
+        : with a list value.
+            - 0
+            - 1
+        : Here is a multiline key
+        : with a dictionary value.
+            a: a
+            b: b
+        here is another simple key: with another simple value
+        : here is a multiline key: that kind of looks a dict item
+            > a multiline value
+        : This is another multiline key,
+        : this one with a dictionary as a value that has a multiline key.
+            : This is another multiline key,
+            : this one with a multiline value.
+                > Here is the multiline value.
+                > It is paired with a multiline key.
+        : This a multiline key with a blank second line.
+        :
+            > yabba dabba doo
+
+# crumbly  {{{1
+crumbly:
+    description: multiline keys
+    string_in:
+        > A :
+        >  : B:
+        >   >
+        > : C :
+        >  >
+        > D :
+        > : E
+        >  >
+        > : F1
+        > : F2
+        >  >
+    load_out:
+        A :
+         : B:
+          >
+        : C :
+         >
+        D :
+        : E
+         >
+        : F1
+        : F2
+         >
+
+# despair  {{{1
+despair:
+    description: error with multiline keys due to multiline key missing value
+    string_in:
+        > A :
+        >  : B:
+        > : C :
+        > D :
+        > : E
+    load_err:
+        message: multiline key requires a value.
+        line:  : B:
+        lineno: 1
+        colno: 1
+
+# doodle  {{{1
+doodle:
+    description: rather large real world example with all word replaced by random words
+    string_in:
+        > tether:
+        >     disclose: paranoid clunk gaggle
+        >     prolong: stove banish
+        >     navel: -clipboard organist signify
+        >     crane: -washout honey guarantor=aircrew
+        >     inure: fondle = 10kΩ*dissect
+        >
+        > majesty:
+        >     fatten: washbowl flagon gentile hairstyle
+        >     static: lender busby
+        >     niece: -humpback adduce ferryboat
+        >     reservoir: -dally idiot enlarge=avalanche
+        >     wally: divorcee = 10kΩ*fugue
+        >
+        > banner:
+        >     scepter: trollop living giddy
+        >     lager: piper glacier
+        >     debunk: -trapeze person matron
+        >     pecan: -uncanny perform megaton=profiteer
+        >     register: answer = 10kΩ*trend
+        >
+        > monolith:
+        >     partitive: bookie outcome buckskin
+        >     roller: pixie fraud
+        >     change: scullery-roach rubber reveal+payoff
+        >     simulator: smock fritter consign=chateau
+        >     narrow: betrothal = 10kΩ*trooper - landau
+        >
+        > reinstate:
+        >     dramatist: pasture glade enslave upright
+        >     kinky: deuce birdie
+        >     bathroom: people-layoff fluke flood+sonata
+        >     heart: loiter feature scamper=drivel
+        >     vendetta: nauseate = 10kΩ*hoodlum - signboard
+        >
+        > overstate:
+        >     deter: clitoris treachery reading
+        >     saddlebag: doodle enunciate
+        >     cherub: cupboard-shingle refuge reefer+animate
+        >     overcome: gasometer crease bazooka=thriller
+        >     poplar: centipede = 10kΩ*headman - dewlap
+        >
+        > : [testament:blight] spangle
+        >     otter: adherent disguise electrode biplane
+        >     stormy: curfew neuter
+        >     spaceman: addict = snowman*(anxiety+embitter)*bayonet kestrel liken
+        >     hardy thinner: 'pretend
+        >     belief: sphere
+        >     sachet:
+        >         > fortnight: twitch(hopper) rebut duodenum=bottom; pleat=onward.
+        >         > frizz: galley(genealogy) advantage whelk=-sprawl; waist=-immigrant.
+        >
+        > : [mongrel:sequester] prism
+        >     bairn: easterner racketeer shortfall bootlace amoeba
+        >     canopy: refuse profit
+        >     snuggle: baritone = scrounger*(supplier+clobber)*flutter agate simplify
+        >     edition industry: 'castle
+        >     tenth: rhyme
+        >     scrunch:
+        >         > ledge: exporter(wrongdoer) levitate daiquiri=subsidize; bulletin=reason.
+        >         > jackpot: butcher(frequent) medicine memento=-diaphragm; ointment=-raving.
+        >
+        > : [frogman:alleyway] fatigue
+        >     hyena: believer timepiece infuriate sixty
+        >     cache: bootee scoopful
+        >     laborer: egoist = lunatic*(obeisance+voice)*gambit nickel queer
+        >     scraggy doggie: 'cedar
+        >     requisite: pastor
+        >     teacher:
+        >         > toboggan: champion(dominion) adieu golfer=linen; divorce=stake.
+        >         > fireguard: vineyard(confide) seashore diddle=-dartboard; genuflect=-fidget.
+        >
+        > install:
+        >     abide: waistline
+        >     skunk: coarsen nuisance
+        >     briar: eviction = glide && !reliquary overfeed resent
+        >     magnum accident: 'quince
+        >     nightmare: cheapen
+        >
+        > withdraw:
+        >     chalice: noble canard
+        >     siphon: utility overhead
+        >     butler: aspirin.starlet < heater < brace.blockade
+        >     juggler: crumpet = sunny + slattern + persuade. cataclysm = scolding.
+        >     betake: projector.insulator
+        >     hearth: convector
+        >
+        > surgery:
+        >     sunbathe: decathlon
+        >     fixation: heighten watcher
+        >     stretchy: -washday < burnish < debrief
+        >     scabbard: reward
+        >
+        > intercede barony:
+        >     busker: yachtsman-fleshpot sandbag flummox
+        >     vestry: panorama
+        >     sanction: drench="%keyboard"
+        >
+        > harmony creaky:
+        >     physicist: gauge-doublet bungalow clink
+        >     swerve: cleanser
+        >     royalty:
+        >         > essay="%honeymoon";
+        >         > extol = "swampy";
+        >         > almshouse = "".
+        >
+        > caterwaul imitation:
+        >     dunce: bodice sitcom chipmunk
+        >     profane: monocle
+        >     sortie: impute="%covert"
+        >
+        > menace:
+        >     dredge: miasma litigant broil
+        >     bishop: medley
+        >     inquest: scourer="%gamma"; mesmerize='ballcock
+        >
+        > mattock:
+        >     taint: buttery combatant stalwart
+        >     oculist: implicate
+        >     support: closure='snake; phoenix="%smoothie"
+        >
+        > chance:
+        >     riposte: crusade
+        >     scripture: cathode
+        >     doorstep: dukedom=screening; lifebuoy="%crackle"
+        >     salesman: shimmer cobweb spool=butter.
+        >
+        > asset:
+        >     overthrow: dainty
+        >     chancy: bough psychotic
+        >     sultana: father hormone caliber=mayday.
+        >
+        > pollinate:
+        >     doctor: masochist
+        >     strangler: saloon ensemble shower
+        >     tuxedo:
+        >         > inject='strategy;
+        >         > purport={toffee,ripper}.
+        >     citadel:
+        >         > shrew repellent dairymaid=laser; elevator=biped.
+        >         > resound garage mistreat=rebuild; scree=choke.
+        >         > anchor begrudge slalom=reassert; molester=chopper.
+        >         > dizzy outbreak snifter=tussle; remove=survive.
+        >         > noodle panegyric importune=native; accredit=loser.
+        >
+        > acquit invest gravity:
+        >     remain: beetroot maroon cliche ninety
+        >     bookmark: munch
+        >     commodore:
+        >         > plank=sundry;
+        >         > prick=rehear;
+        >         > bonnet="banana"
+        >     transfer:
+        >         > blister project adjective=slinky; uncover=salty.
+        >         > bowler acquiesce nobody=syllabus; bushy=fossilize.
+        >
+        > horror megalith:
+        >     spurt: flower towpath rejoicing dowry rupture
+        >     recur: capacity
+        >     tract:
+        >         > goatee='graze;
+        >         > liqueur="scream";
+        >         > detain=prefigure;
+        >         > spill={eggplant,poach}
+        >     plunger:
+        >         > cutting dislocate prince=spongy; flirt=debut.
+        >         > neurone cricketer shredder=property; break=octagon; plutocrat=lapwing.
+        >         > softy expert tycoon=qualify; coachman=heretic.
+        >         > redwood notebook heath=blackjack; frump=washstand.
+        >         > loose keeper applaud=destroyer; intention=hymnal.
+        >         > potentate brasserie souvenir=tumor; masseur=hasten.
+        >         > sanctify report touchdown=afford; combat=impart.
+        >         > brute elder bisexual=penknife; treadmill=thesaurus.
+        >         > tissue sickly dimmer=dowdy; cylinder=actor.
+        >         > awakening robotic fascia=paperboy; scalp=length; seashell=50μA.
+        >         > larch fashion crack=scorpion; explicate=retire.
+        >         > mature lapel incline=dressing; thwack=rivet.
+        >         > neologism phonetic zebra=upstage; realtor=showpiece.
+        >         > evacuee stride softener=ditty; earth=bookcase.
+        >         > uproot cross titter=constrict; specific=wayside.
+        >         > overwrite overshoot quandary=panther; cartwheel=ratio.
+        >
+        > informer payroll:
+        >     sequin: armadillo exclaim foray cuckoo
+        >     lynch: punchbowl
+        >     trump:
+        >         > bedeck=quota;
+        >         > machete=croupier;
+        >         > alpine="response";
+        >         > vegetable=slowdown.
+        >     whisker:
+        >         > lottery sheath moonlight=chamber.
+        >         > fantasize pullover stool=eject.
+        >
+        > barbarity, allude, whittle:
+        >     militant: garret dictate sweeper
+        >     extension: senator
+        >     justify:
+        >         > taxicab=ferry;
+        >         > paragraph=spokesman;
+        >         > politic=codpiece;
+        >         > grizzle=clerk;
+        >         > perturb=mudguard;
+        >         > decade="sickness"
+        >     broad:
+        >         > ceramic morsel sahib=gelding.
+        >         > gravy shoddy fixative=scramble.
+        >         > smelt beatnik describe=duckling.
+        >         > bourbon crusader tabloid=wordy.
+        >
+        > extenuate, promoter:
+        >     store: treasury dumpling emotion skirmish
+        >     epitaph: incumbent
+        >     yearning:
+        >         > adjudge='yearbook;
+        >         > maneuver="infer";
+        >         > cabaret=deception;
+        >         > hostel={fossil,diagnose}
+        >     sporran:
+        >         > alphabet counter haughty=ceiling; treadle=reedy.
+        >         > hierarchy hardship troll=detractor; holocaust=deafen; gangway=translate.
+        >         > thought termite limousine=hustle; tweed=majorette.
+        >         > batten swindler parkland=outsider; crawl=prevail.
+        >         > provision fabric indict=amaze; weight=commando.
+        >         > extend cabal charge=admit; umlaut=steel.
+        >         > strength councilor entity=address; encamp=slake.
+        >         > trespass soapbox knoll=befriend; aggregate=allusion.
+        >         > sequel fingertip billfold=staunch; particle=combine.
+        >         > sediment intellect organizer=blurry; fatty=beard; revel=50μA.
+        >         > toxin steak panacea=elite; scavenge=acoustic.
+        >         > farmyard resign presage=peasant; jumble=regret.
+        >         > berry valet alchemist=greasy; clonk=eyesore.
+        >         > treat temper antenatal=interlink; hurtle=catchy.
+        >         > obtain seaweed offender=cameo; jostle=reprove.
+        >         > rigidity radish braise=scoot; petty=marquee.
+        >
+        > menage, quail:
+        >     outspread: share pinion fruitcake portend
+        >     reference: appendix
+        >     daily:
+        >         > scrapbook=rejoin;
+        >         > drier=agonize;
+        >         > sewer="dollop";
+        >         > bistro=ratepayer.
+        >     flabby:
+        >         > pentagon rotor science=besiege.
+        >         > spider distance shaggy=mayor.
+        >         > statement venture priory=seance.
+        >         > sextet riddle shabby=stationer.
+        >
+        > jelly, exude:
+        >     naught: misread sandbank speculate
+        >     espresso: dispel
+        >     oilman:
+        >         > amalgam=additive;
+        >         > tatty=unsettle;
+        >         > lousy="clamber";
+        >         > radiator = "paring, anatomist";
+        >         > sidle=thatch.
+        >     episode:
+        >         > council whiplash muscle=carriage.
+        >         > baseline nymph tantrum=spoof; prognosis=trundle; friend=plump.comedy.
+        >         > induct tubby compost=crank.
+        >         > family stately expunge=echelon.
+        >
+        > holding, scruple:
+        >     ramrod: tableau beret
+        >     flatten: tributary
+        >     cobra:
+        >         > hunchback=bumpy;
+        >         > lorry="inkling";
+        >         > holler = "pedant, lifeboat";
+        >         > butchery=antique.
+        >     decree:
+        >         > embroil numskull stigma=explosion.
+        >         > grand bonus accord=scarf.
+        >         > amplifier prattle submerge=justice.
+        >         > grace arrowhead athlete=shaver.
+    load_out:
+        tether:
+            disclose: paranoid clunk gaggle
+            prolong: stove banish
+            navel: -clipboard organist signify
+            crane: -washout honey guarantor=aircrew
+            inure: fondle = 10kΩ*dissect
+        majesty:
+            fatten: washbowl flagon gentile hairstyle
+            static: lender busby
+            niece: -humpback adduce ferryboat
+            reservoir: -dally idiot enlarge=avalanche
+            wally: divorcee = 10kΩ*fugue
+        banner:
+            scepter: trollop living giddy
+            lager: piper glacier
+            debunk: -trapeze person matron
+            pecan: -uncanny perform megaton=profiteer
+            register: answer = 10kΩ*trend
+        monolith:
+            partitive: bookie outcome buckskin
+            roller: pixie fraud
+            change: scullery-roach rubber reveal+payoff
+            simulator: smock fritter consign=chateau
+            narrow: betrothal = 10kΩ*trooper - landau
+        reinstate:
+            dramatist: pasture glade enslave upright
+            kinky: deuce birdie
+            bathroom: people-layoff fluke flood+sonata
+            heart: loiter feature scamper=drivel
+            vendetta: nauseate = 10kΩ*hoodlum - signboard
+        overstate:
+            deter: clitoris treachery reading
+            saddlebag: doodle enunciate
+            cherub: cupboard-shingle refuge reefer+animate
+            overcome: gasometer crease bazooka=thriller
+            poplar: centipede = 10kΩ*headman - dewlap
+        : [testament:blight] spangle
+            otter: adherent disguise electrode biplane
+            stormy: curfew neuter
+            spaceman: addict = snowman*(anxiety+embitter)*bayonet kestrel liken
+            hardy thinner: 'pretend
+            belief: sphere
+            sachet:
+                > fortnight: twitch(hopper) rebut duodenum=bottom; pleat=onward.
+                > frizz: galley(genealogy) advantage whelk=-sprawl; waist=-immigrant.
+        : [mongrel:sequester] prism
+            bairn: easterner racketeer shortfall bootlace amoeba
+            canopy: refuse profit
+            snuggle: baritone = scrounger*(supplier+clobber)*flutter agate simplify
+            edition industry: 'castle
+            tenth: rhyme
+            scrunch:
+                > ledge: exporter(wrongdoer) levitate daiquiri=subsidize; bulletin=reason.
+                > jackpot: butcher(frequent) medicine memento=-diaphragm; ointment=-raving.
+        : [frogman:alleyway] fatigue
+            hyena: believer timepiece infuriate sixty
+            cache: bootee scoopful
+            laborer: egoist = lunatic*(obeisance+voice)*gambit nickel queer
+            scraggy doggie: 'cedar
+            requisite: pastor
+            teacher:
+                > toboggan: champion(dominion) adieu golfer=linen; divorce=stake.
+                > fireguard: vineyard(confide) seashore diddle=-dartboard; genuflect=-fidget.
+        install:
+            abide: waistline
+            skunk: coarsen nuisance
+            briar: eviction = glide && !reliquary overfeed resent
+            magnum accident: 'quince
+            nightmare: cheapen
+        withdraw:
+            chalice: noble canard
+            siphon: utility overhead
+            butler: aspirin.starlet < heater < brace.blockade
+            juggler: crumpet = sunny + slattern + persuade. cataclysm = scolding.
+            betake: projector.insulator
+            hearth: convector
+        surgery:
+            sunbathe: decathlon
+            fixation: heighten watcher
+            stretchy: -washday < burnish < debrief
+            scabbard: reward
+        intercede barony:
+            busker: yachtsman-fleshpot sandbag flummox
+            vestry: panorama
+            sanction: drench="%keyboard"
+        harmony creaky:
+            physicist: gauge-doublet bungalow clink
+            swerve: cleanser
+            royalty:
+                > essay="%honeymoon";
+                > extol = "swampy";
+                > almshouse = "".
+        caterwaul imitation:
+            dunce: bodice sitcom chipmunk
+            profane: monocle
+            sortie: impute="%covert"
+        menace:
+            dredge: miasma litigant broil
+            bishop: medley
+            inquest: scourer="%gamma"; mesmerize='ballcock
+        mattock:
+            taint: buttery combatant stalwart
+            oculist: implicate
+            support: closure='snake; phoenix="%smoothie"
+        chance:
+            riposte: crusade
+            scripture: cathode
+            doorstep: dukedom=screening; lifebuoy="%crackle"
+            salesman: shimmer cobweb spool=butter.
+        asset:
+            overthrow: dainty
+            chancy: bough psychotic
+            sultana: father hormone caliber=mayday.
+        pollinate:
+            doctor: masochist
+            strangler: saloon ensemble shower
+            tuxedo:
+                > inject='strategy;
+                > purport={toffee,ripper}.
+            citadel:
+                > shrew repellent dairymaid=laser; elevator=biped.
+                > resound garage mistreat=rebuild; scree=choke.
+                > anchor begrudge slalom=reassert; molester=chopper.
+                > dizzy outbreak snifter=tussle; remove=survive.
+                > noodle panegyric importune=native; accredit=loser.
+        acquit invest gravity:
+            remain: beetroot maroon cliche ninety
+            bookmark: munch
+            commodore:
+                > plank=sundry;
+                > prick=rehear;
+                > bonnet="banana"
+            transfer:
+                > blister project adjective=slinky; uncover=salty.
+                > bowler acquiesce nobody=syllabus; bushy=fossilize.
+        horror megalith:
+            spurt: flower towpath rejoicing dowry rupture
+            recur: capacity
+            tract:
+                > goatee='graze;
+                > liqueur="scream";
+                > detain=prefigure;
+                > spill={eggplant,poach}
+            plunger:
+                > cutting dislocate prince=spongy; flirt=debut.
+                > neurone cricketer shredder=property; break=octagon; plutocrat=lapwing.
+                > softy expert tycoon=qualify; coachman=heretic.
+                > redwood notebook heath=blackjack; frump=washstand.
+                > loose keeper applaud=destroyer; intention=hymnal.
+                > potentate brasserie souvenir=tumor; masseur=hasten.
+                > sanctify report touchdown=afford; combat=impart.
+                > brute elder bisexual=penknife; treadmill=thesaurus.
+                > tissue sickly dimmer=dowdy; cylinder=actor.
+                > awakening robotic fascia=paperboy; scalp=length; seashell=50μA.
+                > larch fashion crack=scorpion; explicate=retire.
+                > mature lapel incline=dressing; thwack=rivet.
+                > neologism phonetic zebra=upstage; realtor=showpiece.
+                > evacuee stride softener=ditty; earth=bookcase.
+                > uproot cross titter=constrict; specific=wayside.
+                > overwrite overshoot quandary=panther; cartwheel=ratio.
+        informer payroll:
+            sequin: armadillo exclaim foray cuckoo
+            lynch: punchbowl
+            trump:
+                > bedeck=quota;
+                > machete=croupier;
+                > alpine="response";
+                > vegetable=slowdown.
+            whisker:
+                > lottery sheath moonlight=chamber.
+                > fantasize pullover stool=eject.
+        barbarity, allude, whittle:
+            militant: garret dictate sweeper
+            extension: senator
+            justify:
+                > taxicab=ferry;
+                > paragraph=spokesman;
+                > politic=codpiece;
+                > grizzle=clerk;
+                > perturb=mudguard;
+                > decade="sickness"
+            broad:
+                > ceramic morsel sahib=gelding.
+                > gravy shoddy fixative=scramble.
+                > smelt beatnik describe=duckling.
+                > bourbon crusader tabloid=wordy.
+        extenuate, promoter:
+            store: treasury dumpling emotion skirmish
+            epitaph: incumbent
+            yearning:
+                > adjudge='yearbook;
+                > maneuver="infer";
+                > cabaret=deception;
+                > hostel={fossil,diagnose}
+            sporran:
+                > alphabet counter haughty=ceiling; treadle=reedy.
+                > hierarchy hardship troll=detractor; holocaust=deafen; gangway=translate.
+                > thought termite limousine=hustle; tweed=majorette.
+                > batten swindler parkland=outsider; crawl=prevail.
+                > provision fabric indict=amaze; weight=commando.
+                > extend cabal charge=admit; umlaut=steel.
+                > strength councilor entity=address; encamp=slake.
+                > trespass soapbox knoll=befriend; aggregate=allusion.
+                > sequel fingertip billfold=staunch; particle=combine.
+                > sediment intellect organizer=blurry; fatty=beard; revel=50μA.
+                > toxin steak panacea=elite; scavenge=acoustic.
+                > farmyard resign presage=peasant; jumble=regret.
+                > berry valet alchemist=greasy; clonk=eyesore.
+                > treat temper antenatal=interlink; hurtle=catchy.
+                > obtain seaweed offender=cameo; jostle=reprove.
+                > rigidity radish braise=scoot; petty=marquee.
+        menage, quail:
+            outspread: share pinion fruitcake portend
+            reference: appendix
+            daily:
+                > scrapbook=rejoin;
+                > drier=agonize;
+                > sewer="dollop";
+                > bistro=ratepayer.
+            flabby:
+                > pentagon rotor science=besiege.
+                > spider distance shaggy=mayor.
+                > statement venture priory=seance.
+                > sextet riddle shabby=stationer.
+        jelly, exude:
+            naught: misread sandbank speculate
+            espresso: dispel
+            oilman:
+                > amalgam=additive;
+                > tatty=unsettle;
+                > lousy="clamber";
+                > radiator = "paring, anatomist";
+                > sidle=thatch.
+            episode:
+                > council whiplash muscle=carriage.
+                > baseline nymph tantrum=spoof; prognosis=trundle; friend=plump.comedy.
+                > induct tubby compost=crank.
+                > family stately expunge=echelon.
+        holding, scruple:
+            ramrod: tableau beret
+            flatten: tributary
+            cobra:
+                > hunchback=bumpy;
+                > lorry="inkling";
+                > holler = "pedant, lifeboat";
+                > butchery=antique.
+            decree:
+                > embroil numskull stigma=explosion.
+                > grand bonus accord=scarf.
+                > amplifier prattle submerge=justice.
+                > grace arrowhead athlete=shaver.
+
+# imbibe  {{{1
+imbibe:
+    description: multiline keys holding urls (multiline key require because of leading braces)
+    string_in:
+        > : {http://www.kde.org/standards/kcfg/1.0}kcfgfile
+        >     >
+        > : {http://www.kde.org/standards/kcfg/1.0}group
+        >     : {http://www.kde.org/standards/kcfg/1.0}entry
+        >         -
+        >             : {http://www.kde.org/standards/kcfg/1.0}default
+        >                 > 250
+        >         -
+        >             : {http://www.kde.org/standards/kcfg/1.0}default
+        >                 > krunner,yakuake
+    load_out:
+        > !{
+        >     "{http://www.kde.org/standards/kcfg/1.0}kcfgfile": "",
+        >     "{http://www.kde.org/standards/kcfg/1.0}group": {
+        >         "{http://www.kde.org/standards/kcfg/1.0}entry": [
+        >             {"{http://www.kde.org/standards/kcfg/1.0}default": "250"},
+        >             {"{http://www.kde.org/standards/kcfg/1.0}default": "krunner,yakuake"}
+        >         ]
+        >     }
+        > }
+
+# emollient  {{{1
+emollient:
+    description: reject duplicate keys
+    string_in:
+        > key: value 1
+        > key: value 2
+        > key: value 3
+    load_err:
+        message: duplicate key: key.
+        line: key: value 2
+        lineno: 1
+        colno: 0
+
+# modernize  {{{1
+modernize:
+    description: Miscellaneous inline dictionaries
+    string_in:
+        > -
+        >     {}
+        > -
+        >     {:}
+        > -
+        >     {a:0}
+        > -
+        >     {a: k}
+        > -
+        >     {a:[]}
+        > -
+        >     {a: [b]}
+        > -
+        >     {a:{}}
+        > -
+        >     {a: {b:1}}
+        > -
+        >     {a:0, b:1}
+        > -
+        >     {a:{A:0}, b:{B:1}}
+        > -
+        >     { a : { A : 0 } , b : { B : 1 } }   
+        > -
+        >     {a:[1,2,3], b:[4,5,6]}
+        > -
+        >     {a:0,b:1}
+        > -
+        >     {a:[],b:[]}
+        > -
+        >     {a:[0,1],b:[2,3]}
+        > -
+        >     {a:{},b:{}}
+        > -
+        >     {a:{b:0,c:1},d:{e:2,f:3}}
+        > -
+        >     {a:0,b:[]}
+        > -
+        >     {a:[],b:{}}
+        > -
+        >     {a:{},b:0}
+        > -
+        >     { a:0}
+        > -
+        >     {a :0}
+        > -
+        >     {a: 0}
+        > -
+        >     {a:0 }
+        > -
+        >     { a : 0 }
+        > -
+        >     {a:0, b:1}
+        > -
+        >     {a:0 ,b:1}
+        > -
+        >     {a:0 , b:1}
+        > -
+        >     {key 1:value 1, key 2 : value 2 }
+    load_out:
+        > ![
+        >     {},
+        >     {"": ""},
+        >     {"a": "0"},
+        >     {"a": "k"},
+        >     {"a": []},
+        >     {"a": ["b"]},
+        >     {"a": {}},
+        >     {"a": {"b": "1"}},
+        >     {"a": "0", "b": "1"},
+        >     {"a": {"A": "0"}, "b": {"B": "1"}},
+        >     {"a": {"A": "0"}, "b": {"B": "1"}},
+        >     {"a": ["1", "2", "3"], "b": ["4", "5", "6"]},
+        >     {"a": "0", "b": "1"},
+        >     {"a": [], "b": []},
+        >     {"a": ["0", "1"], "b": ["2", "3"]},
+        >     {"a": {}, "b": {}},
+        >     {"a": {"b": "0", "c": "1"}, "d": {"e": "2", "f": "3"}},
+        >     {"a": "0", "b": []},
+        >     {"a": [], "b": {}},
+        >     {"a": {}, "b": "0"},
+        >     {"a": "0"},
+        >     {"a": "0"},
+        >     {"a": "0"},
+        >     {"a": "0"},
+        >     {"a": "0"},
+        >     {"a": "0", "b": "1"},
+        >     {"a": "0", "b": "1"},
+        >     {"a": "0", "b": "1"},
+        >     {"key 1": "value 1", "key 2": "value 2"}
+        > ]
+
+# baptism  {{{1
+baptism:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a}
+    load_err:
+        message: expected ‘:’, found ‘}’.
+        line:     {a}
+        lineno: 1
+        colno: 6
+
+# collate  {{{1
+collate:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {
+    load_err:
+        message: line ended without closing delimiter.
+        line:     {
+        lineno: 1
+        colno: 5
+
+# ballroom  {{{1
+ballroom:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {{}
+    load_err:
+        message: expected ‘:’, found ‘{’.
+        line:     {{}
+        lineno: 1
+        colno: 5
+
+# mercy  {{{1
+mercy:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {}}
+    load_err:
+        message: extra character after closing delimiter: ‘}’.
+        line:     {}}
+        lineno: 1
+        colno: 6
+
+# canto  {{{1
+canto:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a,:b}
+    load_err:
+        message: expected ‘:’, found ‘,’.
+        line:     {a,:b}
+        lineno: 1
+        colno: 6
+
+# stooge  {{{1
+stooge:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a,:b}
+    load_err:
+        message: expected ‘:’, found ‘,’.
+        line:     {a,:b}
+        lineno: 1
+        colno: 6
+
+# cowboy  {{{1
+cowboy:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a,:b}
+    load_err:
+        message: expected ‘:’, found ‘,’.
+        line:     {a,:b}
+        lineno: 1
+        colno: 6
+
+# criterion  {{{1
+criterion:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a}:b}
+    load_err:
+        message: expected ‘:’, found ‘}’.
+        line:     {a}:b}
+        lineno: 1
+        colno: 6
+
+# protrude  {{{1
+protrude:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a[:b}
+    load_err:
+        message: expected ‘:’, found ‘[’.
+        line:     {a[:b}
+        lineno: 1
+        colno: 6
+
+# caftan  {{{1
+caftan:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a]:b}
+    load_err:
+        message: expected ‘:’, found ‘]’.
+        line:     {a]:b}
+        lineno: 1
+        colno: 6
+
+# siphon  {{{1
+siphon:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:b{}
+    load_err:
+        message: expected ‘,’ or ‘}’, found ‘{’.
+        line:     {a:b{}
+        lineno: 1
+        colno: 8
+
+# unpick  {{{1
+unpick:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:b}}
+    load_err:
+        message: extra character after closing delimiter: ‘}’.
+        line:     {a:b}}
+        lineno: 1
+        colno: 9
+
+# patchwork  {{{1
+patchwork:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:b[}
+    load_err:
+        message: expected ‘,’ or ‘}’, found ‘[’.
+        line:     {a:b[}
+        lineno: 1
+        colno: 8
+
+# frustrate  {{{1
+frustrate:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:b]}
+    load_err:
+        message: expected ‘,’ or ‘}’, found ‘]’.
+        line:     {a:b]}
+        lineno: 1
+        colno: 8
+
+# donation  {{{1
+donation:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:0, , }
+    load_err:
+        message: expected ‘:’, found ‘,’.
+        line:     {a:0, , }
+        lineno: 1
+        colno: 10
+
+# flaunt  {{{1
+flaunt:
+    description: error due to malformed inline dictionary
+    string_in:
+        > -
+        >     {a:{A:0}, b{B:1}}
+    load_err:
+        message: expected ‘:’, found ‘{’.
+        line:     {a:{A:0}, b{B:1}}
+        lineno: 1
+        colno: 15
+
+# magnetize  {{{1
+magnetize:
+    description: multilevel inline dictionaries
+    string_in:
+        > {a: {b:0, c:1}, d: {e:2, f:3}}
+    load_out:
+        > !{"a": {"b": "0", "c": "1"}, "d": {"e": "2", "f": "3"}}
+
+# succor  {{{1
+succor:
+    description: multilevel inline dictionaries
+    string_in:
+        > key 1:
+        >         {k1.1:v1.1,\t  k1.2:v1.2,      \tk1.3:v1.3\t}\t
+        > key 2:
+        >         {k2.1\t:v2.1,\t  k2.2\t:v2.2,      \tk2.3\t:v2.3\t}\t
+        > key 3:
+        >         {k3.1:\tv3.1,\t  k3.2:\tv3.2,      \tk3.3:\tv3.3\t}\t
+        > key 4:
+        >         {k4.1\t:\tv4.1,\t  k4.2\t:\tv4.2,      \tk4.3\t:\tv4.3\t}\t
+    load_out:
+        > !{
+        >     "key 1": {
+        >         "k1.1": "v1.1",
+        >         "k1.2": "v1.2",
+        >         "k1.3": "v1.3"
+        >     },
+        >     "key 2": {
+        >         "k2.1": "v2.1",
+        >         "k2.2": "v2.2",
+        >         "k2.3": "v2.3"
+        >     },
+        >     "key 3": {
+        >         "k3.1": "v3.1",
+        >         "k3.2": "v3.2",
+        >         "k3.3": "v3.3"
+        >     },
+        >     "key 4": {
+        >         "k4.1": "v4.1",
+        >         "k4.2": "v4.2",
+        >         "k4.3": "v4.3"
+        >     }
+        > }
+
+# raven  {{{1
+raven:
+    description: malformed inline dictionary (comma after last item)
+    string_in:
+        > key 1:
+        >        {k1.1:v1.1,\t  k1.2:v1.2,      \tk1.3:v1.3,\t}\t
+        > key 2:
+        >         {k2.1\t:v2.1,\t  k2.2\t:v2.2,      \tk2.3\t:v2.3,\t}\t
+        > key 3:
+        >         {k3.1:\tv3.1,\t  k3.2:\tv3.2,      \tk3.3:\tv3.3,\t}\t
+        > key 4:
+        >         {k4.1\t:\tv4.1,\t  k4.2\t:\tv4.2,      \tk4.3\t:\tv4.3,\t}\t
+    load_err:
+        message: expected ‘:’, found ‘}’.
+        line:        {k1.1:v1.1,\t  k1.2:v1.2,      \tk1.3:v1.3,\t}\t
+        lineno: 1
+        colno: 49
+
+# emanate  {{{1
+emanate:
+    description: malformed inline dictionary (comma after last item)
+    string_in:
+        > {a:0,}
+    load_err:
+        message: expected value.
+        line: {a:0,}
+        lineno: 0
+        colno: 5
+
+# moonlight  {{{1
+moonlight:
+    description: malformed inline dictionary (comma after last item)
+    string_in:
+        > {a:0, }
+    load_err:
+        message: expected ‘:’, found ‘}’.
+        line: {a:0, }
+        lineno: 0
+        colno: 6
+
+# conclude  {{{1
+conclude:
+    description: malformed inline dictionary (comma after last item)
+    string_in:
+        > {a:0,:,}
+    load_err:
+        message: expected value.
+        line: {a:0,:,}
+        lineno: 0
+        colno: 7
+
+# prairie  {{{1
+prairie:
+    description: error due to dict item following an inline dictionary
+    string_in:
+        > {cases: {*: {*: {*:*}}}}
+        > checks: *.sv
+    load_err:
+        message: extra content.
+        line: checks: *.sv
+        lineno: 1
+
+# botch  {{{1
+botch:
+    description: error due to dict item following an inline list
+    string_in:
+        > []
+        > nutz: truck
+    load_err:
+        message: extra content.
+        line: nutz: truck
+        lineno: 1
+
+# typhoon  {{{1
+typhoon:
+    description: error due to dict item following an inline dictionary
+    string_in:
+        > {cases: {*: {*: {*:*}}}}
+        > checks: *.sv
+    load_err:
+        message: extra content.
+        line: checks: *.sv
+        lineno: 1
+
+# revolver  {{{1
+revolver:
+    description: simple list with empty values
+    string_in:
+        > -
+        > -
+    load_out:
+        > !["",""]
+
+# denigrate  {{{1
+denigrate:
+    description: typical list
+    string_in:
+        > - A
+        > - B
+        > - C
+        > -
+        >     - D1
+        >     - D2
+        > - E
+    load_out:
+        > !["A", "B", "C", ["D1", "D2"], "E"]
+
+# isometric  {{{1
+isometric:
+    description: empty list
+    string_in:
+        > []
+    load_out:
+        > ![]
+
+# seller  {{{1
+seller:
+    description:
+        > error because data switches between list items to dict item in same 
+        > level of hierarchy
+    string_in:
+        > ingredients:
+        >   - green chilies
+        >   cannot mix list with: dictionary
+        >
+    load_err:
+        message: expected list item.
+        line:   cannot mix list with: dictionary
+        lineno: 2
+        colno: 2
+
+# element  {{{1
+element:
+    description: error because first item does not start in column 1
+    string_in:
+        >
+        >     - green chilies
+        >
+        > - red chilies
+        >
+    load_err:
+        message: top-level content must start in column 1.
+        line:     - green chilies
+        lineno: 1
+        colno: 0
+
+# twelve  {{{1
+twelve:
+    description: error because first item does not start in column 1
+    string_in:
+        > - green chilies
+        >     - red chilies
+        >
+    load_err:
+        message: invalid indentation.
+        line:     - red chilies
+        lineno: 1
+        colno: 0
+
+# derelict  {{{1
+derelict:
+    description: error because indentation includes a tab
+    string_in:
+        > # this is an error because indentation is a tab
+        > - 
+        > \t- red chilies
+    load_err:
+        message: invalid character in indentation: '\t'.
+        line: \t- red chilies
+        lineno: 2
+        colno: 0
+
+# handbook  {{{1
+handbook:
+    description: list with variety of odd values
+    string_in:
+        > - :
+        > - ~!@#$%^&*()_+-1234567890{}[]|:;<>?,./
+        > - - value 3
+        > - ' : value 4:'
+        > - > value 5
+        > - #value 6
+        > - key 7' : : value 7
+        > - " value 8 "
+        > - ' value 9 '
+        > -
+        >   > value '" 10
+        > - And Fred said 'yabba dabba doo!' to Barney.
+    load_out:
+        > ![
+        >     ":",
+        >     "~!@#$%^&*()_+-1234567890{}[]|:;<>?,./",
+        >     "- value 3",
+        >     "' : value 4:'",
+        >     "> value 5",
+        >     "#value 6",
+        >     "key 7' : : value 7",
+        >     '" value 8 "',
+        >     "' value 9 '",
+        >     '''value '" 10''',
+        >     "And Fred said 'yabba dabba doo!' to Barney."
+        > ]
+
+# epoch  {{{1
+epoch:
+    description: list with variety of inline lists
+    string_in:
+        > -
+        >     []
+        > -
+        >     [ ]
+        > -
+        >     [,]
+        > -
+        >     [a]
+        > -
+        >     [:]
+        > -
+        >     [[]]
+        > -
+        >     [[ ]]
+        > -
+        >     [[a]]
+        > -
+        >     [{}]
+        > -
+        >     [{a:0}]
+        > -
+        >     [a,b]
+        > -
+        >     [,,]
+        > -
+        >     [[],[]]
+        > -
+        >     [[],[ ]]
+        > -
+        >     [[a,b],[c,d]]
+        > -
+        >     [ [ a , b ] , [ c , d ] ]   
+        > -
+        >     [{},{}]
+        > -
+        >     [{a:0,b:1},{c:2,d:3}]
+        > -
+        >     [a,[]]
+        > -
+        >     [[],{}]
+        > -
+        >     [{},b]
+        > -
+        >     [a,]
+        > -
+        >     [a, b, ]
+        > -
+        >     [ a]
+        > -
+        >     [a ]
+        > -
+        >     [ a ]
+        > -
+        >     [a, b]
+        > -
+        >     [a ,b]
+        > -
+        >     [a , b]
+        > -
+        >     [ ,]
+        > -
+        >     [, ]
+        > -
+        >     [ , ]
+        > -
+        >     [a, b, , ]
+        > -
+        >     [[11,12,13],[21,22,23],[31,32,33]]
+        > -
+        >     [value 1, value 2 ,  value 3  , ]
+    load_out:
+        > ![
+        >     [],
+        >     [""],
+        >     ["", ""],
+        >     ["a"],
+        >     [":"],
+        >     [[]],
+        >     [[""]],
+        >     [["a"]],
+        >     [{}],
+        >     [{"a": "0"}],
+        >     ["a", "b"],
+        >     ["", "", ""],
+        >     [[], []],
+        >     [[], [""]],
+        >     [["a", "b"], ["c", "d"]],
+        >     [["a", "b"], ["c", "d"]],
+        >     [{}, {}],
+        >     [{"a": "0", "b": "1"}, {"c": "2", "d": "3"}],
+        >     ["a", []],
+        >     [[], {}],
+        >     [{}, "b"],
+        >     ["a", ""],
+        >     ["a", "b", ""],
+        >     ["a"],
+        >     ["a"],
+        >     ["a"],
+        >     ["a", "b"],
+        >     ["a", "b"],
+        >     ["a", "b"],
+        >     ["", ""],
+        >     ["", ""],
+        >     ["", ""],
+        >     ["a", "b", "", ""],
+        >     [["11", "12", "13"], ["21", "22", "23"], ["31", "32", "33"]],
+        >     ["value 1", "value 2", "value 3", ""]
+        > ]
+
+# nobleman  {{{1
+nobleman:
+    description: malformed inline list
+    string_in:
+        > -
+        >     [
+    load_err:
+        message: line ended without closing delimiter.
+        line:     [
+        lineno: 1
+        colno: 5
+
+# proverb  {{{1
+proverb:
+    description: malformed inline list
+    string_in:
+        > -
+        >     [,
+    load_err:
+        message: line ended without closing delimiter.
+        line:     [,
+        lineno: 1
+        colno: 6
+
+# marina  {{{1
+marina:
+    description: malformed inline list
+    string_in:
+        > -
+        >     [[]
+    load_err:
+        message: line ended without closing delimiter.
+        line:     [[]
+        lineno: 1
+        colno: 7
+
+# blister  {{{1
+blister:
+    description: malformed inlines
+    string_in:
+        > -
+        >     []{a:0}
+    load_err:
+        message: extra characters after closing delimiter: ‘{a:0}’.
+        line:     []{a:0}
+        lineno: 1
+        colno: 6
+
+# mentor  {{{1
+mentor:
+    description: malformed inline list
+    string_in:
+        > -
+        >     [a[b]
+    load_err:
+        message: expected ‘,’ or ‘]’, found ‘[’.
+        line:     [a[b]
+        lineno: 1
+        colno: 6
+
+# valance  {{{1
+valance:
+    description: malformed inline list
+    string_in:
+        > -
+        >     [a]b]
+    load_err:
+        message: extra characters after closing delimiter: ‘b]’.
+        line:     [a]b]
+        lineno: 1
+        colno: 7
+
+# eleven  {{{1
+eleven:
+    description: malformed inlines
+    string_in:
+        > -
+        >     [{]
+    load_err:
+        message: expected ‘:’, found ‘]’.
+        line:     [{]
+        lineno: 1
+        colno: 6
+
+# casing  {{{1
+casing:
+    description: malformed inlines
+    string_in:
+        > -
+        >     [}]
+    load_err:
+        message: expected value.
+        line:     [}]
+        lineno: 1
+        colno: 5
+
+# promenade  {{{1
+promenade:
+    description: malformed inlines
+    string_in:
+        > -
+        >     [a{b]
+    load_err:
+        message: expected ‘,’ or ‘]’, found ‘{’.
+        line:     [a{b]
+        lineno: 1
+        colno: 6
+
+# splurge  {{{1
+splurge:
+    description: malformed inlines
+    string_in:
+        > -
+        >     [a}b]
+    load_err:
+        message: expected ‘,’ or ‘]’, found ‘}’.
+        line:     [a}b]
+        lineno: 1
+        colno: 6
+
+# delusion  {{{1
+delusion:
+    description: 3x3 array
+    string_in:
+        > [[11, 12, 13], [21, 22, 23], [31, 32, 33]]
+    load_out:
+        [[11, 12, 13], [21, 22, 23], [31, 32, 33]]
+
+# itinerant  {{{1
+itinerant:
+    description: regular dict item with key that begins with brackets
+    string_in:
+        > [7:0] gain:
+        >     desc: the gain
+        >     type: input signed
+    load_err:
+        message: extra characters after closing delimiter: ‘gain:’.
+        line: [7:0] gain:
+        lineno: 0
+        colno: 6
+
+# geyser  {{{1
+geyser:
+    description: inline list with embedded tabs
+    string_in:
+        > key 1:
+        >         [v1,\t  v2,      \tv3,\t]\t
+    load_out:
+        > !{"key 1": ["v1", "v2", "v3", ""]}
+
+# muzzle  {{{1
+muzzle:
+    description: strings with embedded tabs
+    string_in:
+        > what makes it green\t: \tgreen\tchilies\t
+    load_out:
+        > !{"what makes it green": "\tgreen\tchilies\t"}
+
+# stylistic  {{{1
+stylistic:
+    description: strings with embedded quote character
+    string_in:
+        > key: value " value
+    load_out:
+        > !{"key": 'value " value'}
+
+# hallway  {{{1
+hallway:
+    description: strings with embedded quote character
+    string_in:
+        > key: value ' value
+    load_out:
+        > !{"key": "value ' value"}
+
+# acquire  {{{1
+acquire:
+    description: strings with embedded quote characters
+    string_in:
+        > key1: 'And Fred said "yabba dabba doo!" to Barney.'
+        > key2: "And Fred said 'yabba dabba doo!' to Barney."
+        > key3: "And Fred said "yabba dabba doo!" to Barney."
+        > key4: 'And Fred said 'yabba dabba doo!' to Barney.'
+        > key5: And Fred said "yabba dabba doo!" to Barney.
+        > key6: And Fred said 'yabba dabba doo!' to Barney.
+    load_out:
+        > !{
+        >   "key1": """'And Fred said "yabba dabba doo!" to Barney.'""",
+        >   "key2": '''"And Fred said 'yabba dabba doo!' to Barney."''',
+        >   "key3": '"And Fred said "yabba dabba doo!" to Barney."',
+        >   "key4": "'And Fred said 'yabba dabba doo!' to Barney.'",
+        >   "key5": 'And Fred said "yabba dabba doo!" to Barney.',
+        >   "key6": "And Fred said 'yabba dabba doo!' to Barney."
+        > }
+
+# sexton  {{{1
+sexton:
+    description: empty string
+    string_in: >
+    load_out:
+
+# roomy  {{{1
+roomy:
+    description: error, expected multiline string
+    string_in:
+        > ingredients:
+        >     green chilies
+    load_err:
+        message: unrecognized line.
+        line:     green chilies
+        lineno: 1
+        colno: 4
+
+# brainwash  {{{1
+brainwash:
+    description: top-level single line string
+    string_in:
+        > > what makes it green?
+        > >
+    load_out:
+        > what makes it green?
+        >
+
+# president  {{{1
+president:
+    description: minimal inline dictionary
+    string_in: {:}
+    load_out: !{"":""}
+
+# propose  {{{1
+propose:
+    description: empty content
+    string_in:
+    load_out: !None
+
+# pillage  {{{1
+pillage:
+    description: dictionary keys cannot start with unicode white-space
+    string_in:
+        > key 1: value 1
+        > \xa0key 2: value 2
+    load_err:
+        message: invalid character in indentation: '\xa0' (NO-BREAK SPACE).
+        line: \xa0key 2: value 2
+        lineno: 1
+        colno: 0
+
+# tombstone  {{{1
+tombstone:
+    description: dictionary item keys must have whitespace trimmed from the tail
+    string_in:
+        > key 1 : value 1
+        > key 2\t : value 2
+        > key 3\xa0 : value 3
+    load_out:
+        key 1: value 1
+        key 2: value 2
+        key 3: value 3
+
+# cavern  {{{1
+cavern:
+    description:
+        > inline dictionary items must ignore whitespace following the colon
+    string_in:
+        > key 1:
+        > key 2:\x20
+    load_out:
+        key 1:
+        key 2:
+
+# rascal  {{{1
+rascal:
+    description:
+        > a dictionary item with two values
+    string_in:
+        > key 1:
+        >    > value 1
+        > key 2:\x20
+        >    > value 2
+        > key 3:\x20\x20
+        >    > value 3
+    load_err:
+        message: invalid indentation.
+        line:    > value 3
+        lineno: 5
+
+# truncheon  {{{1
+truncheon:
+    description:
+        > a list item with two values
+    string_in:
+        > -
+        >    > value 1
+        > -\x20
+        >    > value 2
+        > -\x20\x20
+        >    > value 3
+    load_err:
+        message: invalid indentation.
+        line:    > value 3
+        lineno: 5
+
+# vagrant  {{{1
+vagrant:
+    description:
+        > inline strings (and inline dictionary-friendly strings)
+        > must trim whitespace from both sides of values
+    string_in:
+        > inline dict:
+        >     {a:A, b: B,c :C, d : D }
+        > inline list:
+        >     [a, b,c , d ]
+    load_out:
+        inline dict:
+            a: A
+            b: B
+            c: C
+            d: D
+        inline list:
+            - a
+            - b
+            - c
+            - d
+
+# frump  {{{1
+frump:
+    description: top-level dictionary with a second level of nesting, latin1 encoding
+    string_in:
+        > key 1: value 1
+        > key 2:
+        > key 3:
+        >     - value 3a
+        >     - value 3b
+        > key 4:
+        >     key 4a: value 4a
+        >     key 4b: value 4b
+        > key 5:
+        >     > first line of value 5
+        >     > second line of value 5
+    encoding: latin1
+    load_out:
+        key 1: value 1
+        key 2:
+        key 3:
+            - value 3a
+            - value 3b
+        key 4:
+            key 4a: value 4a
+            key 4b: value 4b
+        key 5:
+            > first line of value 5
+            > second line of value 5
+
+# asylum  {{{1
+asylum:
+    description: top-level dictionary with a second level of nesting, utf-16
+    string_in:
+        > key 1: value 1
+        > key 2:
+        > key 3:
+        >     - value 3a
+        >     - value 3b
+        > key 4:
+        >     key 4a: value 4a
+        >     key 4b: value 4b
+        > key 5:
+        >     > first line of value 5
+        >     > second line of value 5
+    encoding: utf-16
+    load_err:
+        message: invalid start byte
+        line: key 1: value 1
+        lineno: 0
+        colno: 0
+
+# amendment  {{{1
+amendment:
+    description: string that contains characters that are invalid in utf-8
+    bytes_in:
+        > > \xc0
+        > > \xc1
+        > > \xff
+    encoding: bytes
+    load_err:
+        message: invalid start byte
+        line: > \xc0
+        lineno: 0
+        colno: 2
+
+# academic  {{{1
+academic:
+    description: document with UTF-8 BOM
+        # BOM is short for byte-order-mark
+        # UTF-8 does not support different byte orders and so the BOM is not 
+        # needed, however it's presence is optional and can sometimes help to 
+        # recognize the encoding.
+    bytes_in: \xEF\xBB\xBF{}
+    encoding: bytes
+    load_out: !{}
+

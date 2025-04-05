@@ -551,5 +551,25 @@ An alternative to using a backslash to escape the newline is to simply join
 lines that end with a space.  This might be more natural for non-programmers and 
 can work well for prose.
 
+.. code-block:: python
+
+    >>> document = dedent(r"""
+    ...     lorum ipsum:
+    ...         > Lorem ipsum dolor sit amet,␣
+    ...         > consectetur adipiscing elit.
+    ...         > Sed do eiusmod tempor incididunt␣
+    ...         > ut labore et dolore magna aliqua.
+    ... """).replace('␣', ' ')
+
+    >>> def reverse_escaping(text):
+    ...     return text.replace(" \n", " ")
+
+    >>> schema = Schema({str: reverse_escaping})
+    >>> data = schema(nt.loads(document))
+    >>> pp(data)
+    lorum ipsum:
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
 .. _voluptuous: https://github.com/alecthomas/voluptuous
 .. _pydantic: https://pydantic-docs.helpmanual.io

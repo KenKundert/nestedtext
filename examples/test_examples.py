@@ -139,3 +139,13 @@ def test_diet():
         mj = Run('./diet', modes='sOEW')
         expected = Path('./diet.nt').read_text()
         assert mj.stdout.strip() == expected.strip()
+
+def test_long_lines():
+     with cd(tests_dir / "long_lines"):
+        ll = Run('./long_lines_backslash', modes='sOEW')
+        expected = Path('./long_lines.out').read_text()
+        assert ll.stdout.strip() == expected.strip()
+
+        ll = Run('./long_lines_space', modes='sOEW')
+        expected = Path('./long_lines.out').read_text()
+        assert ll.stdout.strip() == expected.strip()

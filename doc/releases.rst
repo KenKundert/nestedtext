@@ -29,6 +29,12 @@ Latest development version
 - Allow binary files to be passed to :func:`load()` and :func:`dump()`.
 - Allow byte strings to be passed to :func:`loads()`.
 
+**Tests**:
+
+In version 3.8 a new implementation independent set of tests is being developed.  
+These tests should be more comprehensive and more independent of the Python 
+implementation of *NestedText*.
+
 
 v3.7 (2024-04-27)
 -----------------
