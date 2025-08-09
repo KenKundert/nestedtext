@@ -64,7 +64,8 @@ Configuration
 Configuration files are an attractive application for *NestedText*.  
 *NestedText* configuration files tend to be simple, clean and unambiguous.  
 Plus, they handle hierarchy much better than alternatives such as Ini_ and 
-TOML_.
+TOML_.  Assimilate_ is an example of an application that uses *NestedText* for 
+configuration.
 
 
 Structured Code
@@ -169,6 +170,7 @@ Also, please consider using *NestedText* for any applications you create.
 .. _pytest: https://docs.pytest.org
 .. _github: https://github.com/KenKundert/nestedtext/issues
 .. _nestedtext.org: https://nestedtext.org
+.. _assimilate: https://assimilate.readthedocs.io/en/latest/configuring.html
 
 .. |downloads| image:: https://pepy.tech/badge/nestedtext/month
     :target: https://pepy.tech/project/nestedtext

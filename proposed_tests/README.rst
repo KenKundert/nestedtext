@@ -19,7 +19,7 @@ The previous test suite had the following issues.
 
 4. The tests were categorized and numbered.  Both the categorization and 
    numbering were problematic.  Each test often fit into many categories but 
-   could only be placed in one.  The numbering implied an order when no natural 
+   could only be placed in one.  The numbering implied an order where no natural 
    order exists.
 
 5. Important tests were missing from the test suite.
@@ -63,7 +63,8 @@ string_in (str):
 bytes_in (str):
     This is an alternate to *string_in*.  In this case the *NestedText* document 
     is constrained to consist of ASCII characters and escape sequences such as 
-    \t, \r, \n, etc.  Also supported are binary escape sequences, \x00 to \xFF.  
+    \\t, \\r, \\n, etc.  Also supported are binary escape sequences, \\x00 to 
+    \\xFF.
 
 encoding (str):
     The desired encoding for the *NestedText* document.  The default encoding is 
@@ -161,7 +162,7 @@ modify the tests, you can simply use *tests.json* from the GitHub repository.
 which is a *pytest* plugin suitable for testing Python projects (*test_nt.py* 
 uses *parametrize_from_file* to apply *tests.json* to the Python implementation 
 of *NestedText*).  However, you can use *tests.json* directly to implement tests 
-for any for any *NestedText* implementation in any language.
+for any *NestedText* implementation in any language.
 
 It contains dictionary with a single key, *load_tests*.  The value of this key 
 is a nested dictionary where each key-value pair is one test.  The key is the 
@@ -197,6 +198,9 @@ load_err:
     colno:
         The column number where the error occurs.  0 represents the first 
         column.  Is *null* or missing if the column number is unknown.
+
+encoding:
+    The encoding for the *NestedText* document.  The default encoding is UTF-8.
 
 types:
     A dictionary of line-type counts.  It contains the count of each type of 
