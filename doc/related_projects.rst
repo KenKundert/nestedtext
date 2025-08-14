@@ -21,6 +21,11 @@ Official *NestedText* test suite.  Also included as submodule in
 `nestedtext <https://github.com/kenkundert/nestedtext>`_.
 
 
+`Proposed NestedText Tests <https://github.com/KenKundert/nestedtext/tree/master/proposed_tests>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Proposed *NestedText* test suite.  Will replace the current official test suite.
+
+
 Implementations
 ---------------
 
@@ -99,7 +104,7 @@ Utilities
 ---------
 
 `NestedTextTo <https://github.com/AndydeCleyre/nestedtextto>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and 
 *TOML*.
 
@@ -119,6 +124,11 @@ from your `PyTest <https://docs.pytest.org>`_ test code.
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 Version of the popular *pygments* Python library that supports :ref:`NestedText 
 v3.0 <v3.0>`.
+
+`sublimetext-nestedtext <https://github.com/AndydeCleyre/sublimetext-nestedtext>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`Sublime syntax files <https://packagecontrol.io/packages/NestedText>`_ for 
+*NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
 
 
 `vim-nestedtext <https://github.com/kenkundert/vim-nestedtext>`_
