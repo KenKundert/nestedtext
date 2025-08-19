@@ -74,8 +74,8 @@ Structured Code
 One way to build tools to tackle difficult and complex tasks is to provide an 
 application specific language.  That can be a daunting challenge.  However, in 
 certain cases, such as specifying complex configurations, *NestedText* can help 
-make the task much easier.  *NestedText* conveys the structure of data leaving 
-the end application to interpret the data itself.  It can do so with 
+make the task much easier.  *NestedText* conveys the structure of the data 
+leaving the end application to interpret the data itself.  It can do so with 
 a collection of small parsers that are tailored to the specific piece of data to 
 which they are applied.  This generally results in a simpler specification since 
 each piece of data can be given in its natural format, which might otherwise 

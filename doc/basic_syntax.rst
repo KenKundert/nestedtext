@@ -331,7 +331,7 @@ The data can be nested arbitrarily deeply.
 
 .. _nestedtext_files:
 
-NestedText Files
+NestedText files
 ================
 
 *NestedText* files should be encoded with `UTF-8 
