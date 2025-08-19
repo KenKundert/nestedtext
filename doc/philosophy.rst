@@ -107,7 +107,7 @@ lines, how would those be distinguished from the empty space used to make our
 list more readable.  To resolve these issues, *NestedText* deviates from normal 
 convention by asking you to draw the left border of the text.  For example::
 
-    Step 3: Pressure Cook
+    Step 3, Pressure Cook:
         |     Close the lid and seal the vent. Press the “pressure cook” button
         | and set the time to 10 minutes. After this, allow natural pressure
         | release for 5 minutes, then manually release the remaining pressure.
@@ -122,7 +122,7 @@ This allows you to type multiple lines without consciously entering these
 continuation characters, making the process very efficient.  Thus, with 
 *NestedText* you would enter::
 
-    Step 3: Pressure Cook
+    Step 3, Pressure Cook:
         >     Close the lid and seal the vent. Press the “pressure cook” button
         > and set the time to 10 minutes. After this, allow natural pressure
         > release for 5 minutes, then manually release the remaining pressure.
