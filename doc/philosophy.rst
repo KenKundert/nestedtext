@@ -24,8 +24,8 @@ supposed to mean, so you are in the best position to interpret it.  There are
 many powerful tools available to help with :doc:`this exact task <schemas>`, and 
 they turn what may initially seem like a burden into a substantial advantage.
 
-The specifics of *NestedText*
------------------------------
+The genesis of *NestedText*
+---------------------------
 
 When people make a list they often start out by numbering the items.  For 
 example, if you are making a list of toiletries to take on a trip you might 
@@ -112,7 +112,7 @@ convention by asking you to draw the left border of the text.  For example::
         | and set the time to 10 minutes. After this, allow natural pressure
         | release for 5 minutes, then manually release the remaining pressure.
 
-Doing so makes any indention and blank lines completely unambiguous.  As such, 
+Doing so makes any indention and blank lines visible and unambiguous.  As such, 
 it is the approach that *NestedText* takes.  However it does not use the ‘|’ 
 character to indicate the border.  It was found that with most text editors the 
 ‘>’ character works better because the editor treats it as a continuation 
