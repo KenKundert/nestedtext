@@ -24,7 +24,7 @@ supposed to mean, so you are in the best position to interpret it.  There are
 many powerful tools available to help with :doc:`this exact task <schemas>`, and 
 they turn what may initially seem like a burden into a substantial advantage.
 
-The genesis of *NestedText*
+The Genesis of *NestedText*
 ---------------------------
 
 When people make a list they often start out by numbering the items.  For 
