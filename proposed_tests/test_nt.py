@@ -1,12 +1,11 @@
 # IMPORTS {{{1
 from functools import partial
-from inform import cull, indent, render
+from inform import cull, render
 from parametrize_from_file import parametrize
 from pathlib import Path
-from voluptuous import Schema, Optional, Required, Any, Invalid
+from voluptuous import Schema, Required, Any
 from base64 import b64decode
 import nestedtext as nt
-import json
 
 # GLOBALS {{{1
 TEST_SUITE = Path('tests.json')
@@ -105,7 +104,6 @@ def test_nt(tmp_path, load_in, load_out, load_err, encoding, types, request):
     except UnicodeDecodeError as e:
         problematic = e.object[e.start:e.end]
         prefix = e.object[:e.start]
-        suffix = e.object[e.start:]
         lineno = prefix.count(b'\n')
         _, _, bol = prefix.rpartition(b'\n')
         eol, _, _ = e.object[e.start:].partition(b'\n')
@@ -134,11 +132,11 @@ def test_nt(tmp_path, load_in, load_out, load_err, encoding, types, request):
     # vary between implementations and with dump options.
     try:
         dumped = nt.dumps(result)
-    except nt.NestedTextError as e:
+    except nt.NestedTextError:
         checker.check(None, result, "dumping")
 
     try:
         result = nt.loads(dumped, top=any)
         checker.check(load_out, result, "re-loading")
-    except nt.NestedTextError as e:
+    except nt.NestedTextError:
         checker.check(None, result, "re-loading")

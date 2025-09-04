@@ -1,9 +1,8 @@
 # encoding: utf8
 
 from pathlib import Path
-from shlib import Run, cd, cwd, to_path
+from shlib import Run, cd, to_path
 from textwrap import dedent
-import pytest
 import sys
 
 tests_dir = Path(__file__).parent

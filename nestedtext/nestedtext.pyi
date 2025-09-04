@@ -147,7 +147,7 @@ def get_keys(
     keys: tuple[str | int, ...],
     keymap: dict[tuple[str | int, ...], Location],
     original: bool = ...,
-    strict: bool | string = ...,
+    strict: bool | str = ...,
     sep: str = ...,
 ) -> tuple[str | int, ...] | str:
     ...

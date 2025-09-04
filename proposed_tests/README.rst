@@ -219,6 +219,11 @@ types:
         string item
         unrecognized
 
+    As an example, if the implementation you are testing is limited to Minimal 
+    NestedText, you can filter out tests that use the more advance features of 
+    NestedText by simply ignoring those test cases that contain *inline dict*, 
+    *inline list* or *key item*.
+
 
 Caveats
 -------

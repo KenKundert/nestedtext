@@ -33,3 +33,17 @@ changelog = "https://github.com/KenKundert/nestedtext/blob/master/doc/releases.r
 [build-system]
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
+
+[tool.pytest.ini_options]
+addopts = "--tb=short"
+
+[tool.ruff]
+exclude = [".tox", "doc"]
+
+[tool.ruff.lint]
+select = ["F"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"nestedtext/__init__.py" = ["F401"]
+"examples/parametrize_from_file/test_misc.py" = ["F401"]

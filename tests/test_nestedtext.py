@@ -7,10 +7,9 @@ import arrow
 from pathlib import Path
 from functools import wraps
 from io import StringIO
-from inform import Error, Info, render, indent, join, dedent
+from inform import Error, Info, join, dedent
 from quantiphy import Quantity
 import subprocess
-import json
 import os
 
 test_api = Path(__file__).parent / 'official_tests' / 'api'
@@ -1195,7 +1194,6 @@ def test_key_utilities():
 
     unknown_norm = ('user_names', 'Anastacia Pickett Cheek', 'unknown key')
     unknown_orig = ('user  Names', 'Anastacia Pickett__Cheek', 'unknown key')
-    unknown_index = ('scores', 3)
 
     def normalize_key(key, parent_keys):
         if parent_keys == ('user_names',):
@@ -1290,7 +1288,7 @@ def test_load_dialect():
 @parametrize(
     "top,expected", [(any,None), (dict,{}), (list,[]), (str,"")]
 )
-def test_empty_blank_lines(top, expected):
+def test_empty(top, expected):
     # just blank lines
     document = ""
 
@@ -1599,7 +1597,7 @@ def test_dump_converters(dump, tmp_path):
     converters = {ntInfo: False}
     with pytest.raises(nt.NestedTextError) as exc:
         dump(y, tmp_path, width=80, converters=converters)
-    assert str(exc.value) == f"info: unsupported type (ntInfo)."
+    assert str(exc.value) == "info: unsupported type (ntInfo)."
 
     # converting arrow object
     date = '1969-07-20'
@@ -2070,7 +2068,7 @@ def test_binary_round_trip(tmp_path):
 
     # dump nestedtext to a binary file
     with nt_path.open('wb') as f:
-        test_nt = nt.dump(orig_data, f)
+        nt.dump(orig_data, f)
 
     # read nestedtext from a binary file
     with nt_path.open('rb') as f:

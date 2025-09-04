@@ -1,6 +1,5 @@
 from inform import Error, full_stop, os_error
 import nestedtext as nt
-from pathlib import Path
 
 schema = dict(
     name = str,

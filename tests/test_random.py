@@ -6,7 +6,7 @@
 # maps CR/LF and CR to LF, so the same is done to the input before comparing it
 # to the output.
 
-from hypothesis import assume, given, settings, strategies as st
+from hypothesis import given, settings, strategies as st
 import nestedtext as nt
 from random import randint
 import re
@@ -77,7 +77,7 @@ def test_dicts(data):
 
     # test normal dump
     result = nt.loads(nt.dumps(data), top=dict)
-    assert nt.loads(nt.dumps(data), top=dict) == expected
+    assert result == expected
 
     # test dump with inlines
     content = nt.dumps(data, width=999)

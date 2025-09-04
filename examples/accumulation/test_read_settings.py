@@ -1,5 +1,5 @@
 # imports {{{1
-from flatten_dict import flatten, unflatten
+from flatten_dict import flatten
 from functools import partial
 from inform import Error
 from parametrize_from_file import parametrize

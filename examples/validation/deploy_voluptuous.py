@@ -3,7 +3,7 @@
 import nestedtext as nt
 from voluptuous import Schema, Coerce, MultipleInvalid
 from voluptuous_errors import report_voluptuous_errors
-from inform import error, full_stop, terminate
+from inform import terminate
 from pprint import pprint
 
 schema = Schema({
