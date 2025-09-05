@@ -49,6 +49,16 @@ Janet
 Supports :ref:`NestedText v3.0 <v3.0>`.
 
 
+Java
+"""""
+
+`nestedtext-min-java <https://github.com/loxlylabs/nestedtext-min-java>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Java <https://www.java.com/>`_ implementation of *Minimal NestedText*.
+Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
+
+
 JavaScript
 """"""""""
 
