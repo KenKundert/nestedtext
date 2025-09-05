@@ -38,7 +38,7 @@ build-backend = "flit_core.buildapi"
 addopts = "--tb=short"
 
 [tool.ruff]
-exclude = [".tox", "doc"]
+exclude = [".tox", "doc", "Diffs"]
 
 [tool.ruff.lint]
 select = ["F"]

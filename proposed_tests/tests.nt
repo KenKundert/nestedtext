@@ -3264,3 +3264,42 @@ academic:
     encoding: bytes
     load_out: !{}
 
+# paragon  {{{1
+paragon:
+    description: invalid mix of string and list items
+    string_in:
+        > > Should not allow multi-line strings
+        > > and lists at the same level
+        > - of indentation.
+    load_err:
+        message: extra content.
+        line: - of indentation.
+        lineno: 2
+        colno: 0
+
+# chemist  {{{1
+chemist:
+    description: invalid mix of string and dict items
+    string_in:
+        > > Should not allow multi-line strings
+        > > and dictionary itmes at the same level
+        > of: indentation
+    load_err:
+        message: extra content.
+        line: of: indentation
+        lineno: 2
+        colno: 0
+
+# neophyte  {{{1
+neophyte:
+    description: invalid indentation
+    string_in:
+        > > Should not allow multi-line strings
+        > > with varying levels
+        >     > of indentation.
+    load_err:
+        message: invalid indentation.
+        line:     > of indentation.
+        lineno: 2
+        colno: 0
+

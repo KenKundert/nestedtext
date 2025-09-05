@@ -2914,6 +2914,50 @@
             "types": {
                 "unrecognized": 1
             }
+        },
+        "paragon": {
+            "load_in": "PiBTaG91bGQgbm90IGFsbG93IG11bHRpLWxpbmUgc3RyaW5ncwo+IGFuZCBsaXN0cyBhdCB0aGUgc2FtZSBsZXZlbAotIG9mIGluZGVudGF0aW9uLg==",
+            "load_out": null,
+            "load_err": {
+                "message": "extra content.",
+                "line": "- of indentation.",
+                "lineno": 2,
+                "colno": 0
+            },
+            "encoding": "utf-8",
+            "types": {
+                "string item": 2,
+                "list item": 1
+            }
+        },
+        "chemist": {
+            "load_in": "PiBTaG91bGQgbm90IGFsbG93IG11bHRpLWxpbmUgc3RyaW5ncwo+IGFuZCBkaWN0aW9uYXJ5IGl0bWVzIGF0IHRoZSBzYW1lIGxldmVsCm9mOiBpbmRlbnRhdGlvbg==",
+            "load_out": null,
+            "load_err": {
+                "message": "extra content.",
+                "line": "of: indentation",
+                "lineno": 2,
+                "colno": 0
+            },
+            "encoding": "utf-8",
+            "types": {
+                "string item": 2,
+                "dict item": 1
+            }
+        },
+        "neophyte": {
+            "load_in": "PiBTaG91bGQgbm90IGFsbG93IG11bHRpLWxpbmUgc3RyaW5ncwo+IHdpdGggdmFyeWluZyBsZXZlbHMKICAgID4gb2YgaW5kZW50YXRpb24u",
+            "load_out": null,
+            "load_err": {
+                "message": "invalid indentation.",
+                "line": "    > of indentation.",
+                "lineno": 2,
+                "colno": 0
+            },
+            "encoding": "utf-8",
+            "types": {
+                "string item": 3
+            }
         }
     }
 }
