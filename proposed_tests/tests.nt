@@ -735,6 +735,7 @@ subdue:
         > treasurer:
         >     name: Fumiko Purvis
         >     address: \x20
+        # \x20 is a plain ASCII space, it is given as \x20 to make it explicit.
         >         > 3636 Buffalo Ave
         >         > Topeka, Kansas 20692
     load_err:
@@ -3126,10 +3127,11 @@ tombstone:
 # cavern  {{{1
 cavern:
     description:
-        > inline dictionary items must ignore whitespace following the colon
+        > dictionary items must ignore a space following the colon
     string_in:
         > key 1:
         > key 2:\x20
+        # \x20 is a plain ASCII space, it is given as \x20 to make it explicit.
     load_out:
         key 1:
         key 2:
@@ -3142,6 +3144,7 @@ rascal:
         > key 1:
         >    > value 1
         > key 2:\x20
+        # \x20 is a plain ASCII space, it is given as \x20 to make it explicit.
         >    > value 2
         > key 3:\x20\x20
         >    > value 3
@@ -3158,6 +3161,7 @@ truncheon:
         > -
         >    > value 1
         > -\x20
+        # \x20 is a plain ASCII space, it is given as \x20 to make it explicit.
         >    > value 2
         > -\x20\x20
         >    > value 3
@@ -3173,7 +3177,7 @@ vagrant:
         > must trim whitespace from both sides of values
     string_in:
         > inline dict:
-        >     {a:A, b: B,c :C, d : D }
+        >     {a:A, b: B,c :C , d : D }
         > inline list:
         >     [a, b,c , d ]
     load_out:
@@ -3265,6 +3269,7 @@ academic:
     load_out: !{}
 
 # paragon  {{{1
+# test donated by jonjanisch
 paragon:
     description: invalid mix of string and list items
     string_in:
@@ -3278,6 +3283,7 @@ paragon:
         colno: 0
 
 # chemist  {{{1
+# test donated by jonjanisch
 chemist:
     description: invalid mix of string and dict items
     string_in:
@@ -3291,6 +3297,7 @@ chemist:
         colno: 0
 
 # neophyte  {{{1
+# test donated by jonjanisch
 neophyte:
     description: invalid indentation
     string_in:

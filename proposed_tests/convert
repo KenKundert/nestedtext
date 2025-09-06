@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
+"""
+Convert
+
+usage:
+    convert [<tests.nt>]
+
+Converts the human-friendly test definitions file (default is tests.nt) to the 
+machine-friendly tests file (default is tests.json).  Running this command is 
+only necessary if you change the test definitions file.
+"""
+
 
 # IMPORTS {{{1
 import nestedtext as nt
-from inform import (
-    Error, fatal, indent, is_str, is_mapping, is_collection, os_error, 
-    terminate, warn
-)
-from base64 import b64encode
-import codecs
 try:
     from nestedtext.nestedtext import Lines
 except ImportError:
@@ -20,12 +25,21 @@ except ImportError:
         "line types are not available."
     )
     Lines = None
+from base64 import b64encode, b64decode
 from collections import defaultdict
+from docopt import docopt
+from inform import (
+    Error, fatal, indent, is_str, is_mapping, is_collection, os_error, 
+    terminate, warn
+)
 from itertools import batched
+from pathlib import Path
 from voluptuous import (
     Schema, Optional, Required, Any, Self, Invalid, MultipleInvalid
 )
 from voluptuous_errors import report_voluptuous_errors
+import codecs
+import io
 import re
 import json
 
@@ -84,9 +98,15 @@ def fix_eol(match):
 
 # extract line types {{{1
 if Lines:
-    def extract_line_types(text):
+    def extract_line_types(content):
+        try:
+            content = b64decode(content).decode('utf-8-sig', errors='strict')
+        except UnicodeError as e:
+            return dict(unrecognized = 1)
+
         types = defaultdict(int)
-        lines = Lines(text.splitlines(), True)
+        lines = Lines([], True)
+        lines.lines = io.StringIO(content, newline=None)
 
         for line in lines.read_lines():
             types[line.kind] += 1
@@ -119,10 +139,15 @@ def bytes_encode(given, encoding):
 
 
 # CONVERT {{{1
-# read tests.nt {{{1
+# read command line {{{1
+cmdline = docopt(__doc__)
+input_path = Path(cmdline['<tests.nt>'] or 'tests.nt')
+output_path = input_path.with_suffix('.json')
+
+# read test definitions file (tests.nt) {{{1
 try:
     keymap = {}
-    tests = nt.load("tests.nt", keymap=keymap)
+    tests = nt.load(input_path, keymap=keymap)
     tests = tests_validator(tests)
 except OSError as e:
     fatal(os_error(e))
@@ -168,17 +193,21 @@ try:
             load_out = load_out,
             load_err = load_err,
             encoding = encoding,
-            types = extract_line_types(load_in),
+            types = extract_line_types(load_in_encoded)
         )
         for line_type, count in processed_test['types'].items():
             accumulated_line_types[line_type] += count
 
+        if 'unrecognized' in processed_test['types'] and not load_err:
+            # raise Error("unrecognized line in a test that does not expect an error.")
+            warn("unrecognized line in a test that does not expect an error.", 
+                 culprit=key)
+
         processed[key] = processed_test
 
     # write tests.json {{{1
-    with open('tests.json', 'w') as f:
-        json.dump(dict(load_tests=processed), f, indent=4, ensure_ascii=False)
-        f.write('\n')
+    content = json.dumps(dict(load_tests=processed), indent=4, ensure_ascii=False)
+    output_path.write_text(content, encoding="utf-8")
 
 except OSError as e:
     fatal(os_error(e))

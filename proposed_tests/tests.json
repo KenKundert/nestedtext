@@ -865,7 +865,7 @@
             "encoding": "utf-8",
             "types": {
                 "dict item": 12,
-                "unrecognized": 1
+                "blank": 3
             }
         },
         "pelvis": {
@@ -888,7 +888,7 @@
             "encoding": "utf-8",
             "types": {
                 "dict item": 12,
-                "unrecognized": 1
+                "blank": 3
             }
         },
         "pursuit": {
@@ -911,7 +911,7 @@
             "encoding": "utf-8",
             "types": {
                 "dict item": 12,
-                "unrecognized": 1
+                "blank": 3
             }
         },
         "beset": {
@@ -1102,7 +1102,8 @@
             "encoding": "utf-8",
             "types": {
                 "comment": 1,
-                "dict item": 2
+                "dict item": 1,
+                "unrecognized": 1
             }
         },
         "concuss": {
@@ -2770,7 +2771,8 @@
             },
             "encoding": "utf-8",
             "types": {
-                "dict item": 2
+                "dict item": 1,
+                "unrecognized": 1
             }
         },
         "tombstone": {
@@ -2795,8 +2797,7 @@
             "load_err": {},
             "encoding": "utf-8",
             "types": {
-                "dict item": 1,
-                "unrecognized": 1
+                "dict item": 2
             }
         },
         "rascal": {
@@ -2809,9 +2810,8 @@
             },
             "encoding": "utf-8",
             "types": {
-                "dict item": 1,
-                "string item": 3,
-                "unrecognized": 2
+                "dict item": 3,
+                "string item": 3
             }
         },
         "truncheon": {
@@ -2824,13 +2824,12 @@
             },
             "encoding": "utf-8",
             "types": {
-                "list item": 1,
-                "string item": 3,
-                "unrecognized": 2
+                "list item": 3,
+                "string item": 3
             }
         },
         "vagrant": {
-            "load_in": "aW5saW5lIGRpY3Q6CiAgICB7YTpBLCBiOiBCLGMgOkMsIGQgOiBEIH0KaW5saW5lIGxpc3Q6CiAgICBbYSwgYixjICwgZCBd",
+            "load_in": "aW5saW5lIGRpY3Q6CiAgICB7YTpBLCBiOiBCLGMgOkMgLCBkIDogRCB9CmlubGluZSBsaXN0OgogICAgW2EsIGIsYyAsIGQgXQ==",
             "load_out": {
                 "inline dict": {
                     "a": "A",
@@ -2887,9 +2886,7 @@
             },
             "encoding": "utf-16",
             "types": {
-                "dict item": 7,
-                "list item": 2,
-                "string item": 2
+                "unrecognized": 1
             }
         },
         "amendment": {
@@ -2903,7 +2900,7 @@
             },
             "encoding": "bytes",
             "types": {
-                "string item": 3
+                "unrecognized": 1
             }
         },
         "academic": {
@@ -2912,7 +2909,7 @@
             "load_err": {},
             "encoding": "bytes",
             "types": {
-                "unrecognized": 1
+                "inline dict": 1
             }
         },
         "paragon": {
