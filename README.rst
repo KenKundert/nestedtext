@@ -1,5 +1,5 @@
-NestedText — A Human Friendly Data Format
-=========================================
+NestedText — Structured Data for Humans
+=======================================
 
 |downloads| |build status| |coverage| |rtd status| |pypi version| |anaconda version| |python version|
 
