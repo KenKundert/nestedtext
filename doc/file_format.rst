@@ -96,7 +96,7 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     #. If there is no further text on the line and the next line has greater 
        indentation, then the next line holds the value, which may be a list, 
-       a dictionary, or a multiline string.
+       a dictionary, or a multiline string; or an inline list or dictionary.
 
     #. Otherwise the value is empty; it is taken to be an empty string.
 
@@ -116,7 +116,8 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
     An indented value must follow a multiline key.  The indented value may be 
     either a multiline string, a list or a dictionary.  The combination of the 
-    key item and its value forms a *dictionary item*.
+    key item and its value forms a *dictionary item*; or an inline list 
+    or dictionary.
 
 
 **Dictionary items**:
@@ -250,11 +251,12 @@ The *NestedText* format follows a small number of simple rules. Here they are.
 
 **End of file**:
 
-    The last character in a *NestedText* document file is a newline.
+    The last character in a *NestedText* document file is a newline, though this 
+    is generally not enforced when reading a document.
 
 
 **Result**:
 
     When a document is converted from *NestedText* the result is a hierarchical 
-    collection of dictionaries, lists and strings.  All dictionary keys are 
-    strings.
+    collection of dictionaries, lists and strings.  The leaf values are all 
+    strings, as are all dictionary keys.

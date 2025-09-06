@@ -90,14 +90,14 @@ between data and code and its use is growing in popularity.
 An example of structured code is provided by GitHub with its workflow 
 specification files.  They use YAML_.  Unfortunately, the syntax of the code 
 snippets held in the various fields can be confused with *YAML* syntax, which 
-leads to unnecessary errors, confusion, and complexity (see *YAML issues*).  
-JSON_ suffers from similar problems.  *NestedText* excels for these applications 
-as it holds code snippets without any need for quoting or escaping.  
-*NestedText* provides simple unambiguous rules for defining the structure of 
-your data and when these rules are followed there is no way for any syntax or 
-special characters in the values of your data to be confused with *NestedText* 
-syntax.  In fact, it is possible for *NestedText* to hold *NestedText* snippets 
-without conflict.
+leads to unnecessary errors, confusion, and complexity (see :ref:`YAML issues 
+<vs_yaml>`).  JSON_ suffers from similar problems.  *NestedText* excels for 
+these applications as it holds code snippets without any need for quoting or 
+escaping.  *NestedText* provides simple unambiguous rules for defining the 
+structure of your data and when these rules are followed there is no way for any 
+syntax or special characters in the values of your data to be confused with 
+*NestedText* syntax.  In fact, it is possible for *NestedText* to hold 
+*NestedText* snippets without conflict.
 
 Another example of structured code is provided by the files that contain the 
 test cases used by `Parametrize From File`_, a PyTest_ plugin.
@@ -125,8 +125,8 @@ a regular expression that must match the output for the test to pass::
         expected: home: (\d+(\.\d)? (seconds|minutes)) since last backup\.
         expected type: regex
 
-Notice that the regular expressions are given clean, without any quoting or 
-escaping.
+Notice that the regular expressions are given clean, without any additional 
+quoting or escaping.
 
 
 Composable Utilities
