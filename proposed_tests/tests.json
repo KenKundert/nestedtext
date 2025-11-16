@@ -2955,6 +2955,17 @@
             "types": {
                 "string item": 3
             }
+        },
+        "straggle": {
+            "load_in": "Z2FpbiBbNzowXTogR2FpbiBjb250cm9sIChxdWFydGVyIGRCIHN0ZXBzIGZyb20gLTMyIGRCIHRvICszMS43NSBkQik=",
+            "load_out": {
+                "gain [7:0]": "Gain control (quarter dB steps from -32 dB to +31.75 dB)"
+            },
+            "load_err": {},
+            "encoding": "utf-8",
+            "types": {
+                "dict item": 1
+            }
         }
     }
 }

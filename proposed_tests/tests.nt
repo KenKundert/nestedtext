@@ -3310,3 +3310,10 @@ neophyte:
         lineno: 2
         colno: 0
 
+# straggle  {{{1
+straggle:
+    description: key that contains a colon
+    string_in:
+        > gain [7:0]: Gain control (quarter dB steps from -32 dB to +31.75 dB)
+    load_out:
+        gain [7:0]: Gain control (quarter dB steps from -32 dB to +31.75 dB)

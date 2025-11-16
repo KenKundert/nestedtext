@@ -33,7 +33,7 @@ C
 """"
 
 `nt4c <https://github.com/1Hyena/nt4c>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `C <https://www.c-language.org/>`_ implementation of *Minimal NestedText*.
 Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
