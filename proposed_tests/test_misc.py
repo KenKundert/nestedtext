@@ -4,388 +4,16 @@
 import pytest
 import nestedtext as nt
 import arrow
-from pathlib import Path
-from functools import wraps
 from io import StringIO
 from inform import Error, Info, join, dedent
 from quantiphy import Quantity
 import subprocess
+import sys
 import os
-
-test_api = Path(__file__).parent / 'official_tests' / 'api'
-import sys; sys.path.append(str(test_api))
-import nestedtext_official_tests as official
-
-# Parametrization {{{1
 
 parametrize = pytest.mark.parametrize
 
-# parametrize_load_api {{{2
-def parametrize_load_api(f):
-    """
-    Parametrize a test function with different ways to load NestedText from a
-    file.
-
-    In particular, this parametrizes the different load functions (`load` and
-    `loads`), and the different types of arguments that both functions accepts.
-    The test function will receive the following parameter:
-
-    - ``load_factory``: A callable that can be used to create a parametrized
-      load function.  The factory takes two arguments:
-
-      - ``content`: A string in the NestedText format, to be loaded.
-      - ``tmp_path``: The ``tmp_path`` pytest fixture.
-
-      The factory returns two values:
-
-      - ``load``: A function that can be called with no arguments to load the
-        content given previously to the factory with a unique set of
-        parameters.
-      - ``source``: A string indicating where the content was loaded from (e.g.
-        a temporary file name).
-    """
-    args = 'load_factory',
-    params = []
-
-    def param(f):
-        params.append(pytest.param(f, id=f.__name__))
-        return f
-
-    def write_file(name):
-        def decorator(f):
-            @wraps(f)
-            def load(content, tmp_path):
-                p = tmp_path / name
-                p.write_text(content)
-                return f(p)
-            return load
-        return decorator
-
-    @param
-    @write_file('load_str.nt')
-    def load_str(p):
-        return lambda: nt.load(str(p), top='any'), str(p)
-
-    @param
-    @write_file('load_path.nt')
-    def load_path(p):
-        return lambda: nt.load(p, top='any'), str(p)
-
-    @param
-    @write_file('load_path_no_ext')
-    def load_path_no_ext(p):
-        return lambda: nt.load(p, top='any'), str(p)
-
-    @param
-    @write_file('load_fp.nt')
-    def load_fp(p):
-        def factory():
-            with open(p) as f:
-                return nt.load(f, top='any')
-        return factory, str(p)
-
-    @param
-    def load_io(content, _):
-        io = StringIO(content)
-        return lambda: nt.load(io, top='any'), None
-
-    @param
-    def loads(content, _):
-        return lambda: nt.loads(content, top='any'), None
-
-    @param
-    def loads_src(content, _):
-        return lambda: nt.loads(content, top='any', source='SOURCE'), 'SOURCE'
-
-    return parametrize(args, params)(f)
-
-# parametrize_load_success_cases {{{2
-def parametrize_load_success_cases(f):
-    """
-    Parametrize a test function with test cases that should be successfully 
-    loaded.
-
-    These test cases are taken from the official NestedText test suite.  The  
-    test function will receive the following parameters:
-
-    - ``path_in``: The path to a NestedText file to load.
-    - ``data_out``: The data structure that should result from loading the 
-      above file.
-    """
-    cases = official.load_test_cases()
-    args = 'path_in', 'data_out'
-    params = []
-    marks = {}
-
-    for case in official.iter_load_success_cases(cases):
-        param = pytest.param(
-                case['load']['in']['path'],
-                case['load']['out']['data'],
-                id=case.id,
-                marks=marks.get(case.id, []),
-        )
-        params.append(param)
-
-    return parametrize(args, params)(f)
-
-# parametrize_load_error_cases {{{2
-def parametrize_load_error_cases(f):
-    """
-    Parametrize a test function with test cases that should not be 
-    successfully loaded.
-
-    These test cases are taken from the official NestedText test suite.  The 
-    test function will receive the following parameters:
-
-    - ``path_in``: The path to a NestedText file to load.
-    - ``lineno``: The line number where the error occurs (1-indexed).
-    - ``colno``: The column number where the error occurs (0-indexed).
-    - ``message``: The error message that should be produced.
-    """
-    cases = official.load_test_cases()
-    args = 'path_in', 'lineno', 'colno', 'message'
-    params = []
-    marks = {}
-
-    for case in official.iter_load_error_cases(cases):
-        param = pytest.param(
-                case['load']['in']['path'],
-                case['load']['err']['data']['lineno'],
-                case['load']['err']['data']['colno'],
-                case['load']['err']['data']['message'],
-                id=case.id,
-                marks=marks.get(case.id, []),
-        )
-        params.append(param)
-
-    return parametrize(args, params)(f)
-
-# parametrize_dump_api {{{2
-def parametrize_dump_api(f):
-    """
-    Parametrize a test function with different ways to dump a data structure to 
-    NestedText.
-
-    In particular, this parametrizes the different dump functions (`dump` and 
-    `dumps`), and the different types of arguments that both functions accepts.  
-    The test function will receive the following parameter:
-
-    - ``dump``: A function that will convert a data structure to a string in 
-      the NestedText format.  The function takes the following arguments:
-
-      - ``x``: The data structure to dump.
-      - ``tmp_path``: The ``tmp_path`` pytest fixture.
-      - ``**kwargs``: Any keyword arguments that should be passed to the 
-        underlying dump function.
-    """
-    args = 'dump',
-    params = []
-
-    def param(f):
-        params.append(pytest.param(f, id=f.__name__))
-        return f
-
-    @param
-    def dumps(x, tmp_path, **kwargs):
-        return nt.dumps(x, **kwargs) + '\n'
-
-    @param
-    def dump_str(x, tmp_path, **kwargs):
-        p = tmp_path / 'data.nt'
-        nt.dump(x, str(p), **kwargs)
-        return p.read_text()
-
-    @param
-    def dump_path(x, tmp_path, **kwargs):
-        p = tmp_path / 'data.nt'
-        nt.dump(x, p, **kwargs)
-        return p.read_text()
-
-    @param
-    def dump_path_no_ext(x, tmp_path, **kwargs):
-        p = tmp_path / 'data'
-        nt.dump(x, p, **kwargs)
-        return p.read_text()
-
-    @param
-    def dump_fp(x, tmp_path, **kwargs):
-        p = tmp_path / 'data.nt'
-        with open(p, 'w') as f:
-            nt.dump(x, f, **kwargs)
-        return p.read_text()
-
-    @param
-    def dump_io(x, tmp_path, **kwargs):
-        io = StringIO()
-        nt.dump(x, io, **kwargs)
-        return io.getvalue()
-
-    return parametrize(args, params)(f)
-
-# parametrize_dump_success_cases {{{2
-def parametrize_dump_success_cases(f):
-    """
-    Parametrize a test function with test cases that should be successfully 
-    dumped.
-
-    These test cases are taken from the official NestedText test suite.  The  
-    test function will receive the following parameters:
-
-    - ``data_in``: The data structure to dump.
-    - ``path_out``: The path to a file containing the NestedText that 
-      should result from dumping the above data structure.
-    """
-    cases = official.load_test_cases()
-    args = 'data_in', 'path_out'
-    params = []
-    marks = {
-        #   'string_5': [pytest.mark.skip],
-    }
-
-    for case in official.iter_dump_success_cases(cases):
-        param = pytest.param(
-                case['dump']['in']['data'],
-                case['dump']['out']['path'],
-                id=case.id,
-                marks=marks.get(case.id, []),
-        )
-        params.append(param)
-
-    return parametrize(args, params)(f)
-
-# parametrize_dump_error_cases {{{2
-def parametrize_dump_error_cases(f):
-    """
-    Parametrize a test function with test cases that should not be 
-    successfully dumped.
-
-    These test cases are taken from the official NestedText test suite.  The 
-    test function will receive the following parameters:
-
-    - ``data_in``: The data structure to dump.
-    - ``culprit``: The specific object responsible for the error.
-    - ``message``: The error message that should be produced.
-    """
-    cases = official.load_test_cases()
-    args = 'data_in', 'culprit', 'message'
-    params = []
-    marks = {}
-
-    for case in official.iter_dump_error_cases(cases):
-        param = pytest.param(
-                case['dump']['in']['data'],
-                case['dump']['err']['data']['culprit'],
-                case['dump']['err']['data']['message'],
-                id=case.id,
-                marks=marks.get(case.id, []),
-        )
-        params.append(param)
-
-    return parametrize(args, params)(f)
-
-# parametrize_via_nt {{{2
-def parametrize_via_nt(relpath):
-    """
-    Parametrize a test function with examples loaded from a NestedText file.
-
-    The given file is specified as a path relative to this file.  It must 
-    contain a list of dictionaries.  The items in those dictionaries will be 
-    provided as parameters to the decorated test.  Each dictionary must have 
-    all the same keys.
-    """
-
-    def decorator(f):
-        import inspect
-
-        # The path is relative to the file the caller is defined in.
-        module = inspect.getmodule(f)
-        test_path = Path(module.__file__)
-        nt_path = test_path.parent / relpath
-
-        raw_params = nt.load(nt_path, top='any')
-        raw_args = set.union(*(set(x) for x in raw_params)) - {'id'}
-
-        # Make sure there aren't any missing/extra parameters:
-        for params in raw_params:
-            missing = raw_args - set(params)
-            if missing:
-                missing_str = ', '.join(f"'{x}'" for x in missing)
-                raise ValueError(f"{nt_path}: {f.__name__}: missing parameter(s) {missing_str}")
-
-        args = list(raw_args)
-        params = [
-                pytest.param(*(x[k] for k in args), id=x.get('id', None))
-                for x in raw_params
-        ]
-        return parametrize(args, params)(f)
-
-    return decorator
-
-# Test load {{{1
-# test_load_success_cases {{{2
-@parametrize_load_api
-@parametrize_load_success_cases
-def test_load_success_cases(load_factory, path_in, data_out, tmp_path):
-    content = path_in.read_text()
-    load, _ = load_factory(content, tmp_path)
-    assert load() == data_out
-
-# test_load_error_cases {{{2
-@parametrize_load_api
-@parametrize_load_error_cases
-def test_load_error_cases(load_factory, path_in, lineno, colno, message, tmp_path):
-    content = path_in.read_text()
-    load, source = load_factory(content, tmp_path)
-    lines = content.splitlines()
-    line = lines[lineno]
-    prev_lines = lines[:lineno]
-    prev_lines.reverse()
-    prev_line = None
-    prev_lineno = lineno
-    for l in prev_lines:
-        prev_lineno -= 1
-        if l.partition('#')[0].strip() != '':
-            # it is not blank and it a comments, so its our prev_line
-            prev_line = l
-            break
-
-    with pytest.raises(nt.NestedTextError) as exc_info:
-        load()
-
-    e = exc_info.value
-
-    culprit = e.get_culprit()
-    if source:
-        assert culprit[0] == source
-        assert culprit[1] == lineno+1
-    else:
-        assert culprit[0] == lineno+1
-    assert message == e.get_message()
-    assert e.line == line
-    assert e.source == source
-    assert e.lineno == lineno
-    assert e.colno == colno
-    if e.prev_line:
-        assert e.prev_line == prev_line
-    else:
-        prev_line = None
-    if lineno is None:
-        assert e.codicil == (f'❬{line}❭',)
-    else:
-        if colno is None:
-            assert e.codicil == (f'{lineno+1:>4} ❬{line}❭',)
-        else:
-            line = line.replace('\t', '→')
-            assert len(e.codicil) == 1
-            assert e.codicil[0].endswith(
-                (f'{prev_lineno+1:>4} ❬{prev_line}❭\n' if prev_line else '') +
-                f'{lineno+1:>4} ❬{line}❭' +
-                (f'\n      {" "*colno}▲' if colno is not None else '')
-            )
-
-    assert isinstance(e, Error)
-    assert isinstance(e, ValueError)
-
+# Load Tests {{{1
 # test_load_api_errors {{{2
 def test_load_api_errors():
     with pytest.raises(FileNotFoundError):
@@ -1348,49 +976,21 @@ def test_empty_dev_null(monkeypatch, top, expected):
     assert data == expected
     assert keymap[()].as_line(offset=None) == ''
 
-# # test_empty_fd0 {{{2
-# def test_empty_fd0(monkeypatch):
-#     # I only seem to get one shot at testing 0 as a file descriptor
-# 
-#     # load stdin, which will be empty
-#     monkeypatch.setattr('sys.stdin', StringIO(''))
-#     keymap = {}
-#     data = nt.load(0, keymap=keymap)
-#     assert data == {}
-#     assert keymap[()].as_line(offset=None) == ''
+# test_empty_fd0 {{{2
+def test_empty_fd0(monkeypatch):
+    # I only seem to get one shot at testing 0 as a file descriptor
+
+    # load stdin, which will be empty
+    monkeypatch.setattr('sys.stdin', StringIO(''))
+    keymap = {}
+    data = nt.load(0, keymap=keymap)
+    assert data == {}
+    assert keymap[()].as_line(offset=None) == ''
 
 
-# Test dump {{{1
-# test_dump_success_cases {{{2
-@parametrize_dump_api
-@parametrize_dump_success_cases
-def test_dump_success_cases(dump, data_in, path_out, tmp_path):
-    assert dump(data_in, tmp_path, default='strict') == path_out.read_text()
-
-# test_dump_error_cases {{{2
-@parametrize_dump_api
-@parametrize_dump_error_cases
-def test_dump_error_cases(dump, data_in, culprit, message, tmp_path):
-    with pytest.raises(nt.NestedTextError) as exc_info:
-        dump(data_in, tmp_path, default='strict')
-
-    e = exc_info.value
-
-    if culprit is None:
-        culprit = ()
-    elif isinstance(culprit, list):
-        culprit = tuple(culprit)
-    elif not isinstance(culprit, tuple):
-        culprit = (culprit,)
-    assert culprit == e.get_culprit()
-    assert message == e.get_message()
-
-    assert isinstance(e, Error)
-    assert isinstance(e, ValueError)
-
+# Dump Tests {{{1
 # test_dump_default {{{2
-@parametrize_dump_api
-def test_dump_default(dump, tmp_path):
+def test_dump_default():
     data = dict(
         none = None,
         true = True,
@@ -1409,41 +1009,41 @@ def test_dump_default(dump, tmp_path):
         empty_list:
             []
         zero: 0
-    ''').lstrip()
-    assert dump(data, tmp_path) == expected
-    assert dump(data, tmp_path, default=repr) == expected
+    ''').strip()
+    assert nt.dumps(data) == expected
+    assert nt.dumps(data, default=repr) == expected
 
     with pytest.raises(nt.NestedTextError):
         data = dict(none = None)
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = {None: 'none'}
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = dict(true = True)
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = {True: 'true'}
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = dict(false = False)
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = {False: 'false'}
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = dict(zero = 0)
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     with pytest.raises(nt.NestedTextError):
         data = {0: 'zero'}
-        dump(data, tmp_path, default='strict')
+        nt.dumps(data, default='strict')
 
     data = {
         None: 'none',
@@ -1452,105 +1052,102 @@ def test_dump_default(dump, tmp_path):
         3: 'three',
     }
 
-    assert dump(data, tmp_path) == dedent('''\
+    assert nt.dumps(data) == dedent('''\
         :
             > none
         True: true
         False: false
         3: three
-    ''').lstrip()
+    ''').strip()
 
-    assert dump(data, tmp_path, default=repr) == dedent('''\
+    assert nt.dumps(data, default=repr) == dedent('''\
         :
             > none
         True: true
         False: false
         3: three
-    ''').lstrip()
+    ''').strip()
 
 
 # test_dump_sort_key {{{2
-@parametrize_dump_api
-def test_dump_sort_key(dump, tmp_path):
+def test_dump_sort_key():
     data = dict(cc=3, aaa=1, b=2)
 
-    assert dump(data, tmp_path, sort_keys=False) == dedent('''\
+    assert nt.dumps(data, sort_keys=False) == dedent('''\
             cc: 3
             aaa: 1
             b: 2
-    ''').lstrip()
+    ''').strip()
 
-    assert dump(data, tmp_path, sort_keys=True) == dedent('''\
+    assert nt.dumps(data, sort_keys=True) == dedent('''\
             aaa: 1
             b: 2
             cc: 3
-    ''').lstrip()
+    ''').strip()
 
-    assert dump(data, tmp_path, sort_keys=lambda t, k: len(t[0])) == dedent('''\
+    assert nt.dumps(data, sort_keys=lambda t, k: len(t[0])) == dedent('''\
             b: 2
             cc: 3
             aaa: 1
-    ''').lstrip()
+    ''').strip()
 
-    assert dump(data, tmp_path, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}\n'
-    assert dump(data, tmp_path, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}\n'
-    assert dump(data, tmp_path, sort_keys=lambda t, k: len(t[0]), width=80) == '{b: 2, cc: 3, aaa: 1}\n'
+    assert nt.dumps(data, sort_keys=False, width=80) == '{cc: 3, aaa: 1, b: 2}'
+    assert nt.dumps(data, sort_keys=True, width=80) == '{aaa: 1, b: 2, cc: 3}'
+    assert nt.dumps(data, sort_keys=lambda t, k: len(t[0]), width=80) == '{b: 2, cc: 3, aaa: 1}'
 
 # test_dump_indent {{{2
-@parametrize_dump_api
-def test_dump_indent(dump, tmp_path):
+def test_dump_indent():
     x = dict(A=['B'])
 
     with pytest.raises(AssertionError):
-        dump(x, tmp_path, indent=0)
+        nt.dumps(x, indent=0)
 
-    assert dump(x, tmp_path, indent=1) == "A:\n - B\n"
-    assert dump(x, tmp_path, indent=2) == "A:\n  - B\n"
-    assert dump(x, tmp_path, indent=3) == "A:\n   - B\n"
-    assert dump(x, tmp_path, indent=4) == "A:\n    - B\n"
+    assert nt.dumps(x, indent=1) == "A:\n - B"
+    assert nt.dumps(x, indent=2) == "A:\n  - B"
+    assert nt.dumps(x, indent=3) == "A:\n   - B"
+    assert nt.dumps(x, indent=4) == "A:\n    - B"
 
 # test_dump_converters {{{2
-@parametrize_dump_api
-def test_dump_converters(dump, tmp_path):
+def test_dump_converters():
     x = {'int': 1, 'float': 1.0, 'str': 'A'}
 
-    assert dump(x, tmp_path, default=str) == dedent('''\
+    assert nt.dumps(x, default=str) == dedent('''\
         int: 1
         float: 1.0
         str: A
-    ''').lstrip()
+    ''').strip()
 
     converters = {str: lambda x: x.lower()}
-    assert dump(x, tmp_path, default=str, converters=converters) == dedent('''\
+    assert nt.dumps(x, default=str, converters=converters) == dedent('''\
         int: 1
         float: 1.0
         str: a
-    ''').lstrip()
-    assert dump(x, tmp_path, default=str, converters=converters, width=80) == '{int: 1, float: 1.0, str: a}\n'
+    ''').strip()
+    assert nt.dumps(x, default=str, converters=converters, width=80) == '{int: 1, float: 1.0, str: a}'
 
     y = {'info': Info(val=42)}
     converters = {Info: lambda v: f'Info(\n    val={v.val}\n)'}
-    assert dump(y, tmp_path, converters=converters) == dedent('''
+    assert nt.dumps(y, converters=converters) == dedent('''
         info:
             > Info(
             >     val=42
             > )
-    ''').lstrip()
-    assert dump(y, tmp_path, converters=converters, width=80) == dedent('''
+    ''').strip()
+    assert nt.dumps(y, converters=converters, width=80) == dedent('''
         info:
             > Info(
             >     val=42
             > )
-    ''').lstrip()
+    ''').strip()
 
     converters = {Info: lambda v: v.__dict__}
-    result = dump(y, tmp_path, converters=converters, width=80)
-    expected = '{info: {val: 42}}\n'
+    result = nt.dumps(y, converters=converters, width=80)
+    expected = '{info: {val: 42}}'
     assert result == expected
 
     y = dict(info=Info(vals=Info(pair=(42,64))))
-    result = dump(y, tmp_path, converters=converters, width=80)
-    expected = '{info: {vals: {pair: [42, 64]}}' + '}\n'
+    result = nt.dumps(y, converters=converters, width=80)
+    expected = '{info: {vals: {pair: [42, 64]}}' + '}'
     assert result == expected
 
     y = dict(info=Info(vals=Info(pair=((1,2), (3,4)))))
@@ -1564,13 +1161,13 @@ def test_dump_converters(dump, tmp_path):
                     -
                         - 3
                         - 4
-    ''').lstrip()
-    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}' + '}\n'
+    ''').strip()
+    compressed_expected = '{info: {vals: {pair: [[1, 2], [3, 4]]}}' + '}'
 
-    result = dump(y, tmp_path, converters=converters)
+    result = nt.dumps(y, converters=converters)
     assert result == full_expected
 
-    result = dump(y, tmp_path, converters=converters, width=80)
+    result = nt.dumps(y, converters=converters, width=80)
     assert result == compressed_expected
 
     def defaulter(arg):
@@ -1578,10 +1175,10 @@ def test_dump_converters(dump, tmp_path):
             return arg.__dict__
         raise TypeError
 
-    result = dump(y, tmp_path, default=defaulter)
+    result = nt.dumps(y, default=defaulter)
     assert result == full_expected
 
-    result = dump(y, tmp_path, default=defaulter, width=80)
+    result = nt.dumps(y, default=defaulter, width=80)
     assert result == compressed_expected
 
     class ntInfo(Info):
@@ -1589,14 +1186,14 @@ def test_dump_converters(dump, tmp_path):
             return self.__dict__
 
     y = {'info': ntInfo(val=42)}
-    result = dump(y, tmp_path, width=80)
-    expected = '{info: {val: 42}}\n'
+    result = nt.dumps(y, width=80)
+    expected = '{info: {val: 42}}'
     assert result == expected
 
     # assure that converters dominates over __nestedtext_converter__
     converters = {ntInfo: False}
     with pytest.raises(nt.NestedTextError) as exc:
-        dump(y, tmp_path, width=80, converters=converters)
+        nt.dumps(y, width=80, converters=converters)
     assert str(exc.value) == "info: unsupported type (ntInfo)."
 
     # converting arrow object
@@ -1607,32 +1204,32 @@ def test_dump_converters(dump, tmp_path):
 
     # arrow object as value
     y = {'date': given}
-    result = dump(y, tmp_path, converters=converters)
-    expected = 'date: 1969-07-20\n'
+    result = nt.dumps(y, converters=converters)
+    expected = 'date: 1969-07-20'
     assert result == expected
-    result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{date: 1969-07-20}\n'
+    result = nt.dumps(y, converters=converters, width=99)
+    expected = '{date: 1969-07-20}'
     assert result == expected
-    result = dump(y, tmp_path, default=str)
-    expected = 'date: 1969-07-20T00:00:00+00:00\n'
+    result = nt.dumps(y, default=str)
+    expected = 'date: 1969-07-20T00:00:00+00:00'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99)
-    expected = 'date: 1969-07-20T00:00:00+00:00\n'
+    result = nt.dumps(y, default=str, width=99)
+    expected = 'date: 1969-07-20T00:00:00+00:00'
     assert result == expected
 
     # arrow object as key
     y = {given: 'moon landing'}
-    result = dump(y, tmp_path, converters=converters)
-    expected = '1969-07-20: moon landing\n'
+    result = nt.dumps(y, converters=converters)
+    expected = '1969-07-20: moon landing'
     assert result == expected
-    result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{1969-07-20: moon landing}\n'
+    result = nt.dumps(y, converters=converters, width=99)
+    expected = '{1969-07-20: moon landing}'
     assert result == expected
-    result = dump(y, tmp_path, default=str)
-    expected = '1969-07-20T00:00:00+00:00: moon landing\n'
+    result = nt.dumps(y, default=str)
+    expected = '1969-07-20T00:00:00+00:00: moon landing'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99)
-    expected = '1969-07-20T00:00:00+00:00: moon landing\n'
+    result = nt.dumps(y, default=str, width=99)
+    expected = '1969-07-20T00:00:00+00:00: moon landing'
     assert result == expected
 
     # converting quantity object
@@ -1640,47 +1237,47 @@ def test_dump_converters(dump, tmp_path):
 
     # arrow object as value
     y = {'c': Quantity('c')}
-    result = dump(y, tmp_path, converters=converters)
-    expected = 'c: 299.792458 Mm/s\n'
+    result = nt.dumps(y, converters=converters)
+    expected = 'c: 299.792458 Mm/s'
     assert result == expected
-    result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{c: 299.792458 Mm/s}\n'
+    result = nt.dumps(y, converters=converters, width=99)
+    expected = '{c: 299.792458 Mm/s}'
     assert result == expected
-    result = dump(y, tmp_path, default=str)
-    expected = 'c: 299.79 Mm/s\n'
+    result = nt.dumps(y, default=str)
+    expected = 'c: 299.79 Mm/s'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99)
-    expected = '{c: 299.79 Mm/s}\n'
+    result = nt.dumps(y, default=str, width=99)
+    expected = '{c: 299.79 Mm/s}'
     assert result == expected
 
     # arrow object as key
     y = {Quantity('c'): 'c'}
-    result = dump(y, tmp_path, converters=converters)
-    expected = '299.792458 Mm/s: c\n'
+    result = nt.dumps(y, converters=converters)
+    expected = '299.792458 Mm/s: c'
     assert result == expected
-    result = dump(y, tmp_path, converters=converters, width=99)
-    expected = '{299.792458 Mm/s: c}\n'
+    result = nt.dumps(y, converters=converters, width=99)
+    expected = '{299.792458 Mm/s: c}'
     assert result == expected
-    result = dump(y, tmp_path, default=str)
-    expected = '299.79 Mm/s: c\n'
+    result = nt.dumps(y, default=str)
+    expected = '299.79 Mm/s: c'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99)
-    expected = '{299.79 Mm/s: c}\n'
+    result = nt.dumps(y, default=str, width=99)
+    expected = '{299.79 Mm/s: c}'
     assert result == expected
 
     # integer object as key
     y = {0: 'zero', 'one': 'one', 'four': 'four'}
-    result = dump(y, tmp_path, default=str)
-    expected = '0: zero\none: one\nfour: four\n'
+    result = nt.dumps(y, default=str)
+    expected = '0: zero\none: one\nfour: four'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99)
-    expected = '{0: zero, one: one, four: four}\n'
+    result = nt.dumps(y, default=str, width=99)
+    expected = '{0: zero, one: one, four: four}'
     assert result == expected
-    result = dump(y, tmp_path, default=str, sort_keys=True)
-    expected = '0: zero\nfour: four\none: one\n'
+    result = nt.dumps(y, default=str, sort_keys=True)
+    expected = '0: zero\nfour: four\none: one'
     assert result == expected
-    result = dump(y, tmp_path, default=str, width=99, sort_keys=True)
-    expected = '{0: zero, four: four, one: one}\n'
+    result = nt.dumps(y, default=str, width=99, sort_keys=True)
+    expected = '{0: zero, four: four, one: one}'
     assert result == expected
 
 
@@ -1691,7 +1288,6 @@ def defaulter(arg):
         raise TypeError
     return str(arg)
 
-@parametrize_dump_api
 @parametrize(
         'data, culprit, kind, kwargs', [
             ({'key': 42},   'key', 'int',     dict(default='strict')),
@@ -1706,9 +1302,9 @@ def defaulter(arg):
             ({'key': z},    'key', 'complex', dict(default=defaulter, width=80)),
         ]
 )
-def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
+def test_dump_converters_err(data, culprit, kind, kwargs):
     with pytest.raises(nt.NestedTextError) as exc:
-        dump(data, tmp_path, **kwargs)
+        nt.dumps(data, **kwargs)
 
     assert str(exc.value) == f"{culprit}: unsupported type ({kind})."
     assert exc.value.args == (data[culprit],)
@@ -1720,7 +1316,6 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
     assert isinstance(exc.value, ValueError)
 
 # test_dump_width {{{2
-@parametrize_dump_api
 @parametrize(
     'given, expected, kwargs', [
         (['a[b'], '- a[b', dict(width=80)),
@@ -1908,11 +1503,10 @@ def test_dump_converters_err(dump, tmp_path, data, culprit, kind, kwargs):
         ({'A': 'a\rb'}, 'A:\n    > a\n    > b', dict(width=80)),
     ]
 )
-def test_dump_width(dump, tmp_path, given, expected, kwargs):
-    assert dump(given, tmp_path, **kwargs) == expected + '\n'
+def test_dump_width(given, expected, kwargs):
+    assert nt.dumps(given, **kwargs) == expected
 
 # test_dump_nones {{{2
-@parametrize_dump_api
 @parametrize(
     'given, expected, kwargs', [
         ( None,          '',             {} ),
@@ -1925,8 +1519,8 @@ def test_dump_width(dump, tmp_path, given, expected, kwargs):
         ( {None:'val'},  ':\n    > val', {} ),
     ]
 )
-def test_dump_nones(dump, tmp_path, given, expected, kwargs):
-    assert dump(given, tmp_path, **kwargs) == expected + '\n'
+def test_dump_nones(given, expected, kwargs):
+    assert nt.dumps(given, **kwargs) == expected
 
 # test_dump_cycle_detection {{{2
 def test_dump_cycle_detection():
@@ -2098,5 +1692,27 @@ def test_round_trip(tmp_path):
     }
     data_as_nt = nt.dumps(data_python)
     assert nt.loads(data_as_nt) == data_after_round_trip
+
+def test_nt_dump_trailing_newline(tmp_path):
+    """Verify that dump() adds trailing newline while dumps() does not"""
+    test_cases = [
+        {"key": "value"},
+        ["item1", "item2"],
+        "simple string"
+    ]
+
+    for data in test_cases:
+        # Get dumps() result (no trailing newline unless already in content)
+        dumps_result = nt.dumps(data)
+
+        # Test with string path
+        path = tmp_path / "test_newline.nt"
+        nt.dump(data, str(path))
+        file_content = path.read_text()
+
+        # Verify dump() adds exactly one trailing newline
+        assert file_content.endswith('\n'), "dump() should add trailing newline"
+        assert not file_content.endswith('\n\n'), "dump() should not add double newline"
+        assert file_content == dumps_result + '\n', "dump() should be dumps() + newline"
 
 # vim: fdm=marker

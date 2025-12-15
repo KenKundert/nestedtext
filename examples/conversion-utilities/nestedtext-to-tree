@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""
+Convert a NestedText file to a tree representation.
+
+usage:
+    nestedtext-to-tree [options] [<filename>]
+
+options:
+    -s, --squeeze   do not add extra level of hierarchy for string values
+    -d, --dedup     allow duplicate keys
+
+If <filename> is not given, NestedText input is taken from stdin.
+"""
+
+from docopt import docopt
+from inform import done, fatal, os_error, full_stop, tree
+from pathlib import Path
+import nestedtext as nt
+import sys
+sys.stdin.reconfigure(encoding='utf-8')
+
+
+cmdline = docopt(__doc__)
+input_filename = cmdline['<filename>']
+on_dup = de_dup if cmdline['--dedup'] else None
+
+try:
+    if input_filename:
+        input_path = Path(input_filename)
+        data = nt.load(input_path, top='any', on_dup=on_dup)
+    else:
+        data = nt.load(sys.stdin, top='any', on_dup=on_dup)
+    print(tree(data, squeeze=True))
+except OSError as e:
+    fatal(os_error(e))
+except nt.NestedTextError as e:
+    e.terminate()
+except UnicodeError as e:
+    fatal(full_stop(e))
+except KeyboardInterrupt:
+    done()
