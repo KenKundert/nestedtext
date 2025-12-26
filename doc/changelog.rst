@@ -22,7 +22,8 @@ Latest development version
 v3.8 (2025-12-26)
 -----------------
 
-- No changes.
+- No changes to language.
+- Replaced official test suite.
 
 
 .. _v3.7:

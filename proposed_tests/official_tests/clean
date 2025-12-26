@@ -1,5 +1,0 @@
-#!/bin/csh -f
-
-set nonomatch
-
-rm -rf __pycache__

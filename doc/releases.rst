@@ -35,9 +35,9 @@ v3.8 (2025-12-26)
 
 **Tests**:
 
-In version 3.8 a new implementation independent set of tests is being developed.  
-These tests should be more comprehensive and more independent of the Python 
-implementation of *NestedText*.
+In version 3.8 a new implementation independent suite of tests has replaced the 
+original suite.  These tests should be more comprehensive and more independent 
+of the Python implementation of *NestedText*.
 
 
 v3.7 (2024-04-27)
