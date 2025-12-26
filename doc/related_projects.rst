@@ -21,11 +21,6 @@ Official *NestedText* test suite.  Also included as submodule in
 `nestedtext <https://github.com/kenkundert/nestedtext>`_.
 
 
-`Proposed NestedText Tests <https://github.com/KenKundert/nestedtext/tree/master/proposed_tests>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-Proposed *NestedText* test suite.  Will replace the current official test suite.
-
-
 Implementations
 ---------------
 
