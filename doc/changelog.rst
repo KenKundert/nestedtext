@@ -17,6 +17,13 @@ Latest development version
 | Version: 3.8.dev2
 | Released: 2025-04-05
 
+.. _v3.8:
+
+v3.8 (2025-12-26)
+-----------------
+
+- No changes.
+
 
 .. _v3.7:
 

@@ -954,7 +954,7 @@ class NestedTextLoader:
                     )
 
             else:
-                raise NotImplementedError(top)
+                raise NotImplementedError(top)  # pragma: no cover
 
             if lines.type_of_next():
                 report('extra content', lines.get_next())

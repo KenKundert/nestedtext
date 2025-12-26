@@ -16,6 +16,10 @@ Latest development version
 | Version: 3.8.dev2
 | Released: 2025-04-05
 
+
+v3.8 (2025-12-26)
+-----------------
+
 **Bug Fixes**:
 
 - Catch multi-line key not followed by indented value.
