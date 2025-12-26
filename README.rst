@@ -5,8 +5,8 @@ NestedText — Structured Data for Humans
 
 
 | Authors: Ken & Kale Kundert
-| Version: 3.8.dev2
-| Released: 2025-04-05
+| Version: 3.8
+| Released: 2025-12-26
 | Documentation: nestedtext.org_
 | Please post all questions, suggestions, and bug reports to GitHub_.
 |

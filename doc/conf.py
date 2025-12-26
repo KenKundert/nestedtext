@@ -4,7 +4,7 @@ import sys, os
 
 project = u'NestedText'
 copyright = u'2020-2025, Ken and Kale Kundert'
-release = '3.8.dev2'
+release = '3.8'
 version = '.'.join(release.split('.'))
 
 master_doc = 'index'
