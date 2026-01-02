@@ -3,7 +3,7 @@ import sys, os
 # General
 
 project = u'NestedText'
-copyright = u'2020-2025, Ken and Kale Kundert'
+copyright = u'2020-2026, Ken and Kale Kundert'
 release = '3.8'
 version = '.'.join(release.split('.'))
 
