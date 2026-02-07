@@ -37,11 +37,17 @@ Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
 Go
 ""
 
-`nestex <https://github.com/npillmayer/nestext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`nestedtext <https://github.com/danielledeleo/nestedtext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Go <https://golang.org/>`_ implementation of *NestedText* with idiomatic API.
+Supports :ref:`NestedText v3.8 <v3.8>`.
+
+`nestext <https://github.com/npillmayer/nestext>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Go <https://golang.org/>`_ implementation of *NestedText*.
-Supports :ref:`NestedText v3.0 <v3.0>`.
+Supports :ref:`NestedText v3.1 <v3.1>`.
 
 
 Janet
