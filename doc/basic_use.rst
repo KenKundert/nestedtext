@@ -16,7 +16,7 @@ Installation
 
    pip3 install nestedtext
 
-Alternately, *Inform* is also available in *Conda*.  Install it with:
+Alternately, *NestedText* is also available in *Conda*.  Install it with:
 
 .. code-block:: text
 
