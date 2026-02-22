@@ -448,7 +448,7 @@ class Lines:
     # still_within_key() {{{3
     def still_within_key(self, line, depth):
         if not self.next_line:
-            report("indented value must follow multi-line key", line)
+            report("indented value must follow multiline key", line)
         return (
             self.next_line.kind == "key item" and
             self.next_line.depth == depth
