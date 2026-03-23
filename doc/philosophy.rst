@@ -101,7 +101,7 @@ as in::
 If one had to choose one format to use every time, one would generally choose 
 the second because it is more natural for keyed lists.
 
-However, there are more issues.  Imagine that the multi-line text is indented.  
+However, there are more issues.  Imagine that the multiline text is indented.  
 How would that be indicated?  Or perhaps there are leading or trailing blank 
 lines, how would those be distinguished from the empty space used to make our 
 list more readable.  To resolve these issues, *NestedText* deviates from normal 

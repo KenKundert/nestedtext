@@ -4,7 +4,7 @@
 Minimal NestedText
 ******************
 
-*Minimal NestedText* is *NestedText* without support for multi-line keys and
+*Minimal NestedText* is *NestedText* without support for multiline keys and
 inline dictionaries and lists.
 
 *Minimal NestedText* is a subset of *NestedText* that foregoes some of the
@@ -81,8 +81,8 @@ describe to your users if you decide to use it for your application.
 
     Indentation is used to denote nesting.  In this case the colon or dash is 
     the last character on the line and is followed by an indented value.  The 
-    value may be a collection of name-value pairs, a list, or a multi-line 
-    string.  Every line of a multi-line string is introduced by a greater-than 
+    value may be a collection of name-value pairs, a list, or a multiline 
+    string.  Every line of a multiline string is introduced by a greater-than 
     symbol followed by a space or newline.
 
     .. code-block:: nestedtext

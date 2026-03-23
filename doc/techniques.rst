@@ -517,7 +517,7 @@ Long Lines
 
 One of the benefits of *NestedText* is that no escaping of special characters is 
 ever needed.  However, you might find it helpful to add your own support for 
-removing escaped newlines in multi-line strings.  Doing so allows you to keep 
+removing escaped newlines in multiline strings.  Doing so allows you to keep 
 your lines short in the source document so as to make them easier to interpret 
 in windows of limited width.
 

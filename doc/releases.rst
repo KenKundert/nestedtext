@@ -22,7 +22,7 @@ v3.8 (2025-12-26)
 
 **Bug Fixes**:
 
-- Catch multi-line key not followed by indented value.
+- Catch multiline key not followed by indented value.
 - Make line-ending recognition consistent for files and strings.
 - Fix bug in :func:`get_value()`.
 - Report error if there is content that follows top-level inline dictionary.

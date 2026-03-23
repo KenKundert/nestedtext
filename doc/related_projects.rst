@@ -110,6 +110,16 @@ Ruby
 Supports :ref:`NestedText v3.0 <v3.0>`.
 
 
+Rust
+""""
+
+`nested-text <https://github.com/hansstimer/nested-text>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Rust <https://www.rust-lang.org>`_ implementation of *NestedText* with
+serde integration. Supports :ref:`NestedText v3.8 <v3.8>`.
+
+
 Zig
 """
 
