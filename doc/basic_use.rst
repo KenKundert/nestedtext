@@ -107,5 +107,5 @@ The :func:`dump` function writes *NestedText* to a file or stream.
     ...     fatal(os_error(e))
 
 The *dump* functions provide arguments that can control the output format and 
-can control the conversion of data types into forms that can be dumped. These
+can control the conversion of data types into forms that can be dumped. These 
 features are described in :meth:`dumps`.

@@ -2,8 +2,11 @@ from inform import Error
 from pathlib import Path
 from typing import Any, Callable, TextIO, Type
 
+# NestedTextError {{{1
 class NestedTextError(Error, ValueError): ...
 
+
+# Line {{{1
 class Line:
     text: str
     lineno: int
@@ -12,6 +15,8 @@ class Line:
     key: str
     value: str | None
     prev_line: Line
+    leading_comments: list[Comment]
+    trailing_comments: list[Comment]
 
     def render(
         self,
@@ -19,11 +24,40 @@ class Line:
     ) -> str:
         ...
 
+# Comment {{{1
+class Comment:
+    text: str
+    indent: int
+    tab: int | None
+    before: int
+    after: int
+
+    def __init__(
+        self,
+        text: str = ...,
+        indent: int = ...,
+        *,
+        tab: int | None = ...,
+        before: int = ...,
+        after: int = ...,
+    ) -> None:
+        ...
+
+# Location {{{1
 class Location:
     line: Line
     key_line: Line
     col: int
     key_col: int
+    value_end_line: Line | None
+    key_leading_comments: list[Comment]
+    key_trailing_comments: list[Comment]
+    value_leading_comments: list[Comment]
+    value_trailing_comments: list[Comment]
+    header_comments: list[Comment]
+    footer_comments: list[Comment]
+    spacing: dict[int | str, int]
+    sections: list[tuple[Callable[[Any], bool], list[Comment]]]
 
     def __init__(
         self,
@@ -53,6 +87,40 @@ class Location:
         sep: str = ...,
     ) -> tuple[int, int] | str:
         ...
+
+    def get_key_leading_comments(self) -> list[Comment]: ...
+    def set_key_leading_comments(self, comments: list[Comment]) -> None: ...
+    def add_key_leading_comment(self, comment: Comment) -> None: ...
+
+    def get_key_trailing_comments(self) -> list[Comment]: ...
+    def set_key_trailing_comments(self, comments: list[Comment]) -> None: ...
+    def add_key_trailing_comment(self, comment: Comment) -> None: ...
+
+    def get_value_leading_comments(self) -> list[Comment]: ...
+    def set_value_leading_comments(self, comments: list[Comment]) -> None: ...
+    def add_value_leading_comment(self, comment: Comment) -> None: ...
+
+    def get_value_trailing_comments(self) -> list[Comment]: ...
+    def set_value_trailing_comments(self, comments: list[Comment]) -> None: ...
+    def add_value_trailing_comment(self, comment: Comment) -> None: ...
+
+    def get_header_comments(self) -> list[Comment]: ...
+    def set_header_comments(self, comments: list[Comment]) -> None: ...
+    def add_header_comment(self, comment: Comment) -> None: ...
+
+    def get_footer_comments(self) -> list[Comment]: ...
+    def set_footer_comments(self, comments: list[Comment]) -> None: ...
+    def add_footer_comment(self, comment: Comment) -> None: ...
+
+    def get_spacing(self) -> dict[int | str, int]: ...
+    def set_spacing(self, spacing: dict[int | str, int]) -> None: ...
+
+    def get_sections(self) -> list[tuple[Callable[[Any], bool], list[Comment]]]: ...
+    def set_sections(
+        self, sections: list[tuple[Callable[[Any], bool], list[Comment]]]
+    ) -> None: ...
+
+# loads() {{{1
 def loads(
     content : str,
     top: str | Callable | Type[dict] | Type[list] | Type[str] = ...,
@@ -65,6 +133,7 @@ def loads(
 ) -> str | list | dict | None:
     ...
 
+# load() {{{1
 def load(
     f: str | Path | TextIO,
     top: str | Callable | Type[dict] | Type[list] | Type[str] = ...,
@@ -76,6 +145,7 @@ def load(
 ) -> str | list | dict | None:
     ...
 
+# dumps() {{{1
 def dumps(
     obj: Any,
     *,
@@ -84,47 +154,34 @@ def dumps(
     sort_keys: bool | Callable = ...,
     indent: int = ...,
     converters: dict[Type, Callable] | None = ...,
-    default: str | Callable | None = ...
+    default: str | Callable | None = ...,
+    map_keys: dict[tuple[str | int, ...], Any] | Callable = ...,
+    spacing: dict = ...,
 ) -> str:
     ...
 
+# dump() {{{1
 def dump(
     obj: Any,
     dest,
     **kwargs
 ) -> None: ...
 
-def get_value_from_keys(
+# get_keys() {{{1
+def get_keys(
+    keys: tuple[str | int, ...],
+    keymap: dict[tuple[str | int, ...], Location],
+    original: bool = ...,
+    strict: bool | str = ...,
+    sep: str = ...,
+) -> tuple[str | int, ...] | str:
+    ...
+
+# get_value() {{{1
+def get_value(
     obj: str | list | dict | None,
     keys: tuple[str, ...],
 ) -> str | list | dict:
-    ...
-
-def get_lines_from_keys(
-    obj: str | list | dict | None,
-    keys: tuple[str, ...],
-    # keymap: dict[tuple[str, ...], Location],
-    keymap: dict[tuple[str, ...], Any] = ...,
-    kind: str = ...,
-    sep: str = ...
-) -> str | tuple[int, int]:
-    ...
-
-def get_original_keys(
-    keys: tuple[str | int, ...],
-    # keymap: dict[tuple[str, ...], Location],
-    keymap: dict[tuple[str | int, ...], Any] = ...,
-    strict: bool | str = ...
-) -> tuple[int]:
-    ...
-
-def join_keys(
-    keys: tuple[str | int, ...],
-    sep: str = ...,
-    # keymap: dict[tuple[str], Location] = ...,
-    keymap: dict[tuple[str | int, ...], Any] = ...,
-    strict: bool | str = ...
-) -> str:
     ...
 
 def get_location(
@@ -133,6 +190,7 @@ def get_location(
 ) -> Location:
     ...
 
+# get_line_numbers() {{{1
 def get_line_numbers(
     keys: tuple[str | int, ...],
     keymap: dict[tuple[str | int, ...], Location],
@@ -143,11 +201,30 @@ def get_line_numbers(
 ) -> tuple[int, int] | str:
     ...
 
-def get_keys(
-    keys: tuple[str | int, ...],
+# annotate() {{{1
+def annotate(
     keymap: dict[tuple[str | int, ...], Location],
-    original: bool = ...,
-    strict: bool | str = ...,
-    sep: str = ...,
-) -> tuple[str | int, ...] | str:
+    keys: tuple[str | int, ...],
+    *,
+    key_leading: list[Comment] = ...,
+    key_trailing: list[Comment] = ...,
+    value_leading: list[Comment] = ...,
+    value_trailing: list[Comment] = ...,
+    header: list[Comment] = ...,
+    footer: list[Comment] = ...,
+    sections: list[tuple[Callable[[Any], bool], list[Comment]]] = ...,
+    spacing: dict[int | str, int] | None = ...,
+) -> Location:
+    ...
+
+# keymap_to_jsonable() {{{1
+def keymap_to_jsonable(
+    keymap: dict[tuple[str | int, ...], Any],
+) -> dict[str, Any]:
+    ...
+
+# keymap_from_jsonable() {{{1
+def keymap_from_jsonable(
+    data: dict[str, Any],
+) -> dict[tuple[str | int, ...], Location]:
     ...

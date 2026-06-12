@@ -1,3 +1,7 @@
+# Accumulation
+# keys that begin with '+' will be added to previous values.
+# duplicate keys without '+' override previous values
+
 from inform import Error, full_stop, os_error
 import nestedtext as nt
 

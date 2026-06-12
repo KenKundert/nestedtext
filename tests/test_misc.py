@@ -510,10 +510,6 @@ def test_keymaps():
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
 
         # check line numbers as tuples
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key') == (key_first_line, key_last_line), keys
-        assert nt.get_lines_from_keys(addresses, list(keys), keymap, kind='value') == (value_first_line, value_last_line), keys
-
-        # check line numbers as tuples
         assert nt.get_line_numbers(keys, keymap, kind='key') == (key_first_line, key_last_line), keys
         assert nt.get_line_numbers(list(keys), keymap, kind='value') == (value_first_line, value_last_line), keys
 
@@ -524,18 +520,6 @@ def test_keymaps():
         assert exception.value.args[0] == bad_keys
 
         assert nt.get_line_numbers(bad_keys, keymap, kind='value', strict=False) == (value_first_line, value_last_line), keys
-
-        # check line numbers as strings
-        if key_first_line+1 != key_last_line:
-            key_lines = f"{key_first_line+1}-{key_last_line}"
-        else:
-            key_lines = str(key_last_line)
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key', sep='-') == key_lines, keys
-        if value_first_line+1 != value_last_line:
-            value_lines = f"{value_first_line+1}-{value_last_line}"
-        else:
-            value_lines = str(value_last_line)
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
 
         # check line numbers as strings
         if key_first_line+1 != key_last_line:
@@ -700,22 +684,6 @@ def test_keymaps_with_duplicates():
         assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
         assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
 
-        # check line numbers as tuples
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key') == (key_first_line, key_last_line), keys
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value') == (value_first_line, value_last_line), keys
-
-        # check line numbers as strings
-        if key_first_line+1 != key_last_line:
-            key_lines = f"{key_first_line+1}-{key_last_line}"
-        else:
-            key_lines = str(key_last_line)
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='key', sep='-') == key_lines, keys
-        if value_first_line+1 != value_last_line:
-            value_lines = f"{value_first_line+1}-{value_last_line}"
-        else:
-            value_lines = str(value_last_line)
-        assert nt.get_lines_from_keys(addresses, keys, keymap, kind='value', sep='-') == value_lines, keys
-
     # Without key normalization
     keymap = {}
     addresses = nt.loads(
@@ -835,21 +803,13 @@ def test_key_utilities():
     for index, normalized_keys in enumerate(expected_normalized_keys):
         print(normalized_keys)
 
-        # check get_original_keys
-        original_keys = nt.get_original_keys(normalized_keys, keymap, strict=True)
+        # check get_keys as a replacement for get_original_keys
+        original_keys = nt.get_keys(normalized_keys, keymap, strict=True)
         assert original_keys == expected_original_keys[index]
-        assert unknown_orig == nt.get_original_keys(unknown_norm, keymap, strict=False)
+        assert unknown_orig == nt.get_keys(unknown_norm, keymap, strict=False)
         with pytest.raises(KeyError) as exception:
-            nt.get_original_keys(unknown_norm, keymap, strict=True)
+            nt.get_keys(unknown_norm, keymap, strict=True)
         assert exception.value.args[0] == unknown_norm
-
-        # check get_value_from_keys
-        value = nt.get_value_from_keys(data, normalized_keys)
-        expected_value = expected_values[normalized_keys]
-        try:
-            assert isinstance(value, expected_value)
-        except TypeError:
-            assert value == expected_value
 
         # check get_value
         value = nt.get_value(data, normalized_keys)
@@ -862,25 +822,6 @@ def test_key_utilities():
         with pytest.raises(KeyError) as exception:
             value = nt.get_value("", normalized_keys)
         assert exception.value.args == (normalized_keys[0],)
-
-        # print(value)
-        # try:
-        #     assert index == int(value)
-        # except (TypeError, ValueError):
-        #     if normalized_keys[:2] == ('key_1', 'key_1c'):
-        #         assert type(value) == list
-        #     elif normalized_keys == ('scores', 'day_one_25_jan_2022'):
-        #         assert type(value) == list
-        #     elif normalized_keys == ('scores', 'day_one_25_jan_2022', 0):
-        #     else:
-        #         assert type(value) == dict
-
-        # check join_keys
-        assert join(*normalized_keys, sep=', ') == nt.join_keys(normalized_keys)
-        assert join(*normalized_keys, sep='.') == nt.join_keys(normalized_keys, sep='.')
-        assert join(*original_keys, sep=', ') == nt.join_keys(normalized_keys, keymap=keymap)
-        assert join(*unknown_norm, sep=', ') == nt.join_keys(unknown_norm)
-        assert join(*unknown_orig, sep=', ') == nt.join_keys(unknown_norm, keymap=keymap)
 
         # check get_keys
         assert normalized_keys == nt.get_keys(normalized_keys, keymap, original=False)

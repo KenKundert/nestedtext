@@ -18,6 +18,7 @@
 
    basic_use
    schemas
+   comments
    techniques
    examples
    common_mistakes

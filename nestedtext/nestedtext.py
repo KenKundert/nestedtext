@@ -309,11 +309,13 @@ class Lines:
             # a location is needed for the top of the data, keys = ()
             # use the first value given, if the data is not empty
             # use last comment given if data is empty
-        self.next_line = True
-        while self.next_line:
-            self.next_line = next(self.generator, None)
-            if self.next_line and self.next_line.kind not in ["blank", "comment"]:
-                return
+        # comment-capture state
+        self.prev_data_line = None
+        self.header_comments = []   # comments before the first data item
+        self.eof_comments = []      # footer comments (after the last data item)
+        self._comment_buffer = []   # raw comment/blank Lines awaiting attachment
+        self.next_line = None
+        self._advance_to_data_line()
 
     # Line class {{{3
     class Line(Info):
@@ -357,8 +359,15 @@ class Lines:
                 depth = None
             elif stripped[:1] == "#":
                 kind = "comment"
-                value = line[1:].strip()
-                depth = None
+                # remove the '#' and exactly one optional space (the canonical
+                # form is '# text'); rstrip whitespace.  This preserves
+                # additional leading spaces inside the comment text so that
+                # the dumper can round-trip them faithfully.
+                value = stripped[1:]
+                if value.startswith(" "):
+                    value = value[1:]
+                value = value.rstrip()
+                # depth stays at the computed indent; needed for comment partitioning
             elif stripped == "-" or stripped.startswith("- "):
                 kind = "list item"
                 value = stripped[2:]
@@ -466,14 +475,67 @@ class Lines:
         if line.kind == "unrecognized":
             unrecognized_line(line)
 
-        # queue up the next useful line
-        # this is needed so type_of_next() and still_within_level() can easily
-        # access the next line that contains actual data.
-        self.next_line = next(self.generator, None)
-        while self.next_line and self.next_line.kind in ["blank", "comment"]:
-            self.next_line = next(self.generator, None)
+        # ensure the staging lists exist (Info returns None for unset attrs,
+        # a fresh list is needed before the upcoming advance can append).
+        line.trailing_comments = line.trailing_comments or []
+        line.leading_comments = line.leading_comments or []
+
+        self.prev_data_line = line
+
+        # queue up the next useful line, capturing comments along the way.
+        self._advance_to_data_line()
 
         return line
+
+    # _advance_to_data_line() {{{3
+    def _advance_to_data_line(self):
+        """Pull from the generator until the next data line (or EOF).
+
+        Buffered comment/blank lines are grouped into Comment objects and
+        partitioned per the rules onto the surrounding data lines.
+        """
+        self.next_line = next(self.generator, None)
+        while self.next_line and self.next_line.kind in ["blank", "comment"]:
+            self._comment_buffer.append(self.next_line)
+            self.next_line = next(self.generator, None)
+
+        buffer_lines = self._comment_buffer
+        self._comment_buffer = []
+
+        if self.next_line is not None:
+            self.next_line.leading_comments = self.next_line.leading_comments or []
+            self.next_line.trailing_comments = self.next_line.trailing_comments or []
+
+        if not buffer_lines:
+            return
+
+        if self.prev_data_line is None and self.next_line is not None:
+            # before the first data line: rule 1 (Header / leading)
+            # Partition on the raw buffer at the last blank line, then group
+            # each half.  A comment block is leading on the first key only
+            # when there is *no* blank between it and that key.
+            header_lines, leading_lines = _partition_header_leading(buffer_lines)
+            self.header_comments.extend(_group_comments(header_lines))
+            self.next_line.leading_comments.extend(_group_comments(leading_lines))
+        elif self.prev_data_line is None and self.next_line is None:
+            # rule "No data" -- entire content is header
+            self.header_comments.extend(_group_comments(buffer_lines))
+        elif self.next_line is None:
+            # after the last data line: rule 4 (Trailing / footer)
+            last_indent = self.prev_data_line.depth or 0
+            for c in _group_comments(buffer_lines):
+                if c.indent > last_indent:
+                    self.prev_data_line.trailing_comments.append(c)
+                else:
+                    self.eof_comments.append(c)
+        else:
+            # between two data lines: rule 2 (Leading / trailing)
+            next_indent = self.next_line.depth or 0
+            for c in _group_comments(buffer_lines):
+                if c.indent <= next_indent:
+                    self.next_line.leading_comments.append(c)
+                else:
+                    self.prev_data_line.trailing_comments.append(c)
 
     # indentation_error {{{3
     def indentation_error(self, line, depth):
@@ -541,6 +603,124 @@ class KeyPolicy:
         return key
 
 
+# Comment class {{{2
+class Comment:
+    """A single comment captured during load or built by the user.
+
+    Holds the comment text (joined by ``\\n`` for multi-line comments) plus
+    indent and per-comment blank-line metadata.
+
+    *indent* is the absolute indentation (in spaces) at which the comment's
+    ``#`` will be placed.  It is set by the loader and is used by the
+    dumper when ``tab`` is None.
+
+    *tab* is the alternative way to express indent: a tabstop offset
+    relative to the slot's natural indent.  When *tab* is not None, the
+    dumper computes the absolute indent at emit time as
+    ``natural_for_slot + tab * dumps.indent``; the ``indent`` field is
+    ignored.  The loader leaves *tab* as None; :func:`annotate` and
+    user-built Comments may set it.
+
+    *before* / *after* are the number of blank lines emitted before and
+    after this comment.  The loader does not set these; they exist for
+    user-built comments only.
+    """
+
+    def __init__(self, text="", indent=0, *, tab=None, before=0, after=0):
+        self.text = text
+        self.indent = indent
+        self.tab = tab
+        self.before = before
+        self.after = after
+
+    def __repr__(self):
+        extras = []
+        if self.tab is not None:
+            extras.append(f", tab={self.tab}")
+        if self.before:
+            extras.append(f", before={self.before}")
+        if self.after:
+            extras.append(f", after={self.after}")
+        return f"Comment({self.text!r}, indent={self.indent}{''.join(extras)})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Comment):
+            return NotImplemented
+        return (
+            self.text == other.text
+            and self.indent == other.indent
+            and self.tab == other.tab
+            and self.before == other.before
+            and self.after == other.after
+        )
+
+    # Comments are mutable, so they must not be hashable.
+    __hash__ = None
+
+
+# _group_comments {{{2
+def _group_comments(comment_lines):
+    """Convert a list of blank/comment Line objects into a list of Comments.
+
+    Rules:
+    - Adjacent comment lines at the same indent (no blank line between)
+      merge into one Comment whose text is the source lines joined by '\\n'.
+    - A blank line, or an indent change, closes the current Comment and
+      starts a new one.
+    - Pure blank lines are otherwise discarded; their spacing is the
+      dumper's concern.
+
+    Same-indent comment blocks separated by blanks therefore remain as
+    distinct Comment objects.
+    """
+    comments = []
+    cur_text_parts = []
+    cur_indent = 0
+
+    def flush():
+        nonlocal cur_text_parts, cur_indent
+        if cur_text_parts:
+            comments.append(
+                Comment(text="\n".join(cur_text_parts), indent=cur_indent)
+            )
+            cur_text_parts = []
+            cur_indent = 0
+
+    saw_blank = False
+    for line in comment_lines:
+        if line.kind == "blank":
+            saw_blank = True
+            continue
+        indent = line.depth
+        if cur_text_parts and not saw_blank and indent == cur_indent:
+            cur_text_parts.append(line.value)
+        else:
+            flush()
+            cur_text_parts.append(line.value)
+            cur_indent = indent
+        saw_blank = False
+    flush()
+    return comments
+
+
+# _partition_header_leading {{{2
+def _partition_header_leading(buffer_lines):
+    """Split a pre-data-line buffer into (header_lines, leading_lines).
+
+    The partition is at the LAST blank line in the buffer.  Everything before
+    that blank becomes the header; everything after becomes the leading
+    comment block on the first data item.  If no blank line is present, the
+    entire buffer is leading.
+    """
+    last_blank = -1
+    for i, line in enumerate(buffer_lines):
+        if line.kind == "blank":
+            last_blank = i
+    if last_blank == -1:
+        return [], list(buffer_lines)
+    return list(buffer_lines[:last_blank]), list(buffer_lines[last_blank + 1:])
+
+
 # Location class {{{2
 class Location:
     """Holds information about the location of a token.
@@ -555,19 +735,44 @@ class Location:
         self.key_line = key_line
         self.col = col
         self.key_col = key_col
+        # Set by _add_keymap to the last data line consumed within this value's
+        # scope (the source of value-trailing comments).  For leaf entries
+        # this is ``line``; for nested values, the deepest descendant line.
+        self.value_end_line = None
+        # Comments are stored on the Location itself (not on the underlying
+        # Line) so that two Locations that share a Line (parent and its
+        # first child) do not inadvertently share comment lists.
+        self.key_leading_comments = []
+        self.key_trailing_comments = []
+        self.value_leading_comments = []
+        self.value_trailing_comments = []
+        # Document-level comments only live on the keymap[()] Location.
+        self.header_comments = []
+        self.footer_comments = []
+        # Per-Location dump spacing: when non-empty, replaces the dumps()
+        # *spacing* argument for this Location's entire subtree.  Integer
+        # keys are relative to this Location (0 == blanks between this
+        # Location's direct children).  See get_spacing / set_spacing.
+        self.spacing = {}
+        # Per-parent section markers: a list of (predicate, [Comment]) pairs.
+        # When this Location's value is rendered, the dumper emits each
+        # section's comments before the first child whose key matches the
+        # section's predicate (first-match-wins among predicates).
+        self.sections = []
 
     def __repr__(self):
         components = []
-        components.append(f"lineno={self.line.lineno}")
-        components.append(f"colno={self.col}")
-        key_line = self.key_line
-        if key_line is None:
-            key_line = self.line
-        components.append(f"key_lineno={key_line.lineno}")
-        key_col = self.key_col
-        if key_col is None:
-            key_col = self.col
-        components.append(f"key_colno={key_col}")
+        if self.line:
+            components.append(f"lineno={self.line.lineno}")
+            components.append(f"colno={self.col}")
+            key_line = self.key_line
+            if key_line is None:
+                key_line = self.line
+            components.append(f"key_lineno={key_line.lineno}")
+            key_col = self.key_col
+            if key_col is None:
+                key_col = self.col
+            components.append(f"key_colno={key_col}")
         return f"{self.__class__.__name__}({', '.join(components)})"
 
     # as_tuple() {{{3
@@ -710,6 +915,140 @@ class Location:
         except AttributeError:
             # this occurs for list indexes
             return key
+
+    # comment accessors {{{3
+    # get_key_leading_comments() {{{4
+    def get_key_leading_comments(self):
+        """Return the leading Comments associated with this key."""
+        return self.key_leading_comments
+
+    # set_key_leading_comments {{{4
+    def set_key_leading_comments(self, comments):
+        """Replace the leading Comments for this key."""
+        self.key_leading_comments = list(comments)
+
+    # add_key_leading_comment {{{4
+    def add_key_leading_comment(self, comment):
+        """Append a Comment to the leading list for this key."""
+        self.key_leading_comments.append(comment)
+
+    # get_key_trailing_comments {{{4
+    def get_key_trailing_comments(self):
+        """Return Comments between the key line and the value line (multiline case)."""
+        return self.key_trailing_comments
+
+    # set_key_trailing_comments {{{4
+    def set_key_trailing_comments(self, comments):
+        self.key_trailing_comments = list(comments)
+
+    # add_key_trailing_comment {{{4
+    def add_key_trailing_comment(self, comment):
+        self.key_trailing_comments.append(comment)
+
+    # get_value_leading_comments {{{4
+    def get_value_leading_comments(self):
+        """Return Comments leading the value (multiline case)."""
+        return self.value_leading_comments
+
+    # set_value_leading_comments {{{4
+    def set_value_leading_comments(self, comments):
+        self.value_leading_comments = list(comments)
+
+    # add_value_leading_comment {{{4
+    def add_value_leading_comment(self, comment):
+        self.value_leading_comments.append(comment)
+
+    # get_value_trailing_comments {{{4
+    def get_value_trailing_comments(self):
+        """Return Comments trailing the value (after its last line)."""
+        return self.value_trailing_comments
+
+    # set_value_trailing_comments {{{4
+    def set_value_trailing_comments(self, comments):
+        self.value_trailing_comments = list(comments)
+
+    # add_value_trailing_comment {{{4
+    def add_value_trailing_comment(self, comment):
+        self.value_trailing_comments.append(comment)
+
+    # get_header_comments {{{4
+    def get_header_comments(self):
+        """Return the document's header Comments.
+
+        Header comments only ever live on the document-root Location, i.e.,
+        ``keymap[()]``.  On any other Location this list is empty.
+        """
+        return self.header_comments
+
+    # set_header_comments {{{4
+    def set_header_comments(self, comments):
+        """Replace the document's header Comments."""
+        self.header_comments = list(comments)
+
+    # add_header_comment {{{4
+    def add_header_comment(self, comment):
+        """Append a Comment to the document's header."""
+        self.header_comments.append(comment)
+
+    # get_footer_comments {{{4
+    def get_footer_comments(self):
+        """Return the document's footer Comments.
+
+        Footer comments only ever live on the document-root Location, i.e.,
+        ``keymap[()]``.  On any other Location this list is empty.
+        """
+        return self.footer_comments
+
+    # set_footer_comments {{{4
+    def set_footer_comments(self, comments):
+        """Replace the document's footer Comments."""
+        self.footer_comments = list(comments)
+
+    # add_footer_comment {{{4
+    def add_footer_comment(self, comment):
+        """Append a Comment to the document's footer."""
+        self.footer_comments.append(comment)
+
+    # get_spacing {{{4
+    def get_spacing(self):
+        """Return the per-Location spacing dict (empty if none was set).
+
+        When non-empty, this dict replaces the :func:`dumps` *spacing*
+        argument for this Location's entire subtree.  Integer keys count
+        relative depth below this Location: ``0`` is the number of blank
+        lines between this Location's direct children, ``1`` between its
+        grandchildren, and so on.  Absent depth keys default to ``0`` --
+        the global spacing is *not* consulted as a fallback.
+
+        The ``"edges"`` key is only consulted on the document-root
+        Location (``keymap[()]``); it is ignored elsewhere.
+        """
+        return self.spacing
+
+    # set_spacing {{{4
+    def set_spacing(self, spacing):
+        """Replace the per-Location spacing dict."""
+        self.spacing = dict(spacing)
+
+    # get_sections {{{4
+    def get_sections(self):
+        """Return the per-parent section markers as a list of
+        ``(predicate, [Comment, ...])`` tuples.
+
+        When this Location's value is rendered, the dumper walks the
+        children in iteration order; for each child it finds the first
+        section whose predicate returns true, and emits that section's
+        comments before the child the first time the section is
+        encountered.  Section predicates are callables and are dropped
+        on :func:`keymap_to_jsonable` round-trips.
+        """
+        return self.sections
+
+    # set_sections {{{4
+    def set_sections(self, sections):
+        """Replace the per-parent section markers list."""
+        self.sections = [(pred, list(comments)) for pred, comments in sections]
+
 
 # Inline class {{{2
 class Inline:
@@ -959,6 +1298,16 @@ class NestedTextLoader:
             if lines.type_of_next():
                 report('extra content', lines.get_next())
 
+            # attach header / footer comments to the document-root Location
+            # (keymap[()]) so that every keymap key remains a tuple, keeping
+            # depth-based iteration (``len(keys)``) safe.
+            if keymap is not None and () in keymap:
+                root = keymap[()]
+                if lines.header_comments:
+                    root.header_comments = list(lines.header_comments)
+                if lines.eof_comments:
+                    root.footer_comments = list(lines.eof_comments)
+
     # get_decoded() {{{3
     def get_decoded(self):
         return self.values
@@ -995,6 +1344,28 @@ class NestedTextLoader:
     # _add_keymap() {{{3
     def _add_keymap(self, keys, location):
         if self.keymap is not None:
+            # The last data line consumed is the last line of this value's
+            # scope, where trailing-after-value comments are staged.
+            location.value_end_line = self.lines.prev_data_line
+            # Claim any comments staged on the relevant Lines.  This makes
+            # each Location own its comments outright -- two Locations that
+            # share a Line (parent and its first child) cannot then
+            # double-emit the same comment block.
+            kl = location.key_line if location.key_line is not None else location.line
+            vl = location.line
+            ve = location.value_end_line
+            if kl is not None and kl.leading_comments:
+                location.key_leading_comments = list(kl.leading_comments)
+                kl.leading_comments = []
+            if vl is not None and vl is not kl and vl.leading_comments:
+                location.value_leading_comments = list(vl.leading_comments)
+                vl.leading_comments = []
+            if kl is not None and kl is not ve and kl.trailing_comments:
+                location.key_trailing_comments = list(kl.trailing_comments)
+                kl.trailing_comments = []
+            if ve is not None and ve.trailing_comments:
+                location.value_trailing_comments = list(ve.trailing_comments)
+                ve.trailing_comments = []
             self.keymap[keys] = location
 
     # _read_value() {{{3
@@ -1116,12 +1487,33 @@ class NestedTextLoader:
     def _read_string(self, depth, keys):
         lines = self.lines
         data = []
-        loc = Location(line=lines.next_line, key_col=depth)
+        first_line = lines.next_line
+        loc = Location(line=first_line, key_col=depth)
+        last_line = first_line
         while lines.still_within_string(depth):
             line = lines.get_next()
+            last_line = line
             data.append(line.value)
             if line.depth != depth:
                 lines.indentation_error(line, depth)
+        # Per the rules, inline comments (those that appear on continuation
+        # lines of a multi-line string) are converted to trailing on the
+        # value immediately on load.  After the loop, gather any leading
+        # comments from continuation lines and move them onto the last
+        # line's trailing slot, which is where the value's trailing
+        # comments live (see Location.value_end_line).
+        cur = first_line.next_line
+        while cur is not None:
+            inline = cur.leading_comments
+            if inline:
+                last_line.trailing_comments = last_line.trailing_comments or []
+                if cur is last_line:
+                    # avoid clobbering when cur and last_line are the same
+                    last_line.trailing_comments = list(inline) + last_line.trailing_comments
+                else:
+                    last_line.trailing_comments.extend(inline)
+                cur.leading_comments = []
+            cur = cur.next_line
         value = "\n".join(data)
         loc.col = depth + (2 if value else 1)
         return value, loc
@@ -1448,11 +1840,25 @@ def add_leader(s, leader):
     # split into separate lines
     # add leader to each non-blank line
     # add right-stripped leader to each blank line
-    # rejoin and return
-    return "\n".join(
-        leader + line if line else leader.rstrip()
-        for line in s.split("\n")
-    )
+    #
+    # When the leader is pure indentation (only spaces), comment lines (those
+    # whose first non-space character is '#') are passed through unchanged --
+    # they already carry their own absolute indentation from
+    # _comments_to_lines, and re-indenting them at deeper levels would put
+    # them out of position.  When the leader contains content like "> "
+    # (multi-line string syntax) the leader is always applied -- the input
+    # is user data being converted into string items, not pre-rendered
+    # comments.
+    indent_only = (leader.lstrip(" ") == "")
+    rejoined = []
+    for line in s.split("\n"):
+        if indent_only and line and line.lstrip(" ")[:1] == "#":
+            rejoined.append(line)
+        elif line:
+            rejoined.append(leader + line)
+        else:
+            rejoined.append(leader.rstrip())
+    return "\n".join(rejoined)
 
 
 # add_prefix {{{2
@@ -1483,7 +1889,8 @@ class NestedTextDumper:
         converters,
         default,
         map_keys,
-        dialect
+        dialect,
+        spacing,
     ):
         assert indent > 0
         self.width = width
@@ -1492,6 +1899,7 @@ class NestedTextDumper:
         self.converters = converters
         self.map_keys = map_keys
         self.default = default
+        self.spacing = spacing or {}
         self.support_inlines = True
         if dialect and "i" in dialect:
             self.support_inlines = False
@@ -1632,6 +2040,168 @@ class NestedTextDumper:
             raise NotSuitableForInline from None
         return value
 
+    # _comments_to_lines {{{3
+    def _comments_to_lines(self, comments, natural=0):
+        """Render a list of Comment objects to a list of lines (no trailing \\n).
+
+        *natural* is the natural indent (in spaces) for this slot at the
+        current depth -- used to resolve any Comment whose ``tab`` field
+        is not None to an absolute indent of
+        ``natural + tab * self.indent`` (clamped to >= 0).  Comments whose
+        ``tab`` is None render at their stored ``indent`` field absolutely.
+
+        Per-comment ``before`` / ``after`` blank-line counts are honored
+        in addition to the existing same-indent auto-blank between
+        consecutive comments at the same resolved column.
+        """
+        lines = []
+        prev_indent = None
+        for c in comments:
+            if c.tab is not None:
+                abs_indent = max(0, natural + c.tab * self.indent)
+            else:
+                abs_indent = c.indent
+            for _ in range(c.before):
+                lines.append("")
+            if prev_indent is not None and prev_indent == abs_indent:
+                lines.append("")
+            ind = " " * abs_indent
+            for line in c.text.split("\n"):
+                if line:
+                    lines.append(f"{ind}# {line}")
+                else:
+                    lines.append(f"{ind}#")
+            for _ in range(c.after):
+                lines.append("")
+            prev_indent = abs_indent
+        return lines
+
+    # _resolve_spacing {{{3
+    def _resolve_spacing(self, keys):
+        """Determine the blank-line count for joining sibling items whose
+        shared parent is at *keys* (absolute depth ``len(keys)``).
+
+        Walks the keymap from the innermost prefix to the root looking for
+        a Location with a non-empty ``spacing`` dict.  The first one found
+        replaces the global *spacing* argument wholesale for that subtree:
+        ``spacing.get(N - len(A), 0)`` where ``A`` is that Location's keys
+        and ``N`` is the absolute depth.  Falls back to the global
+        ``self.spacing[N]`` only when no Location in the walk has a
+        non-empty spacing.
+        """
+        depth = len(keys)
+        if is_mapping(self.map_keys):
+            for i in range(depth, -1, -1):
+                loc = self.map_keys.get(keys[:i])
+                if loc is not None:
+                    sp = getattr(loc, "spacing", None)
+                    if sp:
+                        return sp.get(depth - i, 0)
+        return self.spacing.get(depth, 0) if self.spacing else 0
+
+    # _join_items {{{3
+    def _join_items(self, items, keys):
+        """Join rendered sibling items with the configured *spacing*.
+
+        ``keys`` is the path of the parent whose children are being joined;
+        the per-Location keymap spacing (if any) at any prefix of ``keys``
+        takes precedence over the global ``self.spacing`` (the dumps()
+        *spacing* argument).
+        """
+        n = self._resolve_spacing(keys)
+        return ("\n" + "\n" * n).join(items)
+
+    # _wrap_with_comments {{{3
+    def _wrap_with_comments(self, rendered_value, keys):
+        """Inject the four comment slots from the keymap around the rendered item.
+
+        - ``key_leading_comments``  emitted before the rendered item.
+        - ``key_trailing_comments`` injected between the key line and the
+          value's first line (multi-line value form only).
+        - ``value_leading_comments`` injected at the same position, after
+          ``key_trailing_comments`` (multi-line value form only).
+        - ``value_trailing_comments`` emitted after the rendered item.
+
+        Only applies when ``map_keys`` is a keymap dict (the form returned by
+        load).  When ``map_keys`` is a callable (key transformer), there are
+        no comments to apply.
+        """
+        if not is_mapping(self.map_keys):
+            return rendered_value
+        loc = self.map_keys.get(keys)
+        if loc is None:
+            return rendered_value
+        n = len(keys)
+        key_natural = max(0, (n - 1) * self.indent)
+        val_natural = n * self.indent
+        leading = self._comments_to_lines(
+            loc.get_key_leading_comments(), natural=key_natural
+        )
+        key_trailing = self._comments_to_lines(
+            loc.get_key_trailing_comments(), natural=val_natural
+        )
+        value_leading = self._comments_to_lines(
+            loc.get_value_leading_comments(), natural=val_natural
+        )
+        trailing = self._comments_to_lines(
+            loc.get_value_trailing_comments(), natural=val_natural
+        )
+        if not (leading or key_trailing or value_leading or trailing):
+            return rendered_value
+        value_lines = rendered_value.split("\n")
+        # Inject key_trailing and value_leading between the key line (first
+        # line) and the value's first line.  Only meaningful when the item
+        # spans multiple lines.
+        if (key_trailing or value_leading) and len(value_lines) > 1:
+            value_lines = (
+                value_lines[:1]
+                + key_trailing
+                + value_leading
+                + value_lines[1:]
+            )
+        return "\n".join(leading + value_lines + trailing)
+
+    # _section_context {{{3
+    def _section_context(self, parent_keys, parent_level):
+        """Resolve the section state for a parent at *parent_keys*.
+
+        Returns ``(sections, emitted, natural)`` where ``sections`` is the
+        list of (predicate, [Comment]) pairs declared on the parent's
+        Location (empty if none), ``emitted`` is a fresh set used to track
+        which sections have already fired during this pass, and ``natural``
+        is the absolute indent (in spaces) for section markers (the
+        children's column).
+        """
+        sections = ()
+        if is_mapping(self.map_keys):
+            loc = self.map_keys.get(parent_keys)
+            if loc is not None:
+                sections = getattr(loc, "sections", ()) or ()
+        return sections, set(), parent_level * self.indent
+
+    # _apply_section_marker {{{3
+    def _apply_section_marker(
+        self, rendered, child_key, sections, emitted, natural
+    ):
+        """Prepend a section's comments to *rendered* if *child_key* is the
+        first child to belong to a not-yet-emitted section.  First-match
+        wins among the parent's sections.
+        """
+        if not sections:
+            return rendered
+        matched = None
+        for i, (pred, _comments) in enumerate(sections):
+            if pred(child_key):
+                matched = i
+                break
+        if matched is None or matched in emitted:
+            return rendered
+        sec_lines = self._comments_to_lines(sections[matched][1], natural=natural)
+        emitted.add(matched)
+        if not sec_lines:
+            return rendered
+        return "\n".join(sec_lines) + "\n" + rendered
+
     # render value {{{3
     def render_value(self, obj, keys, values):
         level = len(keys)
@@ -1654,6 +2224,9 @@ class NestedTextDumper:
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 rendered = []
+                parent_sections, section_emitted, section_natural = (
+                    self._section_context(keys, level)
+                )
                 for k, v in obj.items():
                     new_keys = grow(keys, k)
                     new_values = grow(values, id(v))
@@ -1662,8 +2235,15 @@ class NestedTextDumper:
                     rendered_value = self.render_dict_item(
                         mapped_key, obj[k], new_keys, new_values
                     )
+                    rendered_value = self._wrap_with_comments(rendered_value, new_keys)
+                    rendered_value = self._apply_section_marker(
+                        rendered_value, k, parent_sections,
+                        section_emitted, section_natural,
+                    )
                     rendered.append((mapped_key, key, rendered_value))
-                content = "\n".join(v for mk, k, v in self.sort(rendered, keys))
+                content = self._join_items(
+                    [v for mk, k, v in self.sort(rendered, keys)], keys
+                )
         elif self.is_a_list(obj):
             self.check_for_cyclic_reference(obj, keys, values)
             try:
@@ -1678,10 +2258,20 @@ class NestedTextDumper:
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 content = []
+                parent_sections, section_emitted, section_natural = (
+                    self._section_context(keys, level)
+                )
                 for i, v in enumerate(obj):
-                    v = self.render_value(v, grow(keys, i), grow(values, id(v)))
-                    content.append(add_prefix("-", v))
-                content = "\n".join(content)
+                    new_keys = grow(keys, i)
+                    rendered_v = self.render_value(v, new_keys, grow(values, id(v)))
+                    item = add_prefix("-", rendered_v)
+                    item = self._wrap_with_comments(item, new_keys)
+                    item = self._apply_section_marker(
+                        item, i, parent_sections,
+                        section_emitted, section_natural,
+                    )
+                    content.append(item)
+                content = self._join_items(content, keys)
 
         elif self.is_a_str(obj):
             text = convert_line_terminators(obj)
@@ -1782,7 +2372,8 @@ def dumps(
     converters = None,
     map_keys = None,
     default = None,
-    dialect = None
+    dialect = None,
+    spacing = None,
 ):
     # description {{{3
     '''Recursively convert object to *NestedText* string.
@@ -1845,15 +2436,38 @@ def dumps(
             unsupported type.
 
         map_keys (func or keymap):
-            This argument is used to modify the way keys are rendered.  It may
-            be a keymap that was created by :func:`load` or :func:`loads`, in
-            which case keys are rendered into their original form, before any
-            normalization or de-duplication was performed by the load functions.
+            This argument is used to modify the way keys are rendered, and,
+            when it is a keymap, to preserve comments and blank-line spacing
+            on round trip.
+
+            It may be a keymap that was created by :func:`load` or
+            :func:`loads`, in which case keys are rendered into their original
+            form, before any normalization or de-duplication was performed by
+            the load functions.  In addition, any comments captured by the
+            loader and stored on the keymap are re-emitted around their
+            associated keys.  Document-level header and footer comments are
+            stored on the root Location (``keymap[()]``) and emitted at the
+            top and bottom of the document.
 
             It may also be a function that takes two arguments: the key after
             any needed conversion has been performed, and the tuple of parent
             keys.  The value returned is used as the key and so must be a
             string.  If no value is returned, the key is not modified.
+
+        spacing (dict):
+            A mapping that controls vertical spacing in the rendered output.
+
+            Integer keys specify the minimum number of blank lines between
+            sibling items at that depth.  ``spacing={0: 1}`` requests one blank
+            line between top-level items; ``spacing={0: 2, 1: 1}`` requests two
+            blank lines between top-level items and one between items at the
+            first nested level.  Depths not present in the mapping default to
+            zero.
+
+            The special key ``"edges"`` is the number of blank lines between
+            the document's header comments and the first data item, and
+            between the last data item and the document's footer comments.
+            One number applies to both.  Defaults to zero.
 
         dialect (str):
             Specifies support for particular variations in *NestedText*.
@@ -2126,9 +2740,36 @@ def dumps(
     # code {{{3
     dumper = NestedTextDumper(
         width, inline_level, sort_keys, indent, converters, default,
-        map_keys, dialect
+        map_keys, dialect, spacing
     )
-    return dumper.render_value(obj, (), ())
+    content = dumper.render_value(obj, (), ())
+
+    # prepend header / append footer comments when map_keys is a keymap dict
+    # carrying a document-root Location.  The blank-line gap between header
+    # and body (and between body and footer) is taken from spacing["edges"]
+    # if present, else zero.
+    if is_mapping(map_keys):
+        root = map_keys.get(())
+        header = root.get_header_comments() if root is not None else None
+        footer = root.get_footer_comments() if root is not None else None
+        root_spacing = root.get_spacing() if root is not None else None
+        if root_spacing:
+            edge_blanks = root_spacing.get("edges", 1)
+        else:
+            edge_blanks = (spacing or {}).get("edges", 1)
+        edge_sep = "\n" + ("\n" * edge_blanks)
+        if header:
+            header_lines = dumper._comments_to_lines(header, natural=0)
+            if header_lines:
+                rendered = "\n".join(header_lines)
+                content = rendered + edge_sep + content if content else rendered
+        if footer:
+            footer_lines = dumper._comments_to_lines(footer, natural=0)
+            if footer_lines:
+                rendered = "\n".join(footer_lines)
+                content = content + edge_sep + rendered if content else rendered
+
+    return content
 
 
 # dump {{{2
@@ -2226,283 +2867,6 @@ def dump(obj, dest, **kwargs):
 
 # NestedText Utilities {{{1
 # Extras that are useful when using NestedText.
-
-# get_value_from_keys {{{2
-def get_value_from_keys(data, keys):
-    # description {{{3
-    '''
-    Get value from keys.
-
-    Deprecated in version 3.7 and is to be removed in future versions.
-    :func:`get_value_from_keys` is replaced :func:`get_value`, which is
-    identical.
-
-    Args:
-        data:
-            Your data set as returned by :meth:`load` or :meth:`loads`.
-        keys:
-            The sequence of normalized keys that identify a value in the
-            dataset.
-
-    Returns:
-        The value that corresponds to a tuple of keys from a keymap.
-
-    Examples:
-
-        .. code-block:: python
-
-            >>> import nestedtext as nt
-
-            >>> contents = """
-            ... names:
-            ...     given: Fumiko
-            ...     surname: Purvis
-            ... """
-
-            >>> data = nt.loads(contents, "dict")
-
-            >>> get_value_from_keys(data, ("names", "given"))
-            'Fumiko'
-
-    '''
-
-    # code {{{3
-    for key in keys:
-        data = data[key]
-    return data
-
-
-# get_lines_from_keys {{{2
-def get_lines_from_keys(data, keys, keymap, kind="value", sep=None):
-    # description {{{3
-    '''
-    Get line numbers from normalized keys.
-
-    Deprecated in version 3.7 and is to be removed in future versions.
-    Use :func:`get_line_numbers` as a replacement.
-
-    This function returns the line numbers of the key or value selected by
-    *keys*.  It is used when reporting an error in a value that is possibly a
-    multiline string.  If the location contained in a keymap were used the user
-    would only see the line number of the first line, which may confuse some
-    users into believing the error is actually contained in the first line.
-    Using this function gives both the starting and ending line number so the
-    user focuses on the whole string and not just the first line.
-
-    If *sep* is given, either one line number or both the beginning and ending
-    line numbers are returned, joined with the separator.  In this case the line
-    numbers start from line 1.
-
-    If *sep* is not given, the line numbers are returned as a tuple containing a
-    pair of integers that is tailored to be suitable to be arguments to the
-    Python *slice* function (see example).  The beginning line number and 1 plus
-    the ending line number is returned as a tuple.  In this case the line
-    numbers start at 0.
-
-    If the value is requested and it is a composite (a dictionary or list), the
-    line on which it ends cannot be easily determined, so the value is treated
-    as if it consists of a single line.  This is considered tolerable as it is
-    expected that this function is primarily used to return the line number of
-    leaf values, which are always strings.
-
-    Args:
-        data:
-            Your data set as returned by :meth:`load` or :meth:`loads`.
-        keys:
-            The collection of keys that identify a value in the dataset.
-        keymap:
-            The keymap returned from :meth:`load` or :meth:`loads`.
-        kind (str):
-            Specify either “key” or “value” depending on which token is
-            desired.
-        sep:
-            The separator string. If given a string is returned and *sep* is
-            inserted between two line numbers.  Otherwise a tuple is returned.
-
-    Example:
-        >>> import nestedtext as nt
-
-        >>> doc = """
-        ... key:
-        ...     > this is line 1
-        ...     > this is line 2
-        ...     > this is line 3
-        ... """
-
-        >>> data = nt.loads(doc, keymap=(keymap:={}))
-        >>> keys = ("key",)
-        >>> lines = nt.get_lines_from_keys(data, keys, keymap, sep="-")
-        >>> text = doc.splitlines()
-        >>> print(
-        ...     f"Lines {lines}:",
-        ...     *text[slice(*nt.get_lines_from_keys(data, keys, keymap))],
-        ...     sep="\\n"
-        ... )
-        Lines 3-5:
-            > this is line 1
-            > this is line 2
-            > this is line 3
-
-    '''
-
-    # code {{{3
-    if type(keys) is not tuple:
-        keys = tuple(keys)
-
-    line, col = keymap[keys].as_tuple(kind)
-    value = get_value_from_keys(data, keys)
-    if kind == "value":
-        num_lines = len(value.splitlines()) if is_str(value) else 1
-    else:
-        key = keys[-1]
-        num_lines = len(key.splitlines()) if is_str(key) else 1
-    if sep is None:
-        return (line, line + num_lines)
-    if num_lines > 1:
-        return join(line + 1, line + num_lines, sep=sep)
-    return str(line + 1)
-
-
-# get_original_keys {{{2
-def get_original_keys(keys, keymap, strict=False):
-    # description {{{3
-    '''
-    Get original keys from normalized keys.
-
-    Deprecated in version 3.7 and is to be removed in future versions.
-    Use :func:`get_keys` as a replacement.
-
-    This function is used when the *normalize_key* argument is used with
-    :meth:`load` or :meth:`loads` to transform the keys to a standard form.
-    Given a set of normalized keys that point to a particular value in the
-    returned dataset, this function returns the original keys for that value.
-
-    Args:
-        keys:
-            The collection of normalized keys that identify a value in the
-            dataset.
-        keymap:
-            The keymap returned from :meth:`load` or :meth:`loads`.
-        strict:
-            If true, a *KeyError* is raised if the given keys are not found
-            in *keymap*.  Otherwise, the given normalized keys will be returned
-            rather than the original keys.  This is helpful when reporting
-            errors on required keys that do not exist in the data set.  Since
-            they are not in the dataset, the original keys are not available.
-
-    Returns:
-        A tuple containing the original keys names.
-
-    Examples:
-
-        .. code-block:: python
-
-            >>> import nestedtext as nt
-
-            >>> contents = """
-            ... Names:
-            ...     Given: Fumiko
-            ... """
-
-            >>> def normalize_key(key, keys):
-            ...     return key.lower()
-
-            >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
-
-            >>> print(get_original_keys(("names", "given"), keymap))
-            ('Names', 'Given')
-
-            >>> print(get_original_keys(("names", "surname"), keymap))
-            ('Names', 'surname')
-
-            >>> keys = get_original_keys(("names", "surname"), keymap, strict=True)
-            Traceback (most recent call last):
-            ...
-            KeyError: ('names', 'surname')
-
-    '''
-
-    # code {{{3
-    original_keys = ()
-    for i in range(len(keys)):
-        try:
-            loc = keymap[tuple(keys[:i+1])]
-            original_keys += loc._get_original_key(keys[i], strict),
-        except (KeyError, IndexError):
-            if strict:
-                raise
-            original_keys += keys[i],
-    return original_keys
-
-
-# join_keys {{{2
-def join_keys(keys, sep=", ", keymap=None, strict=False):
-    # description {{{3
-    '''
-    Joins the keys into a string.
-
-    Deprecated in version 3.7 and is to be removed in future versions.
-    Use :func:`get_keys` as a replacement.
-
-    Args:
-        keys:
-            A tuple of keys.
-        sep:
-            The separator string. It is inserted between each key during the join.
-        keymap:
-            The keymap returned from :meth:`load` or :meth:`loads`. It is
-            optional. If given the given keys are converted to the original keys
-            before the joining.
-        strict:
-            If true, a *KeyError* is raised if the given keys are not found
-            in *keymap*.  Otherwise, the given normalized keys will be returned
-            rather than the original keys.  This is helpful when reporting
-            errors on required keys that do not exist in the data set.  Since
-            they are not in the dataset, the original keys are not available.
-
-    Returns:
-        A string containing the joined keys.
-
-    Examples:
-
-        .. code-block:: python
-
-            >>> import nestedtext as nt
-
-            >>> contents = """
-            ... Names:
-            ...     Given: Fumiko
-            ... """
-
-            >>> def normalize_key(key, keys):
-            ...     return key.lower()
-
-            >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
-
-            >>> join_keys(("names", "given"))
-            'names, given'
-
-            >>> join_keys(("names", "given"), sep=".")
-            'names.given'
-
-            >>> join_keys(("names", "given"), keymap=keymap)
-            'Names, Given'
-
-            >>> join_keys(("names", "surname"), keymap=keymap)
-            'Names, surname'
-
-            >>> join_keys(("names", "surname"), keymap=keymap, strict=True)
-            Traceback (most recent call last):
-                ...
-            KeyError: ('names', 'surname')
-
-    '''
-
-    # code {{{3
-    if keymap:
-        keys = get_original_keys(keys, keymap, strict=strict)
-    return sep.join(str(k) for k in keys)
-
 
 # get_keys {{{2
 def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
@@ -2654,7 +3018,7 @@ def get_value(data, keys):
 
             >>> data = nt.loads(contents, "dict")
 
-            >>> get_value_from_keys(data, ("names", "given"))
+            >>> nt.get_value(data, ("names", "given"))
             'Fumiko'
 
     '''
@@ -2781,5 +3145,289 @@ def get_location(keys, keymap):
         return keymap[keys]
     except KeyError:
         return None
+
+
+# annotate {{{2
+def annotate(
+    keymap,
+    keys,
+    *,
+    key_leading=(),
+    key_trailing=(),
+    value_leading=(),
+    value_trailing=(),
+    header=(),
+    footer=(),
+    sections=(),
+    spacing=None,
+):
+    '''Create or update ``keymap[tuple(keys)]`` with comments, section
+    markers, and per-Location spacing in a single call.
+
+    This is the from-scratch counterpart to the keymap that :func:`load`
+    builds.  Each slot kwarg is an iterable of :class:`Comment` objects.
+    Within *annotate*, each Comment is interpreted in *tab mode*: its
+    ``tab`` field (defaulting to 0 when ``None``) is the tabstop offset
+    from the slot's natural indent.  The Comment is stored verbatim; the
+    dumper resolves ``tab`` to an absolute column at emit time using the
+    ``dumps(indent=...)`` setting -- so the same Comment renders
+    correctly at any chosen indent step.
+
+    The natural indent for each slot, given ``N = len(keys)`` and
+    ``S = dumps.indent``:
+
+    +-------------------+---------------------+
+    | slot              | natural indent      |
+    +===================+=====================+
+    | ``key_leading``   | ``(N - 1) * S``     |
+    +-------------------+---------------------+
+    | ``key_trailing``, |                     |
+    | ``value_leading``,| ``N * S``           |
+    | ``value_trailing``|                     |
+    +-------------------+---------------------+
+    | ``header``,       | ``0``               |
+    | ``footer``        |                     |
+    +-------------------+---------------------+
+
+    ``sections`` is an iterable of ``(predicate, [Comment, ...])`` pairs
+    declared on a parent Location.  When the dumper renders the parent's
+    value, it walks its children in iteration order; for each child it
+    finds the first predicate that matches and -- the first time a given
+    section is matched -- emits that section's comments before the
+    child.  Section predicates are callables; they are not
+    JSON-serializable and are dropped on
+    :func:`keymap_to_jsonable` round-trips.
+
+    ``spacing``, if given, is applied via :meth:`Location.set_spacing`.
+
+    Args:
+        keymap:
+            The keymap dict to mutate.
+        keys:
+            The keys tuple identifying the Location.  Use ``()`` for the
+            document-root Location (which accepts ``header`` and
+            ``footer`` only).
+        key_leading, key_trailing, value_leading, value_trailing:
+            Iterables of :class:`Comment` objects for the matching slot.
+            Only allowed for non-root keys.
+        header, footer:
+            Iterables of :class:`Comment` objects for the document
+            header and footer.  Only allowed when ``keys == ()``.
+        sections:
+            Iterable of ``(predicate, [Comment, ...])`` pairs.
+        spacing:
+            Per-Location spacing dict; see :meth:`Location.set_spacing`.
+
+    Returns:
+        The :class:`Location` that was created or updated.
+
+    Raises:
+        ValueError: if ``header`` or ``footer`` is supplied for non-root
+            keys, or if any of the key/value slots is supplied for the
+            root.
+    '''
+    if not isinstance(keys, tuple):
+        keys = tuple(keys)
+
+    is_root = (keys == ())
+    if is_root and (
+        key_leading or key_trailing or value_leading or value_trailing
+    ):
+        raise ValueError(
+            "key_leading/key_trailing/value_leading/value_trailing are not "
+            "allowed at the document root (keys=()); use header/footer instead."
+        )
+    if not is_root and (header or footer):
+        raise ValueError(
+            "header/footer are only allowed at the document root (keys=())."
+        )
+
+    loc = keymap.get(keys)
+    if loc is None:
+        loc = Location()
+        keymap[keys] = loc
+
+    def _tab_mode(comments):
+        out = []
+        for c in comments:
+            if c.tab is None:
+                c.tab = 0
+            out.append(c)
+        return out
+
+    if key_leading:
+        loc.set_key_leading_comments(_tab_mode(key_leading))
+    if key_trailing:
+        loc.set_key_trailing_comments(_tab_mode(key_trailing))
+    if value_leading:
+        loc.set_value_leading_comments(_tab_mode(value_leading))
+    if value_trailing:
+        loc.set_value_trailing_comments(_tab_mode(value_trailing))
+    if header:
+        loc.set_header_comments(_tab_mode(header))
+    if footer:
+        loc.set_footer_comments(_tab_mode(footer))
+
+    if sections:
+        normalized = []
+        for pred, comments in sections:
+            normalized.append((pred, _tab_mode(comments)))
+        loc.set_sections(normalized)
+
+    if spacing is not None:
+        loc.set_spacing(spacing)
+
+    return loc
+
+
+# keymap_to/from_json {{{2
+class _RestoredLocation(Location):
+    """A Location reconstructed from JSON.
+
+    Carries only what :func:`dumps` reads from a keymap: the original key
+    string (for ``_get_original_key``) and the comment slots.
+    """
+    def __init__(self, original_key=None):
+        super().__init__()
+        self._original_key = original_key
+
+    def _get_original_key(self, key, strict):
+        if self._original_key is not None:
+            return self._original_key
+        return key
+
+
+def _comment_to_dict(c):
+    d = {"text": c.text, "indent": c.indent}
+    if c.tab is not None:
+        d["tab"] = c.tab
+    if c.before:
+        d["before"] = c.before
+    if c.after:
+        d["after"] = c.after
+    return d
+
+
+def _comment_from_dict(d):
+    return Comment(
+        text=d["text"],
+        indent=d["indent"],
+        tab=d.get("tab"),
+        before=d.get("before", 0),
+        after=d.get("after", 0),
+    )
+
+
+def keymap_to_jsonable(keymap, **kwargs):
+    '''Reduce a keymap to a JSON-serializable structure for use with :func:`dumps`.
+
+    Captures only what :func:`dumps` needs from the keymap to reconstruct
+    the original file: the original key strings (so ``map_keys`` can
+    restore them) and the per-entry comment slots, plus the document
+    header / footer on ``keymap[()]``.  Source line/column information is
+    discarded.  Per-parent section markers
+    (:meth:`Location.set_sections`) are also dropped because their
+    predicates are callables and not JSON-serializable; rebuilt keymaps
+    therefore omit section behavior.
+
+    The returned object is built from ``dict``, ``list``, ``str``, ``int``,
+    and ``None`` — safe to pass through :mod:`json`, :mod:`msgpack`, or any
+    similar encoder.
+
+    Args:
+        keymap:
+            The keymap returned from :func:`load` or :func:`loads`, or any
+            equivalent mapping from key-tuples to :class:`Location`
+            objects.
+        **kwargs:
+            Any extra keyword arguments are included in the returned structure
+            under a top-level "meta" key.  These values are not used by
+            :func:`keymap_from_jsonable` but are included to allow you to
+            include any extra metadata you wish in the JSON-serializable
+            structure.  No attempt is made to ensure that the values in
+            **kwargs** are themselves JSON-serializable, so you should ensure
+            that they are if you intend to pass the output through a JSON
+            encoder.
+
+    Returns:
+        A JSON-serializable ``dict``.  Pass it to :func:`keymap_from_jsonable`
+        to rebuild a keymap that can be given to :func:`dumps` as
+        ``map_keys=``.
+    '''
+    entries = []
+    for keys, loc in keymap.items():
+        entry = {"keys": list(keys)}
+        if keys and isinstance(keys[-1], str):
+            entry["original_key"] = loc._get_original_key(keys[-1], strict=False)
+        for attr, label in (
+            ("key_leading_comments",   "key_leading"),
+            ("key_trailing_comments",  "key_trailing"),
+            ("value_leading_comments", "value_leading"),
+            ("value_trailing_comments","value_trailing"),
+        ):
+            comments = getattr(loc, attr, None)
+            if comments:
+                entry[label] = [_comment_to_dict(c) for c in comments]
+        if not keys:
+            if loc.header_comments:
+                entry["header"] = [_comment_to_dict(c) for c in loc.header_comments]
+            if loc.footer_comments:
+                entry["footer"] = [_comment_to_dict(c) for c in loc.footer_comments]
+        sp = getattr(loc, "spacing", None)
+        if sp:
+            # JSON object keys must be strings; integer depth keys are
+            # stringified here and parsed back in keymap_from_jsonable.
+            entry["spacing"] = {str(k): v for k, v in sp.items()}
+        entries.append(entry)
+    return cull(dict(keymap=entries, meta=kwargs))
+
+
+def keymap_from_jsonable(data):
+    '''Rebuild a keymap from the output of :func:`keymap_to_jsonable`.
+
+    The returned mapping is suitable for passing to :func:`dumps` (or
+    :func:`dump`) as ``map_keys=``; it will restore the original key
+    strings and inject the captured comments.  Locations in the rebuilt
+    keymap do *not* carry source line/column information.
+
+    Args:
+        data:
+            The JSON-serializable structure produced by
+            :func:`keymap_to_jsonable` (or an equivalent reconstruction of
+            it, e.g., from ``json.loads``).
+    '''
+    keymap = {}
+    for entry in data["keymap"]:
+        keys = tuple(entry["keys"])
+        loc = _RestoredLocation(original_key=entry.get("original_key"))
+        loc.key_leading_comments = [
+            _comment_from_dict(d) for d in entry.get("key_leading", [])
+        ]
+        loc.key_trailing_comments = [
+            _comment_from_dict(d) for d in entry.get("key_trailing", [])
+        ]
+        loc.value_leading_comments = [
+            _comment_from_dict(d) for d in entry.get("value_leading", [])
+        ]
+        loc.value_trailing_comments = [
+            _comment_from_dict(d) for d in entry.get("value_trailing", [])
+        ]
+        if not keys:
+            loc.header_comments = [
+                _comment_from_dict(d) for d in entry.get("header", [])
+            ]
+            loc.footer_comments = [
+                _comment_from_dict(d) for d in entry.get("footer", [])
+            ]
+        raw_spacing = entry.get("spacing")
+        if raw_spacing:
+            # Convert numeric string keys back to int (depth keys); leave
+            # non-numeric keys -- e.g. "edges" -- as strings.
+            loc.spacing = {
+                (int(k) if k.lstrip("-").isdigit() else k): v
+                for k, v in raw_spacing.items()
+            }
+        keymap[keys] = loc
+    return keymap
 
 # vim: set sw=4 sts=4 tw=80 fo=croqj foldmethod=marker et spell:

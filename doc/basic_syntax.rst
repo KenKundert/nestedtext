@@ -253,32 +253,6 @@ may not contain ``:``.  Leading and trailing white space are ignored with inline
 strings.
 
 
-.. _comments:
-
-Comments
-========
-
-Lines that begin with a hash as the first non-white-space character, or lines 
-that are empty or consist only of white space are comment lines and are ignored.  
-Indentation is not significant on comment lines.
-
-.. code-block:: nestedtext
-
-    # this line is ignored
-
-    # this line is also ignored, as is the blank line above.
-
-Comment lines are ignored when determining whether adjacent lines belong to the 
-same dictionary, list, or string.  For example, the following represents one 
-multiline string:
-
-.. code-block:: nestedtext
-
-    > this is the first line of a multiline string
-    # this line is ignored
-    > this is the second line of the multiline string
-
-
 .. _nesting:
 
 Nesting
@@ -327,6 +301,82 @@ indent and the number of spaces need only be consistent over the length of the
 nested object.
 
 The data can be nested arbitrarily deeply.
+
+
+.. _comments:
+
+Comments
+========
+
+Lines that begin with a hash as the first non-white-space character, or lines 
+that are empty or consist only of white space are comment lines and are ignored.  
+Indentation is not significant on comment lines.
+
+.. code-block:: nestedtext
+
+    # this line is ignored
+
+    # this line is also ignored, as is the blank line above.
+
+Comment lines are ignored when determining whether adjacent lines belong to the 
+same dictionary, list, or string.  For example, the following represents one 
+multiline string:
+
+.. code-block:: nestedtext
+
+    > this is the first line of a multiline string
+    # this line is ignored
+    > this is the second line of the multiline string
+
+From the perspective of the data, comments are ignored.  However, it is possible 
+to retain the comments when reading data or include comments when writing data.  
+When doing so, it is useful to distinguish between four types of comments:
+
+1. header comments (those that appear before the first data item)
+2. leading comments (those that appear before a data item)
+3. trailing comments (those that appear after a data item)
+4. footer comments (those that appear after the last data item)
+
+Here is an example of a document that contains all four types of comments::
+
+    # Web server configuration
+    # Maintainer: ops@example.com
+
+    # Where the server listens
+    server:
+        host: 0.0.0.0
+        port: 8443
+            # must match the load balancer
+        tls:
+            cert: /etc/certs/server.pem
+            key:
+                # do not check this file into git
+                > /etc/certs/server.key
+
+    # Cache cluster
+    cache:
+        - redis://cache-1.internal:6379
+            # primary node
+        - redis://cache-2.internal:6379
+
+    # Maintenance runbook: ops/RUNBOOK.md
+
+The first two lines are a header comment, and the last is a footer comment.  The 
+remaining comments associate with the data items to which they are adjacent.  In 
+this way, if you read a document, reorganize the data, and write it back out, 
+you can retain the comments in their original positions relative to the items to 
+which they refer.
+
+There are two kinds or comments associated with the data: leading and trailing.  
+Leading comments precede the data item they refer to and are distinguished by 
+having an indentation level equal to or less than the item that follows.  These 
+are generally act as labels; they identify what follows.  Trailing comments 
+follow the data item they refer to and are distinguished by having an 
+indentation level greater than the item that precedes and the item that follows.  
+These are generally used for remarks; they elaborate on what came before.
+
+When writing NestedText documents, it is recommended that you follow these 
+patterns for your comments.
 
 
 .. _nestedtext_files:

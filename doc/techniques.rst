@@ -278,7 +278,7 @@ When generating a *NestedText* document, it is sometimes desirable to transform
 the keys upon output.  Generally one transforms the keys in order to change the 
 presentation of the key, not the meaning.  For example, you may want change its 
 case, rearrange it (ex: swap first and last names), translate it, etc.  These 
-are done by passing a function to the *map_keys* argument.  This function takes 
+are done by passing a function to the *map_keys* argument.  This function takes
 two arguments: the key after it has been rendered to a string and the tuple of 
 parent keys.  It is expected to return the transformed string.  For example, 
 lets print the address book again, this time with names printed with the last 
@@ -344,8 +344,8 @@ of the *map_keys* argument.
     >>> keymap = {}
     >>> addresses = nt.load(
     ...     'examples/addresses/address.nt',
-    ...     normalize_key=normalize_key,
-    ...     keymap=keymap
+    ...     normalize_key = normalize_key,
+    ...     keymap = keymap
     ... )
     >>> filtered = {k:v for k,v in addresses.items() if 'fumiko' in k.lower()}
 
@@ -361,8 +361,11 @@ of the *map_keys* argument.
             - accounting task force
 
     >>> print(nt.dumps(filtered, map_keys=keymap))
+    # Contact information for our officers
+    <BLANKLINE>
     Fumiko Purvis:
         Position: Treasurer
+            # Fumiko's term is ending at the end of the year.
         Address:
             > 3636 Buffalo Ave
             > Topeka, Kansas 20692
@@ -372,7 +375,8 @@ of the *map_keys* argument.
             - accounting task force
 
 Notice that the keys differ between the two.  The normalized key are output in 
-the former and original keys in the latter.
+the former and original keys in the latter.  Also notice that in the comments 
+were included in the second output.
 
 Finally consider the case where you want to do both things; you want to return 
 to the original keys but you also want to change the presentation.  For example, 
@@ -385,7 +389,7 @@ follows:
     >>> blue = Color('blue', enable=Color.isTTY())
 
     >>> def format_key(key, parent_keys):
-    ...    orig_keys = nt.get_original_keys(parent_keys + (key,), keymap)
+    ...    orig_keys = nt.get_keys(parent_keys + (key,), keymap)
     ...    return blue(orig_keys[-1])
 
     >>> print(nt.dumps(filtered, map_keys=format_key))

@@ -20,7 +20,7 @@ def normalize_key(key, parent_keys):
     return '_'.join(key.lower().split())
 
 def render_contact(data, keymap=None):
-    text = nt.dumps(data, map_keys=keymap)
+    text = nt.dumps(data, map_keys=keymap, spacing={0:1})
     return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
 
 cmdline = docopt(__doc__)
@@ -48,19 +48,17 @@ try:
         )
     )
 
-    # display requested contact information, excluding additional_roles
+    # filter out all but requested contact and exclude additional_roles
     filtered = {}
     for fullname, contact_info in contacts.items():
         for name in names:
+            name = '_'.join(name.lower().split())
             if name in fullname.lower():
                 filtered[fullname] = contact_info
                 if 'additional_roles' in contact_info:
                     del contact_info['additional_roles']
 
-    # display contact using normalized keys
-    # display(render_contact(filtered))
-
-    # display contact using original keys
+    # display contact with comments and using original keys
     display(render_contact(filtered, keymap))
 
 except nt.NestedTextError as e:
@@ -72,7 +70,7 @@ except MultipleInvalid as exception:
         codicil = keymap[keys].as_line(kind) if keys in keymap else None
         line_num, col_num = keymap[keys].as_tuple()
         file_and_lineno = f"{contacts_file!s}@{line_num}"
-        key_path = nt.join_keys(keys, keymap=keymap, sep="›")
+        key_path = nt.get_keys(keys, keymap=keymap, sep="›")
         error(
             full_stop(e.msg),
             culprit = (file_and_lineno, key_path),

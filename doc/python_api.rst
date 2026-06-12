@@ -11,5 +11,6 @@ Python API
    nestedtext.dumpers
    nestedtext.loaders
    nestedtext.Location
+   nestedtext.Comment
    nestedtext.utilities
    nestedtext.NestedTextError

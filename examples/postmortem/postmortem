@@ -125,8 +125,17 @@ try:
         # check settings and transform to desired types
         settings = schema(settings)
 
+        # add a comment
+        nt.annotate(
+            keymap, ('recipients',),
+            key_leading=[nt.Comment(
+                'I have many heirs, but these will be the executors.',
+                before=1
+            )]
+        )
+
         # show the resulting settings
-        print(nt.dumps(settings, default=str))
+        print(nt.dumps(settings, map_keys=keymap, default=str))
 
 except nt.NestedTextError as e:
     e.report()

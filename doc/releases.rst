@@ -13,9 +13,24 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
+- Comment and spacing support has been added to keymaps.  Comments are now 
+  captured by the loader and placed in the keymap, and will be re-emitted by the 
+  dumper if supplied with the same keymap.  In between, the comments and spacing 
+  can be adjusted or new comments added.  Comments are associated with adjacent 
+  data items, and so travel with those items if the data is reorganized.
+- Added the :class:`Comment` class, which is used to hold comments in keymaps.
+- Added a *spacing* argument to :func:`dumps` / :func:`dump` that controls
+  vertical layout in the rendered output.  The spacing is specified based on the 
+  nesting level of the data, and can be overridden by spacing rules specified in 
+  a keymap.
+- Added :func:`annotate()`, a function that is used to build or modify 
+  the keymaps passed to a dumper in order to add comments and spacing rules.
+- Removed *get_value_from_keys()*, *get_lines_from_keys()*,
+  *get_original_keys()*, and *join_keys()*.
+
+
 | Version: 3.8
 | Released: 2025-12-26
-
 
 v3.8 (2025-12-26)
 -----------------
@@ -46,8 +61,8 @@ v3.7 (2024-04-27)
   :func:`load()` and :func:`loads()`.
 - Added :func:`get_keys()`, :func:`get_value()`, :func:`get_line_numbers()`, and 
   :func:`get_location()`.
-- Deprecated :func:`get_value_from_keys()`, :func:`get_lines_from_keys()`,
-  :func:`get_original_keys()`, and :func:`join_keys()`.
+- Deprecated *get_value_from_keys()*, *get_lines_from_keys()*,
+  *get_original_keys()*, and *join_keys()*.
 - Added *offset* argument to :meth:`Location.as_line()`.
 - Add ability to specify *source* to :func:`load()`.
 - Clarified policy on white space in inline strings.
@@ -98,10 +113,10 @@ v3.3 (2022-06-07)
 - Add *normalize_key* argument to :meth:`load` and :meth:`loads`.
 - Added utility functions for operating on keys and keymaps:
 
-  - :func:`get_value_from_keys`
-  - :func:`get_lines_from_keys`
-  - :func:`get_original_keys`
-  - :func:`join_keys`
+  - *get_value_from_keys*
+  - *get_lines_from_keys*
+  - *get_original_keys*
+  - *join_keys*
 
 - None passed as key is now converted to an empty string rather than "None".
 

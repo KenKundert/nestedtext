@@ -8,15 +8,18 @@ estate docs:
 
 recipients:
     Frigg:
+            # my loving wife
         email: frigg@norse-gods.com
         category: wife
         attach: @ estate docs
         networth: odin
     Thor:
+            # the good boy
         email: thor@norse-gods.com
         category: kids
         attach: @ estate docs
     Loki:
+            # the bad boy
         email: loki@norse-gods.com
         category: kids
         attach: @ estate docs

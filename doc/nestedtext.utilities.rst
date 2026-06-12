@@ -1,7 +1,7 @@
 ﻿.. currentmodule:: nestedtext
 
-Utilities
-=========
+KeyMap Utilities
+================
 
 Extras that are useful when using *NestedText*.
 
@@ -13,16 +13,22 @@ Extras that are useful when using *NestedText*.
 
 .. autofunction:: get_location
 
+.. autofunction:: annotate
 
-Deprecated functions
---------------------
 
-These functions are to be removed in future versions.
+Transferring a Keymap Between Processes
+---------------------------------------
 
-.. autofunction:: get_value_from_keys
+When the load → modify → dump cycle is split across processes (so the data is
+serialized between them, for example as JSON), the keymap must travel with the
+data if comments and original key spellings are to be restored on dump.
+:func:`keymap_to_jsonable` reduces a keymap to a structure built from plain
+``dict``, ``list``, ``str``, ``int``, and ``None`` — pass it through
+:mod:`json`, :mod:`msgpack`, or any other encoder of your choice — and
+:func:`keymap_from_jsonable` rebuilds the keymap on the other side.  Only the
+information :func:`dump` actually consults is preserved (original key strings
+and comment slots); source line and column numbers are discarded.
 
-.. autofunction:: get_lines_from_keys
+.. autofunction:: keymap_to_jsonable
 
-.. autofunction:: get_original_keys
-
-.. autofunction:: join_keys
+.. autofunction:: keymap_from_jsonable
