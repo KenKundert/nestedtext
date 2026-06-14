@@ -1,0 +1,6 @@
+server:
+# a mixed-indent block, line 1 at indent 0
+    # a mixed-indent block, line 2 at indent 4
+    # rule 1 says these are one block; the block's effective indent is its
+    # minimum non-blank indent (0), so this is a leading comment for 'server.port'
+    port: 8080

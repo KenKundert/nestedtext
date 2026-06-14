@@ -13,6 +13,8 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
+- Added :class:`NestedTextDataError` exception, which is intended to be used to 
+  report errors in data derived from a *NestedText* document.
 - Comment and spacing support has been added to keymaps.  Comments are now 
   captured by the loader and placed in the keymap, and will be re-emitted by the 
   dumper if supplied with the same keymap.  In between, the comments and spacing 

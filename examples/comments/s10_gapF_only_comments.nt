@@ -1,0 +1,6 @@
+# a header comment for the file
+# (per Gap F: a file of only comments assigns everything to the header)
+
+# still part of the header (single blank does not split)
+
+# still part of the header

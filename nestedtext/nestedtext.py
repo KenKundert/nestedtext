@@ -214,8 +214,71 @@ class NestedTextError(Error, ValueError):
                1 ❬name1: value1❭
                2 ❬name1: value2❭
                   ▲
-
     '''
+
+# NT_DataError {{{2
+class NestedTextDataError(NestedTextError):
+    '''
+    This exception is not emitted by NestedText itself, rather it is made
+    available for reporting on errors that derive from loaded NestedText data.
+    It includes information that would allow the user to easily find the
+    offending datum.
+
+    It supports the same arguments as the NestedTextError.  Specifically, you
+    can specify any number of unnnamed arguments, that will be joined together
+    to form the message.  It also accepts a *template* keyword argument that can
+    be used to combine the arguments into a message.  In addition, it supports
+    the following keyword-only arguments.
+
+        source (str):
+            The name of source file.
+        keys (tuple(str)):
+            The keys that uniquely identify the datum.
+        keymap:
+            The keymap created by the loader.
+        kind (str):
+            Either "value" or "key".  Identifies the offending part of the
+            datum. Default is "value".
+        offset (None or int):
+            The location of the problem.  If not None, a pointer is added that
+            points the specified location (given in the number of characters
+            from the start of the value).
+        show_line (bool):
+            Whether or not to show the line in the NestedText document that
+            contains the error.
+    '''
+
+    # constructor {{{3
+    def __init__(
+        self, *args,
+        source='', keymap=None, keys=None,
+        kind="value", offset=None, show_line=True,
+        culprit=(), codicil=(),
+        **kwargs
+    ):
+        # Users can use NestedTextError for their own errors.  To do so they
+        # would pass a message or a message template along with the source, the
+        # keymap, the offending keys, whether the problem is in the key or the
+        # value, and perhaps an offset, and the information will be converted
+        # into a suitable culprit and codicil.
+        if is_str(culprit):
+            culprit = cull((culprit,))
+        if is_str(codicil):
+            codicil = cull((codicil,))
+
+        if keys and keymap:
+            loc = get_location(keys, keymap)
+            line_nums = loc.get_line_numbers(kind=kind, sep='-')
+            if line_nums:
+                source += f"@{line_nums}"
+            orig_keys = get_keys(keys, keymap, sep="›")
+            culprit = (source or None,) + (orig_keys,) + culprit
+            kwargs['culprit'] = culprit
+
+            if show_line:
+                codicil += loc.as_line(kind=kind, offset=offset),
+            kwargs['codicil'] = codicil
+        super().__init__(*args, **kwargs)
 
 
 # NotSuitableForInline {{{2
@@ -624,6 +687,12 @@ class Comment:
     *before* / *after* are the number of blank lines emitted before and
     after this comment.  The loader does not set these; they exist for
     user-built comments only.
+
+    *text* may also be ``None``: a Comment with ``text=None`` emits no
+    ``#`` line at all; only its ``before`` / ``after`` blank lines are
+    rendered.  This is a convenient way to inject pure blank-line
+    separators inside a comment list (for example, between two
+    Comments returned by a provider).
     """
 
     def __init__(self, text="", indent=0, *, tab=None, before=0, after=0):
@@ -754,11 +823,16 @@ class Location:
         # keys are relative to this Location (0 == blanks between this
         # Location's direct children).  See get_spacing / set_spacing.
         self.spacing = {}
-        # Per-parent section markers: a list of (predicate, [Comment]) pairs.
-        # When this Location's value is rendered, the dumper emits each
-        # section's comments before the first child whose key matches the
-        # section's predicate (first-match-wins among predicates).
-        self.sections = []
+        # Per-slot comment providers.  Each (if not None) is a callable
+        # with the signature ``provider(child_key) -> list[Comment]``,
+        # invoked by the dumper for every child of this Location.  The
+        # returned Comments are prepended to the child's own static
+        # comments at the matching slot.  Closures over the callable's
+        # state can be used to dedup or build comments dynamically.
+        self.key_leading_provider = None
+        self.key_trailing_provider = None
+        self.value_leading_provider = None
+        self.value_trailing_provider = None
 
     def __repr__(self):
         components = []
@@ -1030,24 +1104,69 @@ class Location:
         """Replace the per-Location spacing dict."""
         self.spacing = dict(spacing)
 
-    # get_sections {{{4
-    def get_sections(self):
-        """Return the per-parent section markers as a list of
-        ``(predicate, [Comment, ...])`` tuples.
+    # get_key_leading_provider {{{4
+    def get_key_leading_provider(self):
+        """Return the per-child ``key_leading`` provider callable, if any.
 
-        When this Location's value is rendered, the dumper walks the
-        children in iteration order; for each child it finds the first
-        section whose predicate returns true, and emits that section's
-        comments before the child the first time the section is
-        encountered.  Section predicates are callables and are dropped
-        on :func:`keymap_to_jsonable` round-trips.
+        A provider has the signature ::
+
+            provider(child_key) -> list[Comment]
+
+        where *child_key* is the dict key (or list index) of one of this
+        Location's children.  When this Location's value is rendered the
+        dumper invokes the provider for every child, and prepends the
+        returned Comments to that child's static
+        :meth:`get_key_leading_comments` list.  Closures over the
+        callable's state can dedup or build Comments dynamically.
+
+        Returned Comments whose ``tab`` is ``None`` are normalized to
+        ``tab=0`` at emit time (natural indent).  Providers are
+        callables and are *not* JSON-serializable; they are dropped on
+        :func:`keymap_to_jsonable` round-trips.
         """
-        return self.sections
+        return self.key_leading_provider
 
-    # set_sections {{{4
-    def set_sections(self, sections):
-        """Replace the per-parent section markers list."""
-        self.sections = [(pred, list(comments)) for pred, comments in sections]
+    # set_key_leading_provider {{{4
+    def set_key_leading_provider(self, provider):
+        """Replace the per-child ``key_leading`` provider callable.
+
+        Pass ``None`` to clear it.  See :meth:`get_key_leading_provider`
+        for the expected callable signature.
+        """
+        self.key_leading_provider = provider
+
+    # get_key_trailing_provider {{{4
+    def get_key_trailing_provider(self):
+        """Return the per-child ``key_trailing`` provider; see
+        :meth:`get_key_leading_provider` for semantics."""
+        return self.key_trailing_provider
+
+    # set_key_trailing_provider {{{4
+    def set_key_trailing_provider(self, provider):
+        """Replace the per-child ``key_trailing`` provider callable."""
+        self.key_trailing_provider = provider
+
+    # get_value_leading_provider {{{4
+    def get_value_leading_provider(self):
+        """Return the per-child ``value_leading`` provider; see
+        :meth:`get_key_leading_provider` for semantics."""
+        return self.value_leading_provider
+
+    # set_value_leading_provider {{{4
+    def set_value_leading_provider(self, provider):
+        """Replace the per-child ``value_leading`` provider callable."""
+        self.value_leading_provider = provider
+
+    # get_value_trailing_provider {{{4
+    def get_value_trailing_provider(self):
+        """Return the per-child ``value_trailing`` provider; see
+        :meth:`get_key_leading_provider` for semantics."""
+        return self.value_trailing_provider
+
+    # set_value_trailing_provider {{{4
+    def set_value_trailing_provider(self, provider):
+        """Replace the per-child ``value_trailing`` provider callable."""
+        self.value_trailing_provider = provider
 
 
 # Inline class {{{2
@@ -2050,12 +2169,20 @@ class NestedTextDumper:
         ``natural + tab * self.indent`` (clamped to >= 0).  Comments whose
         ``tab`` is None render at their stored ``indent`` field absolutely.
 
-        Per-comment ``before`` / ``after`` blank-line counts are honored
-        in addition to the existing same-indent auto-blank between
-        consecutive comments at the same resolved column.
+        Per-comment ``before`` / ``after`` blank-line counts are always
+        honored.  Additionally, between two consecutive *loader-built*
+        Comments (``tab is None``) at the same resolved column, a single
+        blank line is auto-emitted so that the boundary survives a
+        re-load -- this is necessary because adjacent same-indent
+        comment lines merge into a single Comment on load.  The
+        auto-blank is suppressed when either adjacent Comment is in
+        tab-mode (user-built via :func:`annotate` or a provider), since
+        such Comments control their surrounding blanks explicitly via
+        ``before`` / ``after``.
         """
         lines = []
         prev_indent = None
+        prev_tab = None
         for c in comments:
             if c.tab is not None:
                 abs_indent = max(0, natural + c.tab * self.indent)
@@ -2063,7 +2190,19 @@ class NestedTextDumper:
                 abs_indent = c.indent
             for _ in range(c.before):
                 lines.append("")
-            if prev_indent is not None and prev_indent == abs_indent:
+            if c.text is None:
+                # blank-line-only Comment: no text and no adjacency tracking,
+                # so it doesn't trigger or block an auto-blank between
+                # surrounding Comments.
+                for _ in range(c.after):
+                    lines.append("")
+                continue
+            if (
+                prev_indent is not None
+                and prev_indent == abs_indent
+                and prev_tab is None
+                and c.tab is None
+            ):
                 lines.append("")
             ind = " " * abs_indent
             for line in c.text.split("\n"):
@@ -2074,6 +2213,7 @@ class NestedTextDumper:
             for _ in range(c.after):
                 lines.append("")
             prev_indent = abs_indent
+            prev_tab = c.tab
         return lines
 
     # _resolve_spacing {{{3
@@ -2122,32 +2262,59 @@ class NestedTextDumper:
           ``key_trailing_comments`` (multi-line value form only).
         - ``value_trailing_comments`` emitted after the rendered item.
 
-        Only applies when ``map_keys`` is a keymap dict (the form returned by
-        load).  When ``map_keys`` is a callable (key transformer), there are
-        no comments to apply.
+        For each slot the dumper also consults the *parent* Location
+        (``keymap[keys[:-1]]``) for a per-child *provider* callable.  If
+        present, the provider is invoked as ``provider(child_key)`` and
+        the returned Comments are prepended to the child's static
+        comments at that slot.  Comments returned by a provider with
+        ``tab=None`` are normalized to ``tab=0``.
+
+        Only applies when ``map_keys`` is a keymap dict (the form
+        returned by load).  When ``map_keys`` is a callable (key
+        transformer), there are no comments to apply.
         """
         if not is_mapping(self.map_keys):
             return rendered_value
         loc = self.map_keys.get(keys)
-        if loc is None:
+        parent_loc = self.map_keys.get(keys[:-1]) if keys else None
+
+        # gather child's static comments (if any) {{{4
+        if loc is not None:
+            kl = list(loc.get_key_leading_comments())
+            kt = list(loc.get_key_trailing_comments())
+            vl = list(loc.get_value_leading_comments())
+            vt = list(loc.get_value_trailing_comments())
+        else:
+            kl, kt, vl, vt = [], [], [], []
+
+        # prepend parent's per-child provider output (if any) {{{4
+        if parent_loc is not None and keys:
+            child_key = keys[-1]
+            for getter, target in (
+                (parent_loc.get_key_leading_provider,  kl),
+                (parent_loc.get_key_trailing_provider, kt),
+                (parent_loc.get_value_leading_provider, vl),
+                (parent_loc.get_value_trailing_provider, vt),
+            ):
+                provider = getter()
+                if provider is None:
+                    continue
+                extras = list(provider(child_key) or [])
+                for c in extras:
+                    if c.tab is None:
+                        c.tab = 0
+                target[:0] = extras
+
+        if not (kl or kt or vl or vt):
             return rendered_value
+
         n = len(keys)
         key_natural = max(0, (n - 1) * self.indent)
         val_natural = n * self.indent
-        leading = self._comments_to_lines(
-            loc.get_key_leading_comments(), natural=key_natural
-        )
-        key_trailing = self._comments_to_lines(
-            loc.get_key_trailing_comments(), natural=val_natural
-        )
-        value_leading = self._comments_to_lines(
-            loc.get_value_leading_comments(), natural=val_natural
-        )
-        trailing = self._comments_to_lines(
-            loc.get_value_trailing_comments(), natural=val_natural
-        )
-        if not (leading or key_trailing or value_leading or trailing):
-            return rendered_value
+        leading = self._comments_to_lines(kl, natural=key_natural)
+        key_trailing = self._comments_to_lines(kt, natural=val_natural)
+        value_leading = self._comments_to_lines(vl, natural=val_natural)
+        trailing = self._comments_to_lines(vt, natural=val_natural)
         value_lines = rendered_value.split("\n")
         # Inject key_trailing and value_leading between the key line (first
         # line) and the value's first line.  Only meaningful when the item
@@ -2160,47 +2327,6 @@ class NestedTextDumper:
                 + value_lines[1:]
             )
         return "\n".join(leading + value_lines + trailing)
-
-    # _section_context {{{3
-    def _section_context(self, parent_keys, parent_level):
-        """Resolve the section state for a parent at *parent_keys*.
-
-        Returns ``(sections, emitted, natural)`` where ``sections`` is the
-        list of (predicate, [Comment]) pairs declared on the parent's
-        Location (empty if none), ``emitted`` is a fresh set used to track
-        which sections have already fired during this pass, and ``natural``
-        is the absolute indent (in spaces) for section markers (the
-        children's column).
-        """
-        sections = ()
-        if is_mapping(self.map_keys):
-            loc = self.map_keys.get(parent_keys)
-            if loc is not None:
-                sections = getattr(loc, "sections", ()) or ()
-        return sections, set(), parent_level * self.indent
-
-    # _apply_section_marker {{{3
-    def _apply_section_marker(
-        self, rendered, child_key, sections, emitted, natural
-    ):
-        """Prepend a section's comments to *rendered* if *child_key* is the
-        first child to belong to a not-yet-emitted section.  First-match
-        wins among the parent's sections.
-        """
-        if not sections:
-            return rendered
-        matched = None
-        for i, (pred, _comments) in enumerate(sections):
-            if pred(child_key):
-                matched = i
-                break
-        if matched is None or matched in emitted:
-            return rendered
-        sec_lines = self._comments_to_lines(sections[matched][1], natural=natural)
-        emitted.add(matched)
-        if not sec_lines:
-            return rendered
-        return "\n".join(sec_lines) + "\n" + rendered
 
     # render value {{{3
     def render_value(self, obj, keys, values):
@@ -2224,9 +2350,6 @@ class NestedTextDumper:
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 rendered = []
-                parent_sections, section_emitted, section_natural = (
-                    self._section_context(keys, level)
-                )
                 for k, v in obj.items():
                     new_keys = grow(keys, k)
                     new_values = grow(values, id(v))
@@ -2236,10 +2359,6 @@ class NestedTextDumper:
                         mapped_key, obj[k], new_keys, new_values
                     )
                     rendered_value = self._wrap_with_comments(rendered_value, new_keys)
-                    rendered_value = self._apply_section_marker(
-                        rendered_value, k, parent_sections,
-                        section_emitted, section_natural,
-                    )
                     rendered.append((mapped_key, key, rendered_value))
                 content = self._join_items(
                     [v for mk, k, v in self.sort(rendered, keys)], keys
@@ -2258,18 +2377,11 @@ class NestedTextDumper:
                     raise NotSuitableForInline from None
             except NotSuitableForInline:
                 content = []
-                parent_sections, section_emitted, section_natural = (
-                    self._section_context(keys, level)
-                )
                 for i, v in enumerate(obj):
                     new_keys = grow(keys, i)
                     rendered_v = self.render_value(v, new_keys, grow(values, id(v)))
                     item = add_prefix("-", rendered_v)
                     item = self._wrap_with_comments(item, new_keys)
-                    item = self._apply_section_marker(
-                        item, i, parent_sections,
-                        section_emitted, section_natural,
-                    )
                     content.append(item)
                 content = self._join_items(content, keys)
 
@@ -3149,8 +3261,8 @@ def get_location(keys, keymap):
 
 # annotate {{{2
 def annotate(
-    keymap,
     keys,
+    keymap,
     *,
     key_leading=(),
     key_trailing=(),
@@ -3158,20 +3270,35 @@ def annotate(
     value_trailing=(),
     header=(),
     footer=(),
-    sections=(),
     spacing=None,
 ):
-    '''Create or update ``keymap[tuple(keys)]`` with comments, section
-    markers, and per-Location spacing in a single call.
+    '''Create or update ``keymap[tuple(keys)]`` with comments and
+    per-Location spacing in a single call.
 
     This is the from-scratch counterpart to the keymap that :func:`load`
-    builds.  Each slot kwarg is an iterable of :class:`Comment` objects.
-    Within *annotate*, each Comment is interpreted in *tab mode*: its
-    ``tab`` field (defaulting to 0 when ``None``) is the tabstop offset
-    from the slot's natural indent.  The Comment is stored verbatim; the
-    dumper resolves ``tab`` to an absolute column at emit time using the
-    ``dumps(indent=...)`` setting -- so the same Comment renders
-    correctly at any chosen indent step.
+    builds.  Each of the four per-key slot kwargs --
+    ``key_leading``, ``key_trailing``, ``value_leading``,
+    ``value_trailing`` -- accepts either:
+
+    - an iterable of :class:`Comment` objects (static), which become
+      the comments attached to *this* Location at that slot.  Each
+      Comment is interpreted in *tab mode*: its ``tab`` field
+      (defaulting to 0 when ``None``) is the tabstop offset from the
+      slot's natural indent, resolved by the dumper at emit time using
+      the ``dumps(indent=...)`` setting; or
+    - a callable (a *provider*) with the signature ::
+
+          provider(child_key) -> list[Comment]
+
+      installed on this Location to be invoked by the dumper for **each
+      child** of this Location's value.  The returned Comments are
+      prepended to the matching child's static comments at the same
+      slot, before rendering.  This is how dynamic section / group
+      headers are produced (the closure can dedup over previously-seen
+      keys).  Comments returned by a provider with ``tab=None`` are
+      normalized to ``tab=0`` at emit time.  Providers are not
+      JSON-serializable and are dropped on :func:`keymap_to_jsonable`
+      round-trips.
 
     The natural indent for each slot, given ``N = len(keys)`` and
     ``S = dumps.indent``:
@@ -3189,32 +3316,27 @@ def annotate(
     | ``footer``        |                     |
     +-------------------+---------------------+
 
-    ``sections`` is an iterable of ``(predicate, [Comment, ...])`` pairs
-    declared on a parent Location.  When the dumper renders the parent's
-    value, it walks its children in iteration order; for each child it
-    finds the first predicate that matches and -- the first time a given
-    section is matched -- emits that section's comments before the
-    child.  Section predicates are callables; they are not
-    JSON-serializable and are dropped on
-    :func:`keymap_to_jsonable` round-trips.
+    Static lists in the per-key slots are not allowed at the root
+    (``keys == ()``) since the root has no key line to attach to.  A
+    provider callable, however, *is* allowed at the root -- it
+    decorates each top-level child.
 
     ``spacing``, if given, is applied via :meth:`Location.set_spacing`.
 
     Args:
-        keymap:
-            The keymap dict to mutate.
         keys:
             The keys tuple identifying the Location.  Use ``()`` for the
-            document-root Location (which accepts ``header`` and
-            ``footer`` only).
+            document-root Location.
+        keymap:
+            The keymap dict to mutate.
         key_leading, key_trailing, value_leading, value_trailing:
-            Iterables of :class:`Comment` objects for the matching slot.
-            Only allowed for non-root keys.
+            Either an iterable of :class:`Comment` objects (stored on
+            this Location) or a callable provider (invoked per child of
+            this Location; see above).  Static lists are not allowed
+            when ``keys == ()``.
         header, footer:
             Iterables of :class:`Comment` objects for the document
             header and footer.  Only allowed when ``keys == ()``.
-        sections:
-            Iterable of ``(predicate, [Comment, ...])`` pairs.
         spacing:
             Per-Location spacing dict; see :meth:`Location.set_spacing`.
 
@@ -3222,21 +3344,39 @@ def annotate(
         The :class:`Location` that was created or updated.
 
     Raises:
-        ValueError: if ``header`` or ``footer`` is supplied for non-root
-            keys, or if any of the key/value slots is supplied for the
-            root.
+        ValueError: if a static list is supplied for any of
+            ``key_leading``/``key_trailing``/``value_leading``/
+            ``value_trailing`` at the root, or if ``header``/``footer``
+            is supplied for non-root keys.
     '''
     if not isinstance(keys, tuple):
         keys = tuple(keys)
 
     is_root = (keys == ())
-    if is_root and (
-        key_leading or key_trailing or value_leading or value_trailing
-    ):
-        raise ValueError(
-            "key_leading/key_trailing/value_leading/value_trailing are not "
-            "allowed at the document root (keys=()); use header/footer instead."
+
+    def _is_provider(value):
+        # A provider is callable but not a tuple/list/Comment/dict; we
+        # check `callable(value)` and exclude iterables (which would be
+        # static comment lists).
+        return callable(value) and not isinstance(
+            value, (list, tuple, set, frozenset)
         )
+
+    per_key_slots = (
+        ("key_leading",    key_leading,    "set_key_leading_comments",    "set_key_leading_provider"),
+        ("key_trailing",   key_trailing,   "set_key_trailing_comments",   "set_key_trailing_provider"),
+        ("value_leading",  value_leading,  "set_value_leading_comments",  "set_value_leading_provider"),
+        ("value_trailing", value_trailing, "set_value_trailing_comments", "set_value_trailing_provider"),
+    )
+
+    if is_root:
+        for name, value, _, _ in per_key_slots:
+            if value and not _is_provider(value):
+                raise ValueError(
+                    f"{name}= as a static Comment list is not allowed at the"
+                    " document root (keys=()); use header/footer, or pass a"
+                    " provider callable to decorate each top-level child."
+                )
     if not is_root and (header or footer):
         raise ValueError(
             "header/footer are only allowed at the document root (keys=())."
@@ -3255,24 +3395,17 @@ def annotate(
             out.append(c)
         return out
 
-    if key_leading:
-        loc.set_key_leading_comments(_tab_mode(key_leading))
-    if key_trailing:
-        loc.set_key_trailing_comments(_tab_mode(key_trailing))
-    if value_leading:
-        loc.set_value_leading_comments(_tab_mode(value_leading))
-    if value_trailing:
-        loc.set_value_trailing_comments(_tab_mode(value_trailing))
+    for _name, value, set_static, set_provider in per_key_slots:
+        if not value:
+            continue
+        if _is_provider(value):
+            getattr(loc, set_provider)(value)
+        else:
+            getattr(loc, set_static)(_tab_mode(value))
     if header:
         loc.set_header_comments(_tab_mode(header))
     if footer:
         loc.set_footer_comments(_tab_mode(footer))
-
-    if sections:
-        normalized = []
-        for pred, comments in sections:
-            normalized.append((pred, _tab_mode(comments)))
-        loc.set_sections(normalized)
 
     if spacing is not None:
         loc.set_spacing(spacing)
@@ -3325,10 +3458,11 @@ def keymap_to_jsonable(keymap, **kwargs):
     the original file: the original key strings (so ``map_keys`` can
     restore them) and the per-entry comment slots, plus the document
     header / footer on ``keymap[()]``.  Source line/column information is
-    discarded.  Per-parent section markers
-    (:meth:`Location.set_sections`) are also dropped because their
-    predicates are callables and not JSON-serializable; rebuilt keymaps
-    therefore omit section behavior.
+    discarded.  Per-slot provider callables (set via
+    :meth:`Location.set_key_leading_provider` and the matching
+    ``set_*_provider`` methods) are also dropped because callables are
+    not JSON-serializable; rebuilt keymaps therefore omit any
+    provider-driven decoration.
 
     The returned object is built from ``dict``, ``list``, ``str``, ``int``,
     and ``None`` — safe to pass through :mod:`json`, :mod:`msgpack`, or any

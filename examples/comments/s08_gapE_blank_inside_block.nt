@@ -1,0 +1,9 @@
+# under the new partition rule, any blank line between comment groups
+# becomes a partition point.  Each comment block here ends up as a separate
+# header comment because the last blank is right before the data line.
+
+# the first block above is a header comment.
+
+# the second block above is also a header comment.
+
+retry_delay: 5

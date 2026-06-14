@@ -1,0 +1,6 @@
+server:
+    # intended by some readers as a trailing comment for 'server',
+    # but the strict rules resolve this as a leading comment for 'server.port'
+    # (indent 4 <= port's indent 4 satisfies rule 1; rule 2 requires strictly >)
+    port: 8080
+    host: 0.0.0.0

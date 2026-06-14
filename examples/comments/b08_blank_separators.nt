@@ -1,0 +1,15 @@
+# blank lines between sibling items in the source are NOT preserved on
+# dump -- vertical spacing is controlled entirely by the dumper's
+# 'spacing' argument
+server:
+    port: 8080
+    host: 0.0.0.0
+
+
+database:
+    name: production
+    user: app
+
+
+cache:
+    backend: redis

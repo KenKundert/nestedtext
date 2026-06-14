@@ -1,0 +1,5 @@
+server: localhost
+retry_delay: 5
+
+# a footer comment for the file
+# (rule 2 strict '>' rules out trailing on 'retry_delay', so this is footer)

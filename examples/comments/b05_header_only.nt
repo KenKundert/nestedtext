@@ -1,0 +1,6 @@
+# a header comment for the file
+# (the two blank lines below mark the end of the header per the refined block-grouping rule)
+
+
+server:
+    port: 8080

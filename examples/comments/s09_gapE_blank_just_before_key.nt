@@ -1,0 +1,5 @@
+# this looks like a leading comment for 'retry_delay'...
+# ...but the blank line below makes it a header comment instead, because
+# any blank line in the pre-data buffer partitions header from leading.
+
+retry_delay: 5

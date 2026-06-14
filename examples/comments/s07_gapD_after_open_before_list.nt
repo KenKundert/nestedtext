@@ -1,0 +1,5 @@
+hosts:
+    # a leading comment for the first list item, hosts[0]
+    # (under the strict rules; some readers expect this to attach to 'hosts' instead)
+    - alpha.example.com
+    - beta.example.com

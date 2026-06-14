@@ -265,11 +265,11 @@ slot's natural indent rather than in absolute spaces.
 
     >>> keymap = {}
     >>> _ = annotate(
-    ...     keymap, (),
+    ...     (), keymap,
     ...     header=[Comment('application config')],
     ... )
     >>> _ = annotate(
-    ...     keymap, ('database',),
+    ...     ('database',), keymap,
     ...     key_leading=[Comment('database server')],
     ... )
 
@@ -288,21 +288,40 @@ unaffected).  The dumper resolves *tab* at emit time using
 indent step.  The *before* and *after* fields give per-comment blank-line
 counts.
 
-For grouped output, pass *sections* to :func:`annotate` on a parent
-Location: a list of ``(predicate, [Comment, ...])`` pairs.  When the
-dumper renders the parent's children, it emits each section's comments
-before the first child whose key matches the section's predicate.  This is
-useful when the section's members are determined dynamically.
+Dynamic, Per-Child Comments
+---------------------------
+
+Section-style headers and any other comments whose content depends on the
+key are produced by passing a **callable** to one of the four per-key
+slots of :func:`annotate` instead of a list of :class:`Comment`.  When a
+slot is a callable, it is treated as a *provider*: the dumper invokes it
+once per child of the Location it is attached to, with the signature ::
+
+    provider(child_key) -> list[Comment]
+
+and prepends the returned Comments to whatever static comments that
+child already has at the same slot.  The provider owns its dedup state
+(via closure), so it can decide -- per child -- whether to emit anything,
+and what to emit.
+
+A *classifier* condenses the old "sections" idea into one provider that
+branches by the child key:
 
 .. code-block:: python
 
+    >>> from nestedtext import Comment, annotate
+
+    >>> seen = set()
+    >>> def classify(k):
+    ...     cat = ("db" if k.startswith("db_") else
+    ...            "log" if k.startswith("log_") else "other")
+    ...     if cat in seen:
+    ...         return []
+    ...     seen.add(cat)
+    ...     return [Comment({"db": "Database", "log": "Logging", "other": "Other"}[cat])]
+
     >>> keymap = {}
-    >>> _ = annotate(keymap, (),
-    ...     sections=[
-    ...         (lambda k: k.startswith("db_"),  [Comment("Database")]),
-    ...         (lambda k: k.startswith("log_"), [Comment("Logging")]),
-    ...     ],
-    ... )
+    >>> _ = annotate((), keymap, key_leading=classify)
 
     >>> data = {'db_host': 'localhost', 'db_port': '5432', 'log_level': 'info'}
     >>> print(nt.dumps(data, map_keys=keymap))
@@ -312,8 +331,47 @@ useful when the section's members are determined dynamically.
     # Logging
     log_level: info
 
-First-match wins among a parent's sections, so a trailing
-``lambda k: True`` is a clean catch-all.
+A provider also handles transitions in multiple grouping levels at once
+-- the diary example, where year and month each get their own header
+whenever they change:
+
+.. code-block:: python
+
+    >>> last_year = last_month = None
+    >>> def header(k):
+    ...     global last_year, last_month
+    ...     out = []
+    ...     if k[:4] != last_year:
+    ...         out.append(Comment(f"=== {k[:4]} ==="))
+    ...         last_year = k[:4]
+    ...     if k[:7] != last_month:
+    ...         out.append(Comment(f"--- {k[5:7]} ---"))
+    ...         last_month = k[:7]
+    ...     return out
+
+    >>> keymap = {}
+    >>> _ = annotate((), keymap, key_leading=header)
+    >>> data = {
+    ...     "2024-01-15": "first",
+    ...     "2024-02-04": "second",
+    ...     "2025-01-09": "third",
+    ... }
+    >>> print(nt.dumps(data, map_keys=keymap))
+    # === 2024 ===
+    # --- 01 ---
+    2024-01-15: first
+    # --- 02 ---
+    2024-02-04: second
+    # === 2025 ===
+    # --- 01 ---
+    2025-01-09: third
+
+A static list and a provider cannot coexist in the *same* slot on the
+*same* Location -- they're the two interpretations of one argument.  But
+a provider on the parent composes naturally with the child's own static
+comments: the provider's output is prepended.  Providers are callables
+and therefore not JSON-serializable; they are dropped on
+:func:`keymap_to_jsonable` round-trips.
 
 
 Round-Tripping

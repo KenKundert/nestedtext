@@ -3,7 +3,7 @@ __version__ = "3.8"
 __released__ = "2025-12-26"
 
 from .nestedtext import (
-    load, loads, dump, dumps, NestedTextError,
+    load, loads, dump, dumps, NestedTextError, NestedTextDataError,
 
     # utitilies
     get_keys, get_value, get_location, get_line_numbers,

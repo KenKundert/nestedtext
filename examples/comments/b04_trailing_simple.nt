@@ -1,0 +1,4 @@
+database: production
+    # a trailing comment for 'database'
+    # (indent 4 is strictly greater than the value's indent 0, satisfying rule 2)
+retry_delay: 5

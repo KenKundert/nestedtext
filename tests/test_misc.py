@@ -10,6 +10,7 @@ from quantiphy import Quantity
 import subprocess
 import sys
 import os
+import math
 
 parametrize = pytest.mark.parametrize
 
@@ -1655,5 +1656,97 @@ def test_nt_dump_trailing_newline(tmp_path):
         assert file_content.endswith('\n'), "dump() should add trailing newline"
         assert not file_content.endswith('\n\n'), "dump() should not add double newline"
         assert file_content == dumps_result + '\n', "dump() should be dumps() + newline"
+
+def test_nt_data_error(tmp_path):
+    exp = dict(expr = "2**8", expected = "256")
+    bad_exp = dict(expr = "2**8", expected = "255")  # failure
+    cast = dict(expr = "int('5')", expected = "5")
+    bad_cast = dict(expr = "int('x')", expected = "5")  # value error
+    log = dict(expr = "math.log2(4096)", expected = "12")
+    bad_log = dict(expr = "math.log2(4096", expected = "12") # syntax error
+    test_case0 = [exp, cast, log]
+    test_case1 = [bad_exp, cast, log]
+    test_case2 = [exp, bad_cast, log]
+    test_case3 = [exp, cast, bad_log]
+
+    def check_result(cases):
+        for i, case in enumerate(cases):
+            evaluated = {}
+            for key in ['expr', 'expected']:
+                try:
+                    evaluated[key] = eval(case[key])
+                except SyntaxError as e:
+                    raise nt.NestedTextDataError(
+                        e, source=source, keys=(i, key), keymap=keymap,
+                        offset=e.offset
+                    )
+                except Exception as e:
+                    raise nt.NestedTextDataError(
+                        e, source=source, keys=(i, key), keymap=keymap,
+                    )
+            if evaluated['expr'] != evaluated['expected']:
+                raise nt.NestedTextDataError(
+                    "test failed.",
+                    culprit = f"expr={case['expr']}",
+                    codicil = f"result={evaluated['expr']} ≠ expected={evaluated['expected']}",
+                    source=source, keys=(i, key), keymap=keymap, show_line=False
+                )
+
+    # case 0, not expecting an error for this one
+    source = "test_case0.nt"
+    path = tmp_path / source
+    nt.dump(test_case0, path)
+    keymap = {}
+    cases = nt.load(path, top=list, keymap=keymap)
+    check_result(cases)
+
+    # case 1, a test failure
+    source = "test_case1.nt"
+    path = tmp_path / source
+    nt.dump(test_case1, path)
+    keymap = {}
+    cases = nt.load(path, top=list, keymap=keymap)
+    with pytest.raises(nt.NestedTextError) as exception:
+        check_result(cases)
+    e = exception.value
+    assert isinstance(e, nt.NestedTextDataError)
+    expected = dedent("""
+        test_case1.nt@3, 0›expected, expr=2**8: test failed.
+            result=256 ≠ expected=255
+    """)
+    assert str(e).strip() == expected.strip()
+
+    # case 2, a value error
+    source = "test_case2.nt"
+    path = tmp_path / source
+    nt.dump(test_case2, path)
+    keymap = {}
+    cases = nt.load(path, top=list, keymap=keymap)
+    with pytest.raises(nt.NestedTextError) as exception:
+        check_result(cases)
+    e = exception.value
+    assert isinstance(e, nt.NestedTextDataError)
+    expected = dedent("""
+        test_case2.nt@5, 1›expr: invalid literal for int() with base 10: 'x'
+               5 ❬    expr: int('x')❭
+    """)
+    assert str(e).strip() == expected.strip()
+
+    # case 3, a syntax error
+    source = "test_case3.nt"
+    path = tmp_path / source
+    nt.dump(test_case3, path)
+    keymap = {}
+    cases = nt.load(path, top=list, keymap=keymap)
+    with pytest.raises(nt.NestedTextError) as exception:
+        check_result(cases)
+    e = exception.value
+    assert isinstance(e, nt.NestedTextDataError)
+    expected = dedent("""
+        test_case3.nt@8, 2›expr: '(' was never closed (<string>, line 1)
+               8 ❬    expr: math.log2(4096❭
+                                      ▲
+    """)
+    assert str(e).strip() == expected.strip()
 
 # vim: fdm=marker

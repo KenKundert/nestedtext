@@ -1,0 +1,5 @@
+notice:
+    > the cache layer is being decommissioned
+    > use the new metrics service instead
+    # a stranded block (Gap C) -- resolved as a trailing comment for 'notice'
+retry_delay: 5

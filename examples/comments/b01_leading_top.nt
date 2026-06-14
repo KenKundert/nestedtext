@@ -1,0 +1,5 @@
+# a leading comment for 'database'
+database: production
+
+# a leading comment for 'retry_delay'
+retry_delay: 5

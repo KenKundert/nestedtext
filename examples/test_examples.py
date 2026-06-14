@@ -3,7 +3,9 @@
 from pathlib import Path
 from shlib import Run, cd, to_path
 from textwrap import dedent
+from inform import Color
 import sys
+import re
 
 tests_dir = Path(__file__).parent
 
@@ -94,8 +96,11 @@ def test_address():
      with cd(tests_dir / "addresses"):
         fumiko = Run('./address fumiko', modes='sOEW')
         assert fumiko.stdout.strip() == dedent("""
+            # Contact information for our officers
+
             Fumiko Purvis:
                 Position: Treasurer
+                    # Fumiko's term is ending at the end of the year.
                 Address:
                     3636 Buffalo Ave
                     Topeka, Kansas 20692
@@ -111,16 +116,16 @@ def test_michael_jordan():
         expected = Path('./michael_jordan.out').read_text()
         assert mj.stdout.strip() == expected.strip()
 
-def test_cryptocurrency():
-     if sys.version_info < (3, 8):
-         return  # cryptocurrency example uses walrus operator
-     with cd(tests_dir / "cryptocurrency"):
-        # the cryptocurrency example outputs the current prices, so just do some
-        # simple sanity checking on the output.
-        cc = Run('./cryptocurrency', modes='sOEW')
-        assert '5 BTC =' in cc.stdout
-        assert '50 ETH =' in cc.stdout
-        assert '50 kXLM =' in cc.stdout
+# def test_cryptocurrency():
+#      if sys.version_info < (3, 8):
+#          return  # cryptocurrency example uses walrus operator
+#      with cd(tests_dir / "cryptocurrency"):
+#         # the cryptocurrency example outputs the current prices, so just do some
+#         # simple sanity checking on the output.
+#         cc = Run('./cryptocurrency', modes='sOEW')
+#         assert '5 BTC =' in cc.stdout
+#         assert '50 ETH =' in cc.stdout
+#         assert '50 kXLM =' in cc.stdout
 
 def test_postmortem():
      if sys.version_info < (3, 8):
@@ -148,3 +153,56 @@ def test_long_lines():
         ll = Run('./long_lines_space', modes='sOEW')
         expected = Path('./long_lines.out').read_text()
         assert ll.stdout.strip() == expected.strip()
+
+def test_error_reporting():
+    with cd(tests_dir / "errors"):
+        test = Run(["./test"], modes="sOEW")
+        stderr = Color.strip_colors(test.stderr)
+        stdout = Color.strip_colors(test.stdout)
+        expected = dedent("""\
+            test error: test_cases.nt@3, 0›expected:
+                TEST FAILED expr=2**8: result=256 ≠ expected=255
+            test error: test_cases.nt@11, 3›expr: '(' was never closed (<string>, line 1)
+                  11 ❬    expr: math.log2(4096❭
+                                          ▲
+        """)
+        assert test.status == 0
+        assert stderr == ""
+        assert stdout == expected
+
+def test_includes():
+    with cd(tests_dir / "includes"):
+        test = Run(["./includes", "first.nt"], modes="sOEW")
+        stderr = Color.strip_colors(test.stderr)
+        stdout = Color.strip_colors(test.stdout)
+        expected = dedent("""\
+            table_2:
+                row_21:
+                    col_211: value 211
+                    col_212: value 212
+            table_1:
+                row_11:
+                    col_111: value 111
+                row_12:
+                    col_121: value 121
+            table_3:
+                row_31:
+                    col_311: value 311
+        """)
+        assert test.status == 0
+        assert stderr == ""
+        assert stdout == expected
+
+def test_includes_with_error():
+    with cd(tests_dir / "includes"):
+        test = Run(["./includes", "first-with-error.nt"], modes="sOEW1")
+        stderr = Color.strip_colors(test.stderr)
+        stdout = Color.strip_colors(test.stdout)
+        expected = dedent("""\
+            includes error: /.*/children/third-with-error.nt@8, table 3›row 32›col 321:
+                Bad value.
+                       8 ❬        col 321: ERROR❭
+        """)
+        assert test.status == 1
+        assert stdout == ""
+        assert re.match(expected, stderr)

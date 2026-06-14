@@ -54,7 +54,7 @@ This produces the following data structure:
      'webmaster_email': 'admin@example.com'}
 
 See the :ref:`PostMortem <postmortem example>` example for a more flexible 
-approach to validating with *Voluptuous*.
+approach to validating using validating functions with *Voluptuous*.
 
 
 .. _pydantic example:
@@ -80,6 +80,60 @@ here:
    :language: python
 
 This produces the same result as in the previous example.
+
+
+.. _error reporting:
+
+Error Reporting
+===============
+
+*NestedText* raises a :class:`NestedTextError` when it encounters a problem, and 
+you can simply use it to report the error.  It tends to do a good job of 
+locating the error for the user.  And when validating with *Voluptuous* you will 
+also get good error messages if you follow :ref:`above example <voluptuous 
+example>`.  However, what if you encounter an error in a field after you have 
+already read in a validated your data.  In this case, you can raise 
+:class:`NestedTextDataError` yourself. It identifies the source of the problem 
+in a way that is understandable by the user.  *NestedTextDataError* is defined 
+by *NestedText*, but is never raised by *NestedText* itself.  Rather it is 
+provided so that you can easily report error that derive from a *NestedText* 
+document.
+
+To see how this is done, consider the following example.  It involves an 
+*NestedText* file that contains some test cases, each of which contains an 
+expression to be evaluated by Python, and the expected result.  Both the 
+expression and the result are first evaluated by Python, and the result is 
+compared with what was expected.  There are two ways in which errors can occur: 
+the evaluated result may not match the expected value, which is a failure, or 
+the expression itself might not be valid a valid Python expression, in which 
+case Python raises an exception.
+
+The test code is in *test_cases.nt*:
+
+.. literalinclude:: ../examples/errors/test_cases.nt
+   :language: nestedtext
+
+And here is the code:
+
+.. literalinclude:: ../examples/errors/test
+   :language: python
+
+Notice that the tests are run and any exception is caught and passed to 
+*NestedTextDataError*, along with the name of the source file, the keys of the 
+offending test case, the keymap as returned from the loader.
+
+The following errors are reported::
+
+    test error: test_cases.nt@3, 0›expected:
+        TEST 0 FAILED expr=2**8: result=256 ≠ expected=255
+    test error: test_cases.nt@11, 3›expr: '(' was never closed (<string>, line 1)
+        11 ❬    expr: math.log2(4096❭
+                                ▲
+
+Notice that each message starts by identifying the source of the error in two 
+ways, first is the file name and line number (test_cases.nt@3), and the second 
+is the key path (0›expected).  The message ends by showing the offending line, 
+unless it suppressed, as it is in the first message.
 
 
 .. _normalizing keys:
@@ -471,6 +525,36 @@ It would interpret this settings file:
 as equivalent to this settings file:
 
 .. literalinclude:: ../examples/accumulation/example.out.nt
+   :language: nestedtext
+
+
+.. _include files example:
+
+Include Files
+=============
+
+While *NestedText* does not natively support include files, it is possible to 
+implement support if the top-level of your *NestedText* document is a dictionary 
+by dedicating one key to specifying the include file or files.  That is shown in 
+the example below.
+
+There are two challenges to overcome when processing include files.  First is 
+merging the data from the various include files in the face of conflicts. The 
+data in this case is a collection of tables, each of which contains rows and 
+column.  Tables should be merged, but rows are atomic, so a row replaces an 
+earlier row rather than inserting new columns in it.  This is handled by 
+*merge_to_depth()*.
+
+The second challenge is error reporting.  Error reports must point to the file 
+that contains the error.  This is handled by *find_keymap()*, which searches 
+through keymaps in reverse order looking for the desired key path.  The 
+*NestedTextDataError*, described above, is used to report the error.
+
+*read_files()* is used to read the files.  When it reads a file, it first 
+processes the include files in order before adding its own data to the combined 
+results.
+
+.. literalinclude:: ../examples/includes/includes
    :language: nestedtext
 
 

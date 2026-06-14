@@ -1,0 +1,5 @@
+notice:
+    > the cache layer is being decommissioned
+    # a comment inside a multi-line string value
+    # (per Gap G: attached as a trailing comment for 'notice'; position within the value is lost on dump)
+    > use the new metrics service instead

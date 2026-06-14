@@ -1,0 +1,6 @@
+# intended as a header comment
+# (with no blank line separating it from the leading-comment block below,
+#  rule 1 groups everything into one block, which becomes a leading comment
+#  for 'retry_delay' -- there is no header)
+# intended as a leading comment for 'retry_delay'
+retry_delay: 5

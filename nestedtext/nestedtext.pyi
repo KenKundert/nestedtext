@@ -26,7 +26,7 @@ class Line:
 
 # Comment {{{1
 class Comment:
-    text: str
+    text: str | None
     indent: int
     tab: int | None
     before: int
@@ -34,7 +34,7 @@ class Comment:
 
     def __init__(
         self,
-        text: str = ...,
+        text: str | None = ...,
         indent: int = ...,
         *,
         tab: int | None = ...,
@@ -57,7 +57,10 @@ class Location:
     header_comments: list[Comment]
     footer_comments: list[Comment]
     spacing: dict[int | str, int]
-    sections: list[tuple[Callable[[Any], bool], list[Comment]]]
+    key_leading_provider: Callable[[Any], list[Comment]] | None
+    key_trailing_provider: Callable[[Any], list[Comment]] | None
+    value_leading_provider: Callable[[Any], list[Comment]] | None
+    value_trailing_provider: Callable[[Any], list[Comment]] | None
 
     def __init__(
         self,
@@ -115,9 +118,24 @@ class Location:
     def get_spacing(self) -> dict[int | str, int]: ...
     def set_spacing(self, spacing: dict[int | str, int]) -> None: ...
 
-    def get_sections(self) -> list[tuple[Callable[[Any], bool], list[Comment]]]: ...
-    def set_sections(
-        self, sections: list[tuple[Callable[[Any], bool], list[Comment]]]
+    def get_key_leading_provider(self) -> Callable[[Any], list[Comment]] | None: ...
+    def set_key_leading_provider(
+        self, provider: Callable[[Any], list[Comment]] | None
+    ) -> None: ...
+
+    def get_key_trailing_provider(self) -> Callable[[Any], list[Comment]] | None: ...
+    def set_key_trailing_provider(
+        self, provider: Callable[[Any], list[Comment]] | None
+    ) -> None: ...
+
+    def get_value_leading_provider(self) -> Callable[[Any], list[Comment]] | None: ...
+    def set_value_leading_provider(
+        self, provider: Callable[[Any], list[Comment]] | None
+    ) -> None: ...
+
+    def get_value_trailing_provider(self) -> Callable[[Any], list[Comment]] | None: ...
+    def set_value_trailing_provider(
+        self, provider: Callable[[Any], list[Comment]] | None
     ) -> None: ...
 
 # loads() {{{1
@@ -203,16 +221,15 @@ def get_line_numbers(
 
 # annotate() {{{1
 def annotate(
-    keymap: dict[tuple[str | int, ...], Location],
     keys: tuple[str | int, ...],
+    keymap: dict[tuple[str | int, ...], Location],
     *,
-    key_leading: list[Comment] = ...,
-    key_trailing: list[Comment] = ...,
-    value_leading: list[Comment] = ...,
-    value_trailing: list[Comment] = ...,
+    key_leading: list[Comment] | Callable[[Any], list[Comment]] = ...,
+    key_trailing: list[Comment] | Callable[[Any], list[Comment]] = ...,
+    value_leading: list[Comment] | Callable[[Any], list[Comment]] = ...,
+    value_trailing: list[Comment] | Callable[[Any], list[Comment]] = ...,
     header: list[Comment] = ...,
     footer: list[Comment] = ...,
-    sections: list[tuple[Callable[[Any], bool], list[Comment]]] = ...,
     spacing: dict[int | str, int] | None = ...,
 ) -> Location:
     ...

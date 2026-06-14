@@ -1,0 +1,8 @@
+includes:
+    - fourth.nt
+
+table 3:
+    row 31:
+        col 311: value 311
+    row 32:
+        col 321: ERROR

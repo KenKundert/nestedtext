@@ -1,0 +1,4 @@
+# a leading comment for 'database'
+# adjacent comment lines at the same indent merge into ONE Comment whose
+# text is "a leading comment for 'database'\nadjacent comment..." etc.
+database: production

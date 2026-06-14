@@ -1,0 +1,7 @@
+includes:
+    - children/second.nt
+    - children/third.nt
+
+table 1:
+    row 11:
+        col 111: value 111

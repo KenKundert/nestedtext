@@ -1,0 +1,7 @@
+# this is a header comment
+# (any blank between this block and the first key partitions the buffer:
+# everything above the last blank becomes the header)
+
+# this is a leading comment for 'retry_delay'
+# (no blank between this block and the key below, so it's leading, not header)
+retry_delay: 5

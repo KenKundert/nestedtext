@@ -1,0 +1,5 @@
+server:
+    # a leading comment for 'server.port'
+    port: 8080
+    # a leading comment for 'server.host'
+    host: 0.0.0.0

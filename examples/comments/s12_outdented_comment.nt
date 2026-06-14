@@ -1,0 +1,5 @@
+server:
+    port: 8080
+# an outdented comment (indent 0, less than the surrounding indent 4)
+# resolved as a leading comment for 'server.host' (block indent 0 <= host's indent 4)
+    host: 0.0.0.0

@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+# This example show how to implement include files with NestedText.
+#
+# The structure of data is:
+#   includes:
+#       - path
+#   table:
+#       row:
+#           column: value
+#
+# When reading a file, the includes are processed in order before the contents
+# of the file.  Any specified tables and rows are merged into the final result,
+# but rows are atomic, so they are replaced rather than inserting new columns.
+
+import nestedtext as nt
+from inform import Error, os_error
+from shlib import cd
+from voluptuous import Schema, MultipleInvalid
+from voluptuous_errors import report_voluptuous_errors
+from pathlib import Path
+import sys
+
+def normalize_key(key, parent_keys):
+    return '_'.join(key.lower().replace('-', '_').split())
+
+validate_tables = Schema({'includes': [str], str: {str: {str: str}}})
+
+def merge_to_depth(combined, new, atomic_depth, depth=1):
+    # Merges new (a dict) into combined (a dict) up to atomic depth, beyond
+    # which objects from new simply replace those with the same name in combined.
+
+    for key, value in new.items():
+        # If both values are dictionaries and we haven't hit the atomic ceiling, recurse
+        if (
+            key in combined and
+            depth < atomic_depth and
+            isinstance(combined[key], dict) and
+            isinstance(value, dict)
+        ):
+            merge_to_depth(combined[key], value, atomic_depth, depth + 1)
+        else:
+            # Otherwise, overwrite or insert the new field
+            combined[key] = value
+
+def read_files(filenames, tables, keymaps):
+    for filename in filenames:
+        filepath = Path(filename)
+        full_name = str(filepath.resolve())
+            # include file paths are relative to containing file
+            # use full path when reporting to avoid confusion
+
+        # read the file and validate the data
+        try:
+            keymap = {}
+            new_tables = nt.load(
+                filepath,
+                top = 'dict',
+                normalize_key = normalize_key,
+                keymap = keymap,
+            )
+            more_filenames = new_tables.pop('includes', [])
+
+            # check structure of the file contends
+            new_tables = validate_tables(new_tables)
+        except OSError as e:
+            raise Error(os_error(e), culprit=full_name)
+        except MultipleInvalid as e:  # report schema violations
+            report_voluptuous_errors(e, keymap, full_name)
+            raise Error("terminated due to previously reported errors.")
+
+        # process any include files
+        with cd(filepath.resolve().parent):
+            read_files(more_filenames, tables, keymaps)
+
+        # merge the new data into the existing data
+        merge_to_depth(tables, new_tables, 2)
+        keymaps[full_name] = keymap
+
+def find_keymap(keys):
+    for full_name in reversed(keymaps.keys()):
+        if keys in keymaps[full_name]:
+            return full_name, keymaps[full_name]
+    raise KeyError(keys)
+
+tables = {}
+keymaps = {}
+
+try:
+    read_files(sys.argv[1:], tables, keymaps)
+
+    # Report any columns that contain ERROR
+    for table_name, table in tables.items():
+        for row_name, row in table.items():
+            for col_name, col in row.items():
+                if col == "ERROR":
+                    keys = (table_name, row_name, col_name)
+                    full_name, keymap = find_keymap(keys)
+                    raise nt.NestedTextDataError(
+                        "Bad value.", source=full_name, keys=keys, keymap=keymap
+                    )
+
+    print(nt.dumps(tables))
+except Error as e:
+    e.terminate()

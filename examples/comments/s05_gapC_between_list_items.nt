@@ -1,0 +1,6 @@
+hosts:
+    - alpha.example.com
+    # a leading comment for the next list item, hosts[1]
+    # (not stranded; the next data line is at the same indent)
+    - beta.example.com
+    - gamma.example.com

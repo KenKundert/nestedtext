@@ -1,9 +1,12 @@
-my_gpg_ids:
+my GPG ids:
     - odin@norse-gods.com
-sign_with: odin@norse-gods.com
-name_template: {name}-{now:YYMMDD}
+sign with: odin@norse-gods.com
+name template: {name}-{now:YYMMDD}
+
+# I have many heirs, but these will be the executors.
 recipients:
     Frigg:
+            # my loving wife
         email:
             - frigg@norse-gods.com
         category: wife
@@ -13,6 +16,7 @@ recipients:
             - ~/home/estate/deed-valhalla.pdf
         networth: odin
     Thor:
+            # the good boy
         email:
             - thor@norse-gods.com
         category: kids
@@ -21,6 +25,7 @@ recipients:
             - ~/home/estate/will.pdf
             - ~/home/estate/deed-valhalla.pdf
     Loki:
+            # the bad boy
         email:
             - loki@norse-gods.com
         category: kids

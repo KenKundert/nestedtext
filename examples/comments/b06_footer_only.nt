@@ -1,0 +1,5 @@
+server:
+    port: 8080
+
+# a footer comment for the file
+# (indent 0 at EOF cannot be trailing on any key, so it falls to footer)

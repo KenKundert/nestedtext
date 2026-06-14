@@ -46,4 +46,5 @@ ignore = []
 
 [tool.ruff.lint.per-file-ignores]
 "nestedtext/__init__.py" = ["F401"]
-"examples/parametrize_from_file/test_misc.py" = ["F401"]
+"examples/parametrize_from_file/test_sundry.py" = ["F401"]
+"tests/test_misc.py" = ["F401"]

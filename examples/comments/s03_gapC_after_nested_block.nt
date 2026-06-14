@@ -1,0 +1,7 @@
+server:
+    port: 8080
+    host: 0.0.0.0
+    # a stranded block (Gap C) -- resolved as a trailing comment for 'server'
+    # because the next data line ('database') is at a strictly lower indent
+database:
+    name: production

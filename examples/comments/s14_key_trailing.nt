@@ -1,0 +1,5 @@
+server:
+        # a trailing comment for the key 'server'
+        # (indent 8 is strictly greater than the value's indent 4, so this
+        # is trailing on 'server' rather than leading on 'port' per rule 2)
+    port: 8080

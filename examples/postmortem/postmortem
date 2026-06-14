@@ -127,7 +127,8 @@ try:
 
         # add a comment
         nt.annotate(
-            keymap, ('recipients',),
+            ('recipients',),
+            keymap,
             key_leading=[nt.Comment(
                 'I have many heirs, but these will be the executors.',
                 before=1

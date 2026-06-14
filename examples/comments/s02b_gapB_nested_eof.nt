@@ -1,0 +1,6 @@
+server:
+    port: 8080
+    host: 0.0.0.0
+
+# a footer comment for the file
+# (indent 0 fails the strict '>' test against any value's indent, so this is footer)
