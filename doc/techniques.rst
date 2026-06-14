@@ -89,15 +89,30 @@ Error Reporting
 
 *NestedText* raises a :class:`NestedTextError` when it encounters a problem, and 
 you can simply use it to report the error.  It tends to do a good job of 
-locating the error for the user.  And when validating with *Voluptuous* you will 
-also get good error messages if you follow :ref:`above example <voluptuous 
-example>`.  However, what if you encounter an error in a field after you have 
-already read in a validated your data.  In this case, you can raise 
-:class:`NestedTextDataError` yourself. It identifies the source of the problem 
-in a way that is understandable by the user.  *NestedTextDataError* is defined 
-by *NestedText*, but is never raised by *NestedText* itself.  Rather it is 
-provided so that you can easily report error that derive from a *NestedText* 
-document.
+locating the error for the user.
+
+.. code-block:: python
+
+    import nestedtext as nt
+    from inform import fatal, os_error
+
+    try:
+        data = nt.load("data.nt")
+    except OSError as e:
+        fatal(os_error(e))
+    except nt.NestedTextError as e:
+        e.terminate()
+
+And when validating with *Voluptuous* you will also get good error messages if 
+you follow :ref:`above example <voluptuous example>`.
+
+However, what if you encounter an error in a field after you have already read 
+in and validated your data.  In this case, you can use 
+:class:`NestedTextDataError` to report the error. It identifies the source of 
+the problem in a way that is understandable by the user.  *NestedTextDataError* 
+is defined by *NestedText*, but is never raised by *NestedText* itself.  Rather 
+it is provided so that you can easily report error that derive from 
+a *NestedText* document.
 
 To see how this is done, consider the following example.  It involves an 
 *NestedText* file that contains some test cases, each of which contains an 
@@ -463,6 +478,35 @@ The result looks identical in the documentation, but if you ran this program in
 a terminal you would see the keys in blue.
 
 
+.. _adding comments:
+
+Adding Comments
+===============
+
+If you are creating a *NestedText* document from raw data, you can add comments 
+to your document by creating an empty keymap, adding comments to it, and 
+providing it to the dumper.  Here is an example.
+
+The following program outputs a weight diary for an individual.  In this case, 
+it output two files, a plain version and one with comments.  This example 
+demonstrates how to add header and footer comments, how to add a comment where 
+the comment is simply a blank line, and how to add dynamically created comments 
+that act as section headings.
+
+.. literalinclude:: ../examples/weight/weight
+   :language: python
+
+Here is the output without comments:
+
+.. literalinclude:: ../examples/weight/plain.nt
+   :language: nestedtext
+
+And now, with comments:
+
+.. literalinclude:: ../examples/weight/commented.nt
+   :language: nestedtext
+
+
 .. _references:
 
 References
@@ -549,7 +593,7 @@ earlier row rather than inserting new columns in it.  This is handled by
 
 The second challenge is error reporting.  Error reports must point to the file 
 that contains the error.  This is handled by *find_keymap()*, which searches 
-through keymaps in reverse order looking for the desired key path.  The 
+through keymaps in reverse order looking for the desired key path.  
 *NestedTextDataError*, described above, is used to report the error.
 
 *read_files()* is used to read the files.  When it reads a file, it first 
@@ -557,7 +601,7 @@ processes the include files in order before adding its own data to the combined
 results.
 
 .. literalinclude:: ../examples/includes/includes
-   :language: nestedtext
+   :language: python
 
 
 .. _pretty printing example:
@@ -660,6 +704,11 @@ can work well for prose.
     lorum ipsum:
         Lorem ipsum dolor sit amet, consectetur adipiscing elit.
         Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+In this example, a ``␣`` was used to represent the end of line space so you can 
+see it, but it is replaced by a true space before processing the document to 
+combine long lines.
+
 
 .. _voluptuous: https://github.com/alecthomas/voluptuous
 .. _pydantic: https://pydantic-docs.helpmanual.io

@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import nestedtext as nt
+
+data = dict(
+    name = "Zachery Farrell",
+    height = "6-2",
+    diary = {
+        "2025-09-10": 207.8, "2025-09-19": 206.4, "2025-09-21": 205.8,
+        "2025-10-07": 203,   "2025-10-20": 203.6, "2025-10-29": 203.8,
+        "2025-11-10": 209.2, "2025-11-24": 208.4,
+        "2025-12-07": 207.5, "2025-12-17": 208.5,
+        "2026-01-05": 210,   "2026-01-19": 207.4, "2026-01-30": 203.4,
+    }
+)
+current_year = None
+current_month = None
+months = {
+    '1': "January",   '2': "February", '3': "March",     '4': "April",
+    '5': "May",       '6': "June",     '7': "July",      '8': "August",
+    '9': "September", '10': "October", '11': "November", '12': "December",
+}
+
+def add_section_headings(key):
+    global current_year, current_month
+    year, month, day = key.split('-')
+    month = month.lstrip('0')
+    if year != current_year:
+        current_year = year
+        current_month = month
+        return [
+            nt.Comment(f"{year}", before=1),
+            nt.Comment(f"{months[month]}")
+        ]
+    elif month != current_month:
+        current_month = month
+        return [nt.Comment(f"{months[month]}", before=1)]
+
+
+# add comments
+keymap = {}
+nt.annotate((), keymap=keymap, header=[nt.Comment(f"Weight diary for {data['name']}")])  # add header
+nt.annotate((), keymap=keymap, footer=[nt.Comment("All weights given in pounds.")])      # add footer
+nt.annotate(('height',), keymap=keymap, value_trailing=[nt.Comment("feet-inches")])      # add units to height
+nt.annotate(('diary',), keymap=keymap, key_leading=[nt.Comment(None, before=1)])         # add blank line before diary
+nt.annotate(("diary",), keymap=keymap, key_leading=add_section_headings)
+
+# dump version with and without comments
+nt.dump(data, "commented.nt", map_keys=keymap)
+nt.dump(data, 'plain.nt')

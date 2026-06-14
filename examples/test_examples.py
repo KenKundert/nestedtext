@@ -208,3 +208,67 @@ def test_includes_with_error():
         assert test.status == 1
         assert stdout == ""
         assert re.match(expected, stderr)
+
+def test_commenting():
+    with cd(tests_dir / "weight"):
+        test = Run(["./weight"], modes="sOEW")
+        assert test.stdout == ""
+        assert test.stderr == ""
+        plain = Path("plain.nt").read_text()
+        expected = dedent("""\
+            name: Zachery Farrell
+            height: 6-2
+            diary:
+                2025-09-10: 207.8
+                2025-09-19: 206.4
+                2025-09-21: 205.8
+                2025-10-07: 203
+                2025-10-20: 203.6
+                2025-10-29: 203.8
+                2025-11-10: 209.2
+                2025-11-24: 208.4
+                2025-12-07: 207.5
+                2025-12-17: 208.5
+                2026-01-05: 210
+                2026-01-19: 207.4
+                2026-01-30: 203.4
+        """)
+        assert plain == expected
+        commented = Path("commented.nt").read_text()
+        expected = dedent("""\
+            # Weight diary for Zachery Farrell
+
+            name: Zachery Farrell
+            height: 6-2
+                # feet-inches
+
+            diary:
+
+                # 2025
+                # September
+                2025-09-10: 207.8
+                2025-09-19: 206.4
+                2025-09-21: 205.8
+
+                # October
+                2025-10-07: 203
+                2025-10-20: 203.6
+                2025-10-29: 203.8
+
+                # November
+                2025-11-10: 209.2
+                2025-11-24: 208.4
+
+                # December
+                2025-12-07: 207.5
+                2025-12-17: 208.5
+
+                # 2026
+                # January
+                2026-01-05: 210
+                2026-01-19: 207.4
+                2026-01-30: 203.4
+
+            # All weights given in pounds.
+        """)
+        assert commented == expected

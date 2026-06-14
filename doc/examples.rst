@@ -81,12 +81,12 @@ to be literal Python code.
 
 The test cases:
 
-.. literalinclude:: ../examples/parametrize_from_file/test_misc.nt
+.. literalinclude:: ../examples/parametrize_from_file/test_sundry.nt
    :language: nestedtext
 
 And the corresponding test code:
 
-.. literalinclude:: ../examples/parametrize_from_file/test_misc.py
+.. literalinclude:: ../examples/parametrize_from_file/test_sundry.py
    :language: python
 
 

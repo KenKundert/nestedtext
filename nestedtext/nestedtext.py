@@ -706,11 +706,13 @@ class Comment:
         extras = []
         if self.tab is not None:
             extras.append(f", tab={self.tab}")
+        else:
+            extras.append(f", indent={self.indent}")
         if self.before:
             extras.append(f", before={self.before}")
         if self.after:
             extras.append(f", after={self.after}")
-        return f"Comment({self.text!r}, indent={self.indent}{''.join(extras)})"
+        return f"Comment({self.text!r}{''.join(extras)})"
 
     def __eq__(self, other):
         if not isinstance(other, Comment):

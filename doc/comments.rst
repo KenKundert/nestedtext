@@ -45,8 +45,8 @@ There are 5 types of comments:
 
 - *header* comments — found at the very top of the file, before any data.
 - *leading* comments — found before a data item, refer to that item.
-- *trailing* comments — found after a data item, refer to that item.
 - *inline* comments — found within multiline strings.
+- *trailing* comments — found after a data item, refer to that item.
 - *footer* comments — found at the very end of the file, after all data.
 
 
@@ -162,10 +162,10 @@ Trailing / footer comments
 
 There is no ambiguity here -- trailing and footer comments are distinguished
 by their indentation level.  If the indentation is greater than the
-indentation of both the previous and next data items, then the comment is 
-a trailing comment for the previous item.  If the indentation is less than or 
-equal to the indentation of the last data item, then the comment is a footer 
-comment for the document as a whole.
+indentation of the previous data items, then the comment is a trailing comment 
+for the previous item.  If the indentation is less than or equal to the 
+indentation of the last data item, then the comment is a footer comment for the 
+document as a whole.
 
 No data
 ~~~~~~~
@@ -304,8 +304,8 @@ child already has at the same slot.  The provider owns its dedup state
 (via closure), so it can decide -- per child -- whether to emit anything,
 and what to emit.
 
-A *classifier* condenses the old "sections" idea into one provider that
-branches by the child key:
+In the following example a *classifier* is used to add comments that act as 
+section headings:
 
 .. code-block:: python
 
@@ -331,9 +331,9 @@ branches by the child key:
     # Logging
     log_level: info
 
-A provider also handles transitions in multiple grouping levels at once
--- the diary example, where year and month each get their own header
-whenever they change:
+A provider also handles transitions in multiple grouping levels at once.
+In the following, year and month comments are added to delineate the entries in 
+a diary:
 
 .. code-block:: python
 
@@ -366,11 +366,14 @@ whenever they change:
     # --- 01 ---
     2025-01-09: third
 
-A static list and a provider cannot coexist in the *same* slot on the
-*same* Location -- they're the two interpretations of one argument.  But
-a provider on the parent composes naturally with the child's own static
-comments: the provider's output is prepended.  Providers are callables
-and therefore not JSON-serializable; they are dropped on
+A static list and a provider can coexist in the *same* slot on the
+*same* Location, but they cannot both be specified in the same call to 
+:func:`annotate`.  Each would need it own call.
+
+When both a statically and dynamically provided comment exist on the same 
+location, the dynamically provided comment precedes the static comment.
+
+Providers are callables and therefore not JSON-serializable; they are dropped on
 :func:`keymap_to_jsonable` round-trips.
 
 
@@ -430,6 +433,4 @@ JSON-serializable data:
 
 Source line and column information is discarded by the JSON-able form;
 only what the dumper consults (original key strings, comment slots,
-per-Location spacing) survives.  Section predicates (set via
-:meth:`Location.set_sections`) are also dropped because their predicates
-are callables and not JSON-serializable.
+per-Location spacing) survives.
