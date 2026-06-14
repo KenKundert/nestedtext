@@ -30,8 +30,8 @@ for i, case in enumerate(expressions):
                 )
         if evaluated['expr'] != evaluated['expected']:
             raise nt.NestedTextDataError(
-                f"TEST FAILED expr={case['expr']}:",
-                f"result={evaluated['expr']} ≠ expected={evaluated['expected']}",
+                "test failed.", culprit=f"expr={case['expr']}",
+                codicil=f"result={evaluated['expr']} ≠ expected={evaluated['expected']}",
                 source=source, keys=(i, key), keymap=keymap, show_line=False
             )
     except nt.NestedTextDataError as e:

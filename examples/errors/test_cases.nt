@@ -2,11 +2,8 @@
     expr: 2**8
     expected: 255
 -
-    expr: 23//5
-    expected: 4
--
-    expr: "numb" + "skull"
-    expected: "numbskull"
+    expr: int('x')
+    expected: 5
 -
     expr: math.log2(4096
     expected: 12

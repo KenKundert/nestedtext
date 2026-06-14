@@ -160,10 +160,12 @@ def test_error_reporting():
         stderr = Color.strip_colors(test.stderr)
         stdout = Color.strip_colors(test.stdout)
         expected = dedent("""\
-            test error: test_cases.nt@3, 0›expected:
-                TEST FAILED expr=2**8: result=256 ≠ expected=255
-            test error: test_cases.nt@11, 3›expr: '(' was never closed (<string>, line 1)
-                  11 ❬    expr: math.log2(4096❭
+            test error: test_cases.nt@3, 0›expected, expr=2**8: test failed.
+                result=256 ≠ expected=255
+            test error: test_cases.nt@5, 1›expr: invalid literal for int() with base 10: 'x'
+                   5 ❬    expr: int('x')❭
+            test error: test_cases.nt@8, 2›expr: '(' was never closed (<string>, line 1)
+                   8 ❬    expr: math.log2(4096❭
                                           ▲
         """)
         assert test.status == 0

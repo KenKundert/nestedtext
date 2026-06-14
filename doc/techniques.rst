@@ -124,11 +124,13 @@ offending test case, the keymap as returned from the loader.
 
 The following errors are reported::
 
-    test error: test_cases.nt@3, 0›expected:
-        TEST 0 FAILED expr=2**8: result=256 ≠ expected=255
-    test error: test_cases.nt@11, 3›expr: '(' was never closed (<string>, line 1)
-        11 ❬    expr: math.log2(4096❭
-                                ▲
+    test error: test_cases.nt@3, 0›expected, expr=2**8: test failed.
+        result=256 ≠ expected=255
+    test error: test_cases.nt@5, 1›expr: invalid literal for int() with base 10: 'x'
+           5 ❬    expr: int('x')❭
+    test error: test_cases.nt@8, 2›expr: '(' was never closed (<string>, line 1)
+           8 ❬    expr: math.log2(4096❭
+                                  ▲
 
 Notice that each message starts by identifying the source of the error in two 
 ways, first is the file name and line number (test_cases.nt@3), and the second 
