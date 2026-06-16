@@ -29,6 +29,7 @@ Latest development version
   the keymaps passed to a dumper in order to add comments and spacing rules.
 - Removed *get_value_from_keys()*, *get_lines_from_keys()*,
   *get_original_keys()*, and *join_keys()*.
+- Adds *inline_count* argument to :func:`dump` and :func:`dumps`.
 
 
 | Version: 3.8

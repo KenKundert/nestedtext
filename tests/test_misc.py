@@ -1448,6 +1448,36 @@ def test_dump_converters_err(data, culprit, kind, kwargs):
 def test_dump_width(given, expected, kwargs):
     assert nt.dumps(given, **kwargs) == expected
 
+# test_dump_inline_count {{{2
+@parametrize(
+    'given, expected, kwargs', [
+        ({}, '{}', dict()),
+        ({}, '{}', dict(width=80)),
+        ({}, '{}', dict(width=80, inline_count=0)),
+        ({}, '{}', dict(width=80, inline_count=1)),
+
+        ({0:0}, '0: 0', dict()),
+        ({0:0}, '{0: 0}', dict(width=80)),
+        ({0:0}, '{0: 0}', dict(width=80, inline_count=1)),
+        ({0:0}, '0: 0', dict(width=80, inline_count=2)),
+
+        ({0:0, 1:1}, '0: 0\n1: 1', dict()),
+        ({0:0, 1:1}, '{0: 0, 1: 1}', dict(width=80)),
+        ({0:0, 1:1}, '{0: 0, 1: 1}', dict(width=80, inline_count=1)),
+        ({0:0, 1:1}, '{0: 0, 1: 1}', dict(width=80, inline_count=2)),
+        ({0:0, 1:1}, '0: 0\n1: 1', dict(width=80, inline_count=3)),
+
+        ({0:0, 1:1, 2:2}, '0: 0\n1: 1\n2: 2', dict()),
+        ({0:0, 1:1, 2:2}, '{0: 0, 1: 1, 2: 2}', dict(width=80)),
+        ({0:0, 1:1, 2:2}, '{0: 0, 1: 1, 2: 2}', dict(width=80, inline_count=1)),
+        ({0:0, 1:1, 2:2}, '{0: 0, 1: 1, 2: 2}', dict(width=80, inline_count=2)),
+        ({0:0, 1:1, 2:2}, '{0: 0, 1: 1, 2: 2}', dict(width=80, inline_count=3)),
+        ({0:0, 1:1, 2:2}, '0: 0\n1: 1\n2: 2', dict(width=80, inline_count=4)),
+    ]
+)
+def test_dump_inline_count(given, expected, kwargs):
+    assert nt.dumps(given, **kwargs) == expected
+
 # test_dump_nones {{{2
 @parametrize(
     'given, expected, kwargs', [

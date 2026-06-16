@@ -2063,24 +2063,26 @@ class NestedTextDumper:
     # constructor {{{3
     def __init__(
         self,
-        width,
-        inline_level,
-        sort_keys,
         indent,
+        sort_keys,
         converters,
         default,
-        map_keys,
-        dialect,
         spacing,
+        map_keys,
+        width,
+        inline_level,
+        inline_count,
+        dialect,
     ):
         assert indent > 0
-        self.width = width
-        self.inline_level = inline_level
         self.indent = indent
         self.converters = converters
         self.map_keys = map_keys
         self.default = default
         self.spacing = spacing or {}
+        self.width = width
+        self.inline_level = inline_level
+        self.inline_count = inline_count
         self.support_inlines = True
         if dialect and "i" in dialect:
             self.support_inlines = False
@@ -2443,10 +2445,15 @@ class NestedTextDumper:
             try:
                 if not self.support_inlines:
                     raise NotSuitableForInline from None
-                if level < self.inline_level:
+                if obj and (self.width <= 0 or level < self.inline_level):
                     raise NotSuitableForInline from None
-                if obj and (self.width <= 0 or len(obj) > self.width/5):
-                    raise NotSuitableForInline from None
+                try:
+                    if 0 < len(obj) < self.inline_count:
+                        raise NotSuitableForInline from None
+                    if obj and len(obj) > self.width/5:
+                        raise NotSuitableForInline from None
+                except TypeError:
+                    pass  # does not have len()
                 content = self.render_inline_dict(obj, keys, values)
                 if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
@@ -2470,10 +2477,15 @@ class NestedTextDumper:
             try:
                 if not self.support_inlines:
                     raise NotSuitableForInline from None
-                if level < self.inline_level:
+                if obj and (self.width <= 0 or level < self.inline_level):
                     raise NotSuitableForInline from None
-                if obj and (self.width <= 0 or len(obj) > self.width/3):
-                    raise NotSuitableForInline from None
+                try:
+                    if 0 < len(obj) < self.inline_count:
+                        raise NotSuitableForInline from None
+                    if obj and (self.width <= 0 or len(obj) > self.width/3):
+                        raise NotSuitableForInline from None
+                except TypeError:
+                    pass  # does not have len()
                 content = self.render_inline_list(obj, keys, values)
                 if obj and (len(content) > self.width):
                     raise NotSuitableForInline from None
@@ -2579,15 +2591,16 @@ class NestedTextDumper:
 def dumps(
     obj,
     *,
+    indent = 4,
+    sort_keys = False,
+    converters = None,
+    default = None,
+    spacing = None,
+    map_keys = None,
     width = 0,
     inline_level = 0,
-    sort_keys = False,
-    indent = 4,
-    converters = None,
-    map_keys = None,
-    default = None,
+    inline_count = 1,
     dialect = None,
-    spacing = None,
 ):
     # description {{{3
     '''Recursively convert object to *NestedText* string.
@@ -2596,13 +2609,9 @@ def dumps(
         obj:
             The object to convert to *NestedText*.
 
-        width (int):
-            Enables inline lists and dictionaries if greater than zero and if
-            resulting line would be less than or equal to given width.
-
-        inline_level (int):
-            Recursion depth must be equal to this value or greater to be
-            eligible for inlining.
+        indent (int):
+            The number of spaces to use to represent a single level of
+            indentation.  Must be one or greater.
 
         sort_keys (bool or func):
             Dictionary items are sorted by their key if *sort_keys* is *True*.
@@ -2618,10 +2627,6 @@ def dumps(
                 ('<mapped_key>', '<orig_key>', '<mapped_key>: <value>')
 
             The second contains the keys of the parent.
-
-        indent (int):
-            The number of spaces to use to represent a single level of
-            indentation.  Must be one or greater.
 
         converters (dict):
             A dictionary where the keys are types and the values are converter
@@ -2649,6 +2654,21 @@ def dumps(
             it raises a TypeError, the value is reported as an
             unsupported type.
 
+        spacing (dict):
+            A mapping that controls vertical spacing in the rendered output.
+
+            Integer keys specify the minimum number of blank lines between
+            sibling items at that depth.  ``spacing={0: 1}`` requests one blank
+            line between top-level items; ``spacing={0: 2, 1: 1}`` requests two
+            blank lines between top-level items and one between items at the
+            first nested level.  Depths not present in the mapping default to
+            zero.
+
+            The special key ``"edges"`` is the number of blank lines between
+            the document's header comments and the first data item, and
+            between the last data item and the document's footer comments.
+            One number applies to both.  Defaults to zero.
+
         map_keys (func or keymap):
             This argument is used to modify the way keys are rendered, and,
             when it is a keymap, to preserve comments and blank-line spacing
@@ -2668,20 +2688,17 @@ def dumps(
             keys.  The value returned is used as the key and so must be a
             string.  If no value is returned, the key is not modified.
 
-        spacing (dict):
-            A mapping that controls vertical spacing in the rendered output.
+        width (int):
+            Enables inline lists and dictionaries if greater than zero and if
+            resulting line would be less than or equal to given width.
 
-            Integer keys specify the minimum number of blank lines between
-            sibling items at that depth.  ``spacing={0: 1}`` requests one blank
-            line between top-level items; ``spacing={0: 2, 1: 1}`` requests two
-            blank lines between top-level items and one between items at the
-            first nested level.  Depths not present in the mapping default to
-            zero.
+        inline_level (int):
+            Recursion depth must be equal to this value or greater to be
+            eligible for inlining.
 
-            The special key ``"edges"`` is the number of blank lines between
-            the document's header comments and the first data item, and
-            between the last data item and the document's footer comments.
-            One number applies to both.  Defaults to zero.
+        inline_count (int):
+            The minimum number of items required of a dictionary or list to be
+            eligible for inlining.
 
         dialect (str):
             Specifies support for particular variations in *NestedText*.
@@ -2953,8 +2970,8 @@ def dumps(
 
     # code {{{3
     dumper = NestedTextDumper(
-        width, inline_level, sort_keys, indent, converters, default,
-        map_keys, dialect, spacing
+        indent, sort_keys, converters, default, spacing,
+        map_keys, width, inline_level, inline_count, dialect
     )
     content = dumper.render_value(obj, (), ())
 
