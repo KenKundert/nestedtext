@@ -120,8 +120,6 @@ comment for the first data item.  The partition is at the *last blank
 line* in the buffer.  If there is no blank line, the entire content is
 leading on the first data item (no header).
 
-Comments in a document that contains no data are all header comments.
-
 Leading / trailing comments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -415,6 +413,10 @@ lines between the document's header comments and the body, and between
 the body and the footer comments.  See :meth:`Location.set_spacing` for
 how to attach a *spacing* dict to a particular Location, replacing the
 global spacing within that subtree.
+
+You can also set the spacing on :class:`Location` objects in the keymap 
+directly, which allows you to specify different spacing rules for different 
+parts of the document.
 
 When the load and dump happen in different processes (or are otherwise
 separated in time), use :func:`keymap_to_jsonable` and

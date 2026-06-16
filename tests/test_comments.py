@@ -1096,6 +1096,173 @@ def test_comment_with_none_text_in_provider():
     assert "# start of 2024-02" not in out
 
 
+def test_multi_line_key_round_trip_preserves_all_comment_slots():
+    """A multi-line key with key_trailing, value_leading, and value_trailing
+    must round-trip without dropping or mispositioning any of them."""
+    src = (
+        "# heading\n"
+        "\n"
+        "# leading on key\n"
+        ": key1a\n"
+        ": key1b\n"
+        "        # trailing on key\n"
+        "    # leading on value\n"
+        "    > nutz\n"
+        "        # trailing on value\n"
+        "\n"
+        "# footer\n"
+    )
+    keymap = {}
+    nt.loads(src, top="dict", keymap=keymap)
+    # The multi-line key is "key1a\nkey1b".
+    loc = keymap[("key1a\nkey1b",)]
+    assert [c.text for c in loc.get_key_leading_comments()]    == ["leading on key"]
+    assert [c.text for c in loc.get_key_trailing_comments()]   == ["trailing on key"]
+    assert [c.text for c in loc.get_value_leading_comments()]  == ["leading on value"]
+    assert [c.text for c in loc.get_value_trailing_comments()] == ["trailing on value"]
+
+
+def test_multi_line_key_inline_comment_collected_as_key_trailing():
+    """A comment between fragments of a multi-line key is collected and
+    emitted at the key_trailing position (similar to the inline-in-
+    multi-line-string convention)."""
+    src = (
+        ": key1a\n"
+        "# inline in key\n"
+        ": key1b\n"
+        "    > value\n"
+    )
+    keymap = {}
+    nt.loads(src, top="dict", keymap=keymap)
+    loc = keymap[("key1a\nkey1b",)]
+    # the inline comment ends up in key_trailing
+    texts = [c.text for c in loc.get_key_trailing_comments()]
+    assert "inline in key" in texts
+
+
+def test_dumper_multi_line_key_with_inner_multi_line_key():
+    """The dumper's key-boundary scan must stop when it encounters a
+    deeper-indented ':' line -- that belongs to the inner dict's
+    multi-line key, not to the outer's."""
+    keymap = {}
+    annotate(("a\nb",), keymap, key_trailing=[Comment("outer kt", tab=1)])
+    data = {"a\nb": {"c\nd": "v"}}
+    out = nt.dumps(data, map_keys=keymap, indent=4)
+    lines = out.split("\n")
+    outer_a = lines.index(": a")
+    outer_b = lines.index(": b")
+    kt = lines.index("        # outer kt")
+    inner_c = lines.index("    : c")
+    inner_d = lines.index("    : d")
+    # outer kt goes between the outer key's last fragment and the inner
+    # dict's first fragment.
+    assert outer_a < outer_b < kt < inner_c < inner_d
+
+
+def test_dumper_multi_line_key_places_kt_vl_after_all_fragments():
+    """When emitting a multi-line key, key_trailing/value_leading
+    comments go AFTER the last key fragment, not between the
+    fragments."""
+    keymap = {}
+    annotate(("a\nb",), keymap,
+        key_trailing=[Comment("kt", tab=1)],
+        value_leading=[Comment("vl", tab=0)],
+    )
+    data = {"a\nb": "v"}
+    out = nt.dumps(data, map_keys=keymap, indent=4)
+    lines = out.split("\n")
+    a = lines.index(": a")
+    b = lines.index(": b")
+    kt = lines.index("        # kt")
+    vl = lines.index("    # vl")
+    val = lines.index("    > v")
+    # all key fragments precede the comments; comments precede the value
+    assert a < b < kt < vl < val
+
+
+def test_round_trip_preserves_key_trailing_and_value_leading():
+    """A load with key_trailing and value_leading comments on a scalar
+    value must round-trip exactly -- the dumper must NOT collapse to
+    inline form (which would drop those slots)."""
+    src = (
+        "# heading comment for document\n"
+        "\n"
+        "# leading comment for key\n"
+        "key:\n"
+        "        # trailing comment for key\n"
+        "    # leading comment for value\n"
+        "    > nutz\n"
+        "        # trailing comment for value\n"
+        "\n"
+        "# footer comment for document\n"
+    )
+    keymap = {}
+    data = nt.loads(src, top="any", keymap=keymap)
+    out = nt.dumps(data, map_keys=keymap)
+    # Re-load and compare keymaps + data — semantic preservation.
+    keymap2 = {}
+    data2 = nt.loads(out, top="any", keymap=keymap2)
+    assert data == data2
+    # All four comment kinds for ('key',) survive:
+    loc = keymap2[("key",)]
+    assert [c.text for c in loc.get_key_leading_comments()]   == ["leading comment for key"]
+    assert [c.text for c in loc.get_key_trailing_comments()]  == ["trailing comment for key"]
+    assert [c.text for c in loc.get_value_leading_comments()] == ["leading comment for value"]
+    assert [c.text for c in loc.get_value_trailing_comments()] == ["trailing comment for value"]
+
+
+def test_force_multiline_for_dict_value_with_kt_or_vl():
+    """If the value is a dict/list and key_trailing/value_leading
+    comments exist, the existing multi-line form is used (regression
+    check that the new branch doesn't break collection-valued items)."""
+    src = (
+        "outer:\n"
+        "        # trailing on outer's key\n"
+        "    inner: 1\n"
+    )
+    keymap = {}
+    data = nt.loads(src, top="any", keymap=keymap)
+    out = nt.dumps(data, map_keys=keymap)
+    keymap2 = {}
+    nt.loads(out, top="any", keymap=keymap2)
+    assert [c.text for c in keymap2[("outer",)].get_key_trailing_comments()] == [
+        "trailing on outer's key"
+    ]
+
+
+def test_force_multiline_value_for_non_string_scalar():
+    """A non-string scalar with a key_trailing comment is still emitted
+    in the multi-line value form."""
+    keymap = {}
+    annotate(("count",), keymap, key_trailing=[Comment("must be int")])
+    data = {"count": 42}
+    out = nt.dumps(data, map_keys=keymap)
+    # The 42 must end up on its own line (with `> ` leader), not inline.
+    assert "count: 42" not in out
+    assert "count:" in out
+    assert "> 42" in out
+    assert "# must be int" in out
+
+
+def test_force_multiline_with_parent_provider():
+    """A parent's key_trailing provider also forces multi-line value
+    form for its children, even when the provider's return value is
+    empty for the specific child."""
+    def kt(k):
+        return [Comment(f"trail {k}")] if k == "verbose" else []
+    keymap = {}
+    annotate((), keymap, key_trailing=kt)
+    data = {"verbose": "yes", "quiet": "no"}
+    out = nt.dumps(data, map_keys=keymap)
+    # verbose: comment lands; the value is on its own line.
+    assert "# trail verbose" in out
+    # 'verbose' and 'quiet' both rendered in multi-line form (provider
+    # presence forces it conservatively).
+    assert "verbose: yes" not in out
+    assert "> yes" in out
+    assert "> no" in out
+
+
 def test_loader_auto_blank_still_fires():
     """Two same-indent loader-built Comments still get an auto-blank
     between them, so the boundary survives a re-load."""

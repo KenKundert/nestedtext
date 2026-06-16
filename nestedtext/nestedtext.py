@@ -1472,18 +1472,57 @@ class NestedTextLoader:
             # each Location own its comments outright -- two Locations that
             # share a Line (parent and its first child) cannot then
             # double-emit the same comment block.
-            kl = location.key_line if location.key_line is not None else location.line
+            key_first = (
+                location.key_line if location.key_line is not None
+                else location.line
+            )
             vl = location.line
             ve = location.value_end_line
-            if kl is not None and kl.leading_comments:
-                location.key_leading_comments = list(kl.leading_comments)
-                kl.leading_comments = []
-            if vl is not None and vl is not kl and vl.leading_comments:
+            # For a multi-line key, walk the chain of fragment lines via
+            # next_line (set by Lines.read_lines only between consecutive
+            # ``key item`` lines at the same depth) so that comments
+            # staged on later fragments are claimed too.
+            key_last = key_first
+            if key_first is not None:
+                while (
+                    getattr(key_last, "next_line", None) is not None
+                    and key_last.next_line.kind == "key item"
+                    and key_last.next_line.depth == key_last.depth
+                ):
+                    key_last = key_last.next_line
+            if key_first is not None and key_first.leading_comments:
+                location.key_leading_comments = list(key_first.leading_comments)
+                key_first.leading_comments = []
+            if (
+                vl is not None
+                and vl is not key_first
+                and vl is not key_last
+                and vl.leading_comments
+            ):
                 location.value_leading_comments = list(vl.leading_comments)
                 vl.leading_comments = []
-            if kl is not None and kl is not ve and kl.trailing_comments:
-                location.key_trailing_comments = list(kl.trailing_comments)
-                kl.trailing_comments = []
+            # key_trailing collects (a) leading_comments staged on each
+            # *intermediate* key-fragment line -- these are comments that
+            # appeared between fragments of the multi-line key, the
+            # multi-line-key analogue of inline-in-multi-line-string -- and
+            # (b) the trailing_comments on each fragment, including the
+            # last.  All are emitted at the key-trailing position.  When
+            # the entire key+value is on one line (key_first == ve), the
+            # trailing comments belong to value_trailing instead.
+            kt = []
+            cur = key_first
+            while cur is not None:
+                if cur is not key_first and cur.leading_comments:
+                    kt.extend(cur.leading_comments)
+                    cur.leading_comments = []
+                if cur is not ve and cur.trailing_comments:
+                    kt.extend(cur.trailing_comments)
+                    cur.trailing_comments = []
+                if cur is key_last:
+                    break
+                cur = cur.next_line
+            if kt:
+                location.key_trailing_comments = kt
             if ve is not None and ve.trailing_comments:
                 location.value_trailing_comments = list(ve.trailing_comments)
                 ve.trailing_comments = []
@@ -2079,6 +2118,16 @@ class NestedTextDumper:
             or key[:2] in ["- ", "> ", ": "]
             or ": " in key
         )
+        # The key_trailing and value_leading comment slots only have a
+        # rendering position in the multi-line dict-item *value* form
+        # (between the key line and the value's first line).  If either
+        # slot has any contribution -- static or via a parent provider --
+        # force the value onto its own line so those comments don't get
+        # silently dropped.
+        force_multiline_value = (
+            not multiline_key_required
+            and self._comments_force_multiline(keys)
+        )
         if multiline_key_required:
             key = "\n".join(": "+l if l else ":" for l in key.split("\n"))
             if self.is_a_dict(value) or self.is_a_list(value):
@@ -2089,8 +2138,39 @@ class NestedTextDumper:
             else:
                 value = self.render_value(value, keys, values)
             return key + "\n" + add_leader(value, self.indent*" " + "> ")
-        else:
-            return add_prefix(key + ":", self.render_value(value, keys, values))
+        if force_multiline_value:
+            # Plain "key:" syntax, but force the value onto its own line
+            # so key_trailing / value_leading have a place to render.
+            if self.is_a_dict(value) or self.is_a_list(value):
+                return key + ":" + self.render_value(value, keys, values)
+            if is_str(value):
+                value_text = convert_line_terminators(value)
+            else:
+                value_text = self.render_value(value, keys, values)
+            return key + ":\n" + add_leader(value_text, self.indent*" " + "> ")
+        return add_prefix(key + ":", self.render_value(value, keys, values))
+
+    # _comments_force_multiline {{{3
+    def _comments_force_multiline(self, keys):
+        """Return True if any source -- static key_trailing/value_leading
+        on this Location, or a parent provider for either slot -- will
+        contribute Comments that need the multi-line dict-item form.
+        """
+        if not is_mapping(self.map_keys):
+            return False
+        loc = self.map_keys.get(keys)
+        if loc is not None:
+            if loc.get_key_trailing_comments() or loc.get_value_leading_comments():
+                return True
+        if keys:
+            parent_loc = self.map_keys.get(keys[:-1])
+            if parent_loc is not None:
+                if (
+                    parent_loc.get_key_trailing_provider() is not None
+                    or parent_loc.get_value_leading_provider() is not None
+                ):
+                    return True
+        return False
 
     # render_inline_value {{{3
     def render_inline_value(self, obj, exclude, keys, values):
@@ -2318,15 +2398,36 @@ class NestedTextDumper:
         value_leading = self._comments_to_lines(vl, natural=val_natural)
         trailing = self._comments_to_lines(vt, natural=val_natural)
         value_lines = rendered_value.split("\n")
-        # Inject key_trailing and value_leading between the key line (first
-        # line) and the value's first line.  Only meaningful when the item
-        # spans multiple lines.
+        # Inject key_trailing and value_leading between the rendered key
+        # (which may span several lines for multi-line keys) and the
+        # value's first line.  We detect the key's line count by counting
+        # consecutive leading lines that look like multi-line key
+        # fragments (``: frag`` or ``:`` after lstrip) at the *same*
+        # indent.  If no multi-line-key prefix is present, the key is the
+        # first line (e.g. ``key:``).  Inline values (single-line output)
+        # don't get key_trailing / value_leading -- those are forced into
+        # multi-line by ``_comments_force_multiline``, which is what
+        # ensures we never silently drop them here.
         if (key_trailing or value_leading) and len(value_lines) > 1:
+            boundary = 0
+            key_indent = None
+            for line in value_lines:
+                stripped = line.lstrip()
+                if not (stripped == ":" or stripped.startswith(": ")):
+                    break
+                indent = len(line) - len(stripped)
+                if key_indent is None:
+                    key_indent = indent
+                elif indent != key_indent:
+                    break
+                boundary += 1
+            if boundary == 0:
+                boundary = 1
             value_lines = (
-                value_lines[:1]
+                value_lines[:boundary]
                 + key_trailing
                 + value_leading
-                + value_lines[1:]
+                + value_lines[boundary:]
             )
         return "\n".join(leading + value_lines + trailing)
 
