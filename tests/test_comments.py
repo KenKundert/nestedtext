@@ -336,18 +336,36 @@ ROUND_TRIP_FIXTURES = [
 ]
 
 
+def _coalesce(comments):
+    """Merge adjacent same-indent Comments into a single (joined-text,
+    indent) tuple.  The dumper emits adjacent same-indent Comments
+    without a separating blank, so on re-load they fuse into one
+    Comment -- text content and slot assignment are preserved, only
+    the Comment-object granularity is.  This helper normalises that
+    so summaries can be compared across load/dump/load cycles."""
+    out = []
+    for c in comments:
+        if out and out[-1][1] == c.indent:
+            out[-1] = (out[-1][0] + "\n" + c.text, c.indent)
+        else:
+            out.append((c.text, c.indent))
+    return out
+
+
 def _keymap_summary(km):
     """Reduce a keymap to its semantically-significant content for
-    comparison: comment texts and indents on each key, plus header/footer."""
+    comparison: comment texts and indents on each key, plus header/footer.
+    Adjacent same-indent Comments within a slot are coalesced so the
+    comparison is stable across load → dump → load."""
     summary = {}
     for key, loc in km.items():
         summary[key] = {
-            "key_leading": [(c.text, c.indent) for c in loc.get_key_leading_comments()],
-            "key_trailing": [(c.text, c.indent) for c in loc.get_key_trailing_comments()],
-            "value_leading": [(c.text, c.indent) for c in loc.get_value_leading_comments()],
-            "value_trailing": [(c.text, c.indent) for c in loc.get_value_trailing_comments()],
-            "header": [(c.text, c.indent) for c in loc.get_header_comments()],
-            "footer": [(c.text, c.indent) for c in loc.get_footer_comments()],
+            "key_leading":    _coalesce(loc.get_key_leading_comments()),
+            "key_trailing":   _coalesce(loc.get_key_trailing_comments()),
+            "value_leading":  _coalesce(loc.get_value_leading_comments()),
+            "value_trailing": _coalesce(loc.get_value_trailing_comments()),
+            "header":         _coalesce(loc.get_header_comments()),
+            "footer":         _coalesce(loc.get_footer_comments()),
         }
     return summary
 
@@ -775,7 +793,10 @@ def test_dumps_empty_data_with_header():
 def test_s11_inline_converted_to_trailing_on_dump():
     """s11 does not round-trip exactly: per the rules, the inline comment is
     captured as trailing on the value at load time, and the dumper emits it
-    after the value rather than between `>` lines."""
+    after the value rather than between `>` lines.  Its indent is also
+    bumped to one tabstop past the value's column so that a re-load will
+    still classify it as value_trailing rather than as a leading comment
+    on the next sibling (or a footer at EOF)."""
     text = (EXAMPLES / "s11_gapG_comment_inside_multiline.nt").read_text()
     keymap = {}
     data = nt.loads(text, top="any", keymap=keymap)
@@ -784,8 +805,8 @@ def test_s11_inline_converted_to_trailing_on_dump():
         "notice:\n"
         "    > the cache layer is being decommissioned\n"
         "    > use the new metrics service instead\n"
-        "    # a comment inside a multi-line string value\n"
-        "    # (per Gap G: attached as a trailing comment for 'notice'; position within the value is lost on dump)"
+        "        # a comment inside a multi-line string value\n"
+        "        # (per Gap G: attached as a trailing comment for 'notice'; position within the value is lost on dump)"
     )
 
 
@@ -1001,21 +1022,21 @@ def test_annotate_blanks_before_after():
     assert lines[intro_idx + 1] == ""        # blank after
 
 
-def test_annotate_tab_mode_suppresses_auto_blank():
-    """User-built (tab-mode) same-indent Comments do NOT get the
-    auto-blank that loader-built Comments get; the user controls
-    surrounding blanks explicitly via before/after."""
+def test_same_indent_comments_emit_contiguously():
+    """Two same-indent Comments in a single slot are emitted
+    contiguously, with no separating blank line.  (On re-load they will
+    merge into one Comment; the dumper does not insert any auto-blank
+    to preserve Comment-object granularity.)"""
     keymap = {}
     annotate(("section",), keymap, key_leading=[
-        Comment("first"),                  # tab-mode, before=0
-        Comment("second"),                 # tab-mode, before=0
+        Comment("first"),
+        Comment("second"),
     ])
     data = {"section": "x"}
     out = nt.dumps(data, map_keys=keymap)
     lines = out.split("\n")
     first_idx = lines.index("# first")
     second_idx = lines.index("# second")
-    # adjacent — no auto-blank between them
     assert second_idx == first_idx + 1
 
 
@@ -1120,6 +1141,62 @@ def test_multi_line_key_round_trip_preserves_all_comment_slots():
     assert [c.text for c in loc.get_key_trailing_comments()]   == ["trailing on key"]
     assert [c.text for c in loc.get_value_leading_comments()]  == ["leading on value"]
     assert [c.text for c in loc.get_value_trailing_comments()] == ["trailing on value"]
+
+
+def test_inline_in_multi_line_key_indent_is_bumped_past_value():
+    """A comment between fragments of a multi-line key, originally at a
+    shallow indent, has its indent bumped to value-depth+4 at load time
+    so it stays in key_trailing on a re-load."""
+    src = (
+        ": key1a\n"
+        "# inline\n"          # at indent 0
+        ": key1b\n"
+        "    > value\n"
+    )
+    keymap = {}
+    nt.loads(src, top="dict", keymap=keymap)
+    loc = keymap[("key1a\nkey1b",)]
+    kts = loc.get_key_trailing_comments()
+    assert any(c.text == "inline" and c.indent == 8 for c in kts)
+
+
+def test_inline_in_multi_line_string_indent_is_bumped_past_value():
+    """A comment between '>' lines of a multi-line string, originally at
+    the value's column, has its indent bumped to value-depth+4 at load
+    time so it stays in value_trailing on a re-load."""
+    src = (
+        "key:\n"
+        "    > a\n"
+        "    # inline\n"      # at the value column (indent 4)
+        "    > b\n"
+    )
+    keymap = {}
+    nt.loads(src, top="dict", keymap=keymap)
+    loc = keymap[("key",)]
+    vts = loc.get_value_trailing_comments()
+    assert any(c.text == "inline" and c.indent == 8 for c in vts)
+
+
+def test_inline_indent_bump_makes_round_trip_stable():
+    """After bumping inline indents, a load → dump → load yields the
+    same keymap structure (comments stay in their original slots)."""
+    src = (
+        ": k1\n"
+        "# inline-k\n"
+        ": k2\n"
+        "    > a\n"
+        "    # inline-v\n"
+        "    > b\n"
+    )
+    keymap1 = {}
+    nt.loads(src, top="dict", keymap=keymap1)
+    out = nt.dumps({"k1\nk2": "a\nb"}, map_keys=keymap1)
+    keymap2 = {}
+    nt.loads(out, top="dict", keymap=keymap2)
+    loc1 = keymap1[("k1\nk2",)]
+    loc2 = keymap2[("k1\nk2",)]
+    assert [c.text for c in loc1.get_key_trailing_comments()]   == [c.text for c in loc2.get_key_trailing_comments()]
+    assert [c.text for c in loc1.get_value_trailing_comments()] == [c.text for c in loc2.get_value_trailing_comments()]
 
 
 def test_multi_line_key_inline_comment_collected_as_key_trailing():
@@ -1263,19 +1340,24 @@ def test_force_multiline_with_parent_provider():
     assert "> no" in out
 
 
-def test_loader_auto_blank_still_fires():
-    """Two same-indent loader-built Comments still get an auto-blank
-    between them, so the boundary survives a re-load."""
-    src = (
-        "# block one\n"
-        "\n"
-        "# block two\n"
-        "key: value\n"
-    )
+def test_loader_same_slot_same_indent_comments_merge_on_dump_reload():
+    """Two same-indent Comments in a single slot (e.g., key_leading)
+    are emitted contiguously by the dumper.  On re-load they merge into
+    a single Comment.  Text and slot are preserved; only Comment-object
+    granularity may shift."""
     keymap = {}
-    nt.loads(src, top="dict", keymap=keymap)
-    out = nt.dumps({"key": "value"}, map_keys=keymap)
-    assert "# block one\n\n# block two" in out
+    annotate(("section",), keymap, key_leading=[
+        Comment("first"),
+        Comment("second"),
+    ])
+    data = {"section": "x"}
+    out = nt.dumps(data, map_keys=keymap)
+    assert "# first\n# second" in out
+    keymap2 = {}
+    nt.loads(out, top="dict", keymap=keymap2)
+    leading = keymap2[("section",)].get_key_leading_comments()
+    assert len(leading) == 1
+    assert "first" in leading[0].text and "second" in leading[0].text
 
 
 def test_annotate_sets_spacing():

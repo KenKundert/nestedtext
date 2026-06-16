@@ -1510,9 +1510,20 @@ class NestedTextLoader:
             # the entire key+value is on one line (key_first == ve), the
             # trailing comments belong to value_trailing instead.
             kt = []
+            # Inline-in-multi-line-key comments need to be indented past
+            # the value's column so that a subsequent re-load classifies
+            # them as key_trailing (rather than as value_leading on the
+            # value or as a leading comment on the next sibling).  We
+            # bump to value-depth + 4 -- one tabstop deeper than the
+            # value's natural column at the default indent step.
+            safe_inline_indent = (vl.depth + 4) if vl is not None else None
             cur = key_first
             while cur is not None:
                 if cur is not key_first and cur.leading_comments:
+                    if safe_inline_indent is not None:
+                        for c in cur.leading_comments:
+                            if c.indent <= vl.depth:
+                                c.indent = safe_inline_indent
                     kt.extend(cur.leading_comments)
                     cur.leading_comments = []
                 if cur is not ve and cur.trailing_comments:
@@ -1663,9 +1674,19 @@ class NestedTextLoader:
         # line's trailing slot, which is where the value's trailing
         # comments live (see Location.value_end_line).
         cur = first_line.next_line
+        # Inline-in-multi-line-string comments need to be indented past
+        # the value's column so that a subsequent re-load classifies
+        # them as value_trailing (rather than as a leading comment on
+        # the next sibling, or as a footer when at EOF).  Bump shallow
+        # ones to value-depth + 4 -- one tabstop deeper than the value
+        # at the default indent step.
+        safe_inline_indent = depth + 4
         while cur is not None:
             inline = cur.leading_comments
             if inline:
+                for c in inline:
+                    if c.indent <= depth:
+                        c.indent = safe_inline_indent
                 last_line.trailing_comments = last_line.trailing_comments or []
                 if cur is last_line:
                     # avoid clobbering when cur and last_line are the same
@@ -2251,20 +2272,13 @@ class NestedTextDumper:
         ``natural + tab * self.indent`` (clamped to >= 0).  Comments whose
         ``tab`` is None render at their stored ``indent`` field absolutely.
 
-        Per-comment ``before`` / ``after`` blank-line counts are always
-        honored.  Additionally, between two consecutive *loader-built*
-        Comments (``tab is None``) at the same resolved column, a single
-        blank line is auto-emitted so that the boundary survives a
-        re-load -- this is necessary because adjacent same-indent
-        comment lines merge into a single Comment on load.  The
-        auto-blank is suppressed when either adjacent Comment is in
-        tab-mode (user-built via :func:`annotate` or a provider), since
-        such Comments control their surrounding blanks explicitly via
-        ``before`` / ``after``.
+        Per-comment ``before`` / ``after`` blank-line counts are honored.
+        Adjacent same-indent Comments are emitted contiguously; if such a
+        list is re-loaded the loader will merge them into a single
+        Comment (text joined by ``\\n``).  Text and slot assignment are
+        preserved; only the Comment-object granularity may change.
         """
         lines = []
-        prev_indent = None
-        prev_tab = None
         for c in comments:
             if c.tab is not None:
                 abs_indent = max(0, natural + c.tab * self.indent)
@@ -2272,30 +2286,15 @@ class NestedTextDumper:
                 abs_indent = c.indent
             for _ in range(c.before):
                 lines.append("")
-            if c.text is None:
-                # blank-line-only Comment: no text and no adjacency tracking,
-                # so it doesn't trigger or block an auto-blank between
-                # surrounding Comments.
-                for _ in range(c.after):
-                    lines.append("")
-                continue
-            if (
-                prev_indent is not None
-                and prev_indent == abs_indent
-                and prev_tab is None
-                and c.tab is None
-            ):
-                lines.append("")
-            ind = " " * abs_indent
-            for line in c.text.split("\n"):
-                if line:
-                    lines.append(f"{ind}# {line}")
-                else:
-                    lines.append(f"{ind}#")
+            if c.text is not None:
+                ind = " " * abs_indent
+                for line in c.text.split("\n"):
+                    if line:
+                        lines.append(f"{ind}# {line}")
+                    else:
+                        lines.append(f"{ind}#")
             for _ in range(c.after):
                 lines.append("")
-            prev_indent = abs_indent
-            prev_tab = c.tab
         return lines
 
     # _resolve_spacing {{{3

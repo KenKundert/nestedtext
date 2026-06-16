@@ -88,10 +88,11 @@ and forms its own Comment.
 A file with no comments yields a keymap with no comment entries; pure
 blank-line layout in the source is not captured anywhere.
 
-When the dumper emits multiple Comments that share the same indent in a
-single slot, it writes one blank line between them so that the boundary
-survives a re-load (where adjacent same-indent comment lines would
-otherwise merge).
+When two same-indent Comments end up adjacent within a single slot, the
+dumper emits them contiguously.  A subsequent re-load merges adjacent
+same-indent comment lines into a single Comment (text joined by ``\n``);
+the text and slot assignment are preserved across the cycle, only the
+Comment-object granularity may change.
 
 
 Comment Association
@@ -178,6 +179,15 @@ Inline comments are converted to trailing comments immediately upon load,
 so the keymap exposes only header, leading, trailing, and footer comments.
 The *inline* name is a convenience for describing where the comments are
 found in the source; it is not a distinct stored type.
+
+A comment found *within* a multi-line value lands in the corresponding
+``trailing`` slot (``value_trailing`` for a comment between ``>`` lines,
+``key_trailing`` for a comment between the fragments of a multi-line key).
+If such a comment's source indent is not already deeper than the value's
+column, the loader bumps its ``indent`` by one default tabstop so that a
+later re-load classifies it under the same slot rather than -- because of
+the indent-based partition rules -- as a leading comment on the next
+sibling or as a footer at end-of-file.
 
 
 Comment Order
