@@ -2195,6 +2195,49 @@ class NestedTextDumper:
                     return True
         return False
 
+    # _inline_would_drop_comments {{{3
+    def _inline_would_drop_comments(self, keys):
+        """Return True if rendering the collection at *keys* inline would
+        silently drop a comment.
+
+        The inline forms (``{...}`` / ``[...]``) emit no comments for the
+        collection's own value slots nor for any of its descendants, so
+        inlining is only safe when neither carries any comment.  Comments
+        on the collection's *key* (the ``key_leading``/``key_trailing``
+        slots at *keys* itself) are still emitted by the parent, so they
+        do not force multi-line here; only value-side comments at *keys*
+        and any comment (or comment provider) at a strict descendant do.
+        """
+        if not is_mapping(self.map_keys):
+            return False
+        loc = self.map_keys.get(keys)
+        if loc is not None:
+            if loc.get_value_leading_comments() or loc.get_value_trailing_comments():
+                return True
+            if (
+                loc.get_key_leading_provider() is not None
+                or loc.get_key_trailing_provider() is not None
+                or loc.get_value_leading_provider() is not None
+                or loc.get_value_trailing_provider() is not None
+            ):
+                return True
+        depth = len(keys)
+        for path, loc in self.map_keys.items():
+            if len(path) <= depth or path[:depth] != keys:
+                continue
+            if (
+                loc.get_key_leading_comments()
+                or loc.get_key_trailing_comments()
+                or loc.get_value_leading_comments()
+                or loc.get_value_trailing_comments()
+                or loc.get_key_leading_provider() is not None
+                or loc.get_key_trailing_provider() is not None
+                or loc.get_value_leading_provider() is not None
+                or loc.get_value_trailing_provider() is not None
+            ):
+                return True
+        return False
+
     # render_inline_value {{{3
     def render_inline_value(self, obj, exclude, keys, values):
         obj = self.convert(obj, keys)
@@ -2447,6 +2490,8 @@ class NestedTextDumper:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or level < self.inline_level):
                     raise NotSuitableForInline from None
+                if self._inline_would_drop_comments(keys):
+                    raise NotSuitableForInline from None
                 try:
                     if 0 < len(obj) < self.inline_count:
                         raise NotSuitableForInline from None
@@ -2478,6 +2523,8 @@ class NestedTextDumper:
                 if not self.support_inlines:
                     raise NotSuitableForInline from None
                 if obj and (self.width <= 0 or level < self.inline_level):
+                    raise NotSuitableForInline from None
+                if self._inline_would_drop_comments(keys):
                     raise NotSuitableForInline from None
                 try:
                     if 0 < len(obj) < self.inline_count:
