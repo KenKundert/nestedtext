@@ -1668,3 +1668,33 @@ def test_comment_repr_includes_new_fields_when_set():
     assert "tab=" not in r2
     assert "before=" not in r2
     assert "after=" not in r2
+
+
+# ---------------------------------------------------------------------------
+# Inlining must not silently drop comments
+# ---------------------------------------------------------------------------
+
+def test_inline_does_not_drop_comment_on_list_item():
+    """A collection that carries comments on its items must fall back to the
+    multi-line form rather than inline, otherwise the comments are silently
+    dropped (the inline forms have no place to emit them)."""
+    data = {"servers": ["alpha", "beta"]}
+    keymap = {}
+    annotate(("servers", 0), keymap, key_leading=[Comment("the first server")])
+    # width is large enough that, absent comments, the list would be inlined.
+    out = nt.dumps(data, map_keys=keymap, width=200, inline_level=0, inline_count=1)
+    assert "the first server" in out
+    # and the list was forced to the multi-line form
+    assert "- alpha" in out
+    assert "[alpha, beta]" not in out
+
+
+def test_inline_does_not_drop_value_comment_on_dict():
+    """A value-side comment on a key whose dict value would inline must keep
+    that value multi-line so the comment survives."""
+    data = {"config": {"a": "1", "b": "2"}}
+    keymap = {}
+    annotate(("config",), keymap, value_trailing=[Comment("end of config", tab=1)])
+    out = nt.dumps(data, map_keys=keymap, width=200, inline_level=0, inline_count=1)
+    assert "end of config" in out
+    assert "{a: 1, b: 2}" not in out
