@@ -2078,6 +2078,7 @@ class NestedTextDumper:
         self.indent = indent
         self.converters = converters
         self.map_keys = map_keys
+        self._inline_unsafe_keys = None  # cached set, built lazily per dump
         self.default = default
         self.spacing = spacing or {}
         self.width = width
@@ -2207,36 +2208,57 @@ class NestedTextDumper:
         slots at *keys* itself) are still emitted by the parent, so they
         do not force multi-line here; only value-side comments at *keys*
         and any comment (or comment provider) at a strict descendant do.
+
+        The set of keys for which this holds is built once per dump in a
+        single pass over *map_keys* (see `_compute_inline_unsafe_keys`) and
+        cached, so each query is an O(1) membership test rather than a
+        rescan of every entry for every collection.
         """
         if not is_mapping(self.map_keys):
             return False
-        loc = self.map_keys.get(keys)
-        if loc is not None:
-            if loc.get_value_leading_comments() or loc.get_value_trailing_comments():
-                return True
-            if (
+        if self._inline_unsafe_keys is None:
+            self._inline_unsafe_keys = self._compute_inline_unsafe_keys()
+        return keys in self._inline_unsafe_keys
+
+    # _compute_inline_unsafe_keys {{{3
+    def _compute_inline_unsafe_keys(self):
+        """Collect, in a single pass over *map_keys*, every *keys* for which
+        inlining the collection there would drop a comment.
+
+        A comment (or comment provider) at some path *p* makes inlining
+        unsafe at: every strict ancestor of *p* (the inline form has nowhere
+        to emit a descendant's comment); and at *p* itself when the comment
+        is value-side (key-side comments at *p* are emitted by *p*'s parent).
+        Providers at *p* count for both, matching `_inline_would_drop_comments`.
+        """
+        unsafe = set()
+        for path, loc in self.map_keys.items():
+            has_provider = (
                 loc.get_key_leading_provider() is not None
                 or loc.get_key_trailing_provider() is not None
                 or loc.get_value_leading_provider() is not None
                 or loc.get_value_trailing_provider() is not None
+            )
+            # value-side comment or any provider at *path* makes inlining the
+            # collection at *path* itself unsafe
+            if (
+                loc.get_value_leading_comments()
+                or loc.get_value_trailing_comments()
+                or has_provider
             ):
-                return True
-        depth = len(keys)
-        for path, loc in self.map_keys.items():
-            if len(path) <= depth or path[:depth] != keys:
-                continue
+                unsafe.add(path)
+            # any comment or provider at *path* makes inlining any strict
+            # ancestor of *path* unsafe
             if (
                 loc.get_key_leading_comments()
                 or loc.get_key_trailing_comments()
                 or loc.get_value_leading_comments()
                 or loc.get_value_trailing_comments()
-                or loc.get_key_leading_provider() is not None
-                or loc.get_key_trailing_provider() is not None
-                or loc.get_value_leading_provider() is not None
-                or loc.get_value_trailing_provider() is not None
+                or has_provider
             ):
-                return True
-        return False
+                for depth in range(len(path)):
+                    unsafe.add(path[:depth])
+        return unsafe
 
     # render_inline_value {{{3
     def render_inline_value(self, obj, exclude, keys, values):
