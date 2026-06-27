@@ -1,13 +1,18 @@
+# Reports schema errors in a software system consisting of Voluptuous,
+# NestedText, and Inform.
+# A simplified version, see https://github.com/KenKundert/voluptuous_errors for
+# a more complete version.
+
 from inform import cull, error, full_stop
 import nestedtext as nt
 
 voluptuous_error_msg_mappings = {
     "extra keys not allowed": ("unknown key", "key"),
     "expected a dict": ("expected a key-value pair", "value"),
+    "expected a dictionary": ("expected a key-value pair", "value"),
     "required key not provided": ("required key is missing", "value"),
 }
 
-# report_voluptuous_errors() {{{1
 def report_voluptuous_errors(multiple_invalid, keymap=None, source=None, sep="›", path_fmt="{path}@{lines}"):
     source = str(source) if source else ""
 

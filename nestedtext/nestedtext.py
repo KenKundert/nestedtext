@@ -377,6 +377,7 @@ class Lines:
         self.header_comments = []   # comments before the first data item
         self.eof_comments = []      # footer comments (after the last data item)
         self._comment_buffer = []   # raw comment/blank Lines awaiting attachment
+        self._data_history = []     # all consumed data lines, in source order
         self.next_line = None
         self._advance_to_data_line()
 
@@ -544,6 +545,7 @@ class Lines:
         line.leading_comments = line.leading_comments or []
 
         self.prev_data_line = line
+        self._data_history.append(line)
 
         # queue up the next useful line, capturing comments along the way.
         self._advance_to_data_line()
@@ -573,32 +575,86 @@ class Lines:
             return
 
         if self.prev_data_line is None and self.next_line is not None:
-            # before the first data line: rule 1 (Header / leading)
-            # Partition on the raw buffer at the last blank line, then group
-            # each half.  A comment block is leading on the first key only
-            # when there is *no* blank between it and that key.
+            # before the first data line: header / leading partition.
+            # Partition on the raw buffer at the last blank line; everything
+            # above the blank is header, the rest (if any) is leading on the
+            # first data item.  No blank => all leading.
             header_lines, leading_lines = _partition_header_leading(buffer_lines)
             self.header_comments.extend(_group_comments(header_lines))
             self.next_line.leading_comments.extend(_group_comments(leading_lines))
         elif self.prev_data_line is None and self.next_line is None:
-            # rule "No data" -- entire content is header
+            # "No data" -- the entire file is header.
             self.header_comments.extend(_group_comments(buffer_lines))
         elif self.next_line is None:
-            # after the last data line: rule 4 (Trailing / footer)
+            # EOF: first partition (before any blank line) is eligible as
+            # trailing on the last data line, but only if it is
+            # *immediately adjacent* (no leading blank line) and every
+            # comment in it has indent at least the prev data line's
+            # indent.  Anything after the first blank, or the first
+            # partition if it does not qualify, lands in the document
+            # footer.
             last_indent = self.prev_data_line.depth or 0
-            for c in _group_comments(buffer_lines):
-                if c.indent > last_indent:
-                    self.prev_data_line.trailing_comments.append(c)
+            adjacent = bool(buffer_lines) and buffer_lines[0].kind != "blank"
+            partitions = _split_by_blank(buffer_lines)
+            first = True
+            for part in partitions:
+                grouped = _group_comments(part)
+                if (
+                    first
+                    and adjacent
+                    and grouped
+                    and all(c.indent >= last_indent for c in grouped)
+                ):
+                    self.prev_data_line.trailing_comments.extend(grouped)
                 else:
-                    self.eof_comments.append(c)
+                    self.eof_comments.extend(grouped)
+                first = False
         else:
-            # between two data lines: rule 2 (Leading / trailing)
+            # between two data lines: disambiguation by indent.
+            # - matches the indent of an adjacent value -> leading (if the
+            #   value follows) or trailing (if the value precedes).
+            # - matches both -> leading wins.
+            # - matches neither -> orphan: trailing of the closest data line
+            #   above whose indent does not exceed the comment's own.
+            # Internally, "trailing of X" splits between X.key_trailing and
+            # X.value_trailing by source position relative to X's value, to
+            # keep simple round-trips faithful.  See _attach_trailing.
+            prev_indent = self.prev_data_line.depth or 0
             next_indent = self.next_line.depth or 0
             for c in _group_comments(buffer_lines):
-                if c.indent <= next_indent:
+                if c.indent == next_indent:
                     self.next_line.leading_comments.append(c)
-                else:
+                elif c.indent == prev_indent:
                     self.prev_data_line.trailing_comments.append(c)
+                else:
+                    ancestor = self._walk_to_ancestor(
+                        self.prev_data_line, c.indent
+                    )
+                    if ancestor is not None:
+                        ancestor.trailing_comments.append(c)
+                    else:  # pragma: no cover
+                        # Defensive: every document has at least one
+                        # data line at depth 0 in ``_data_history`` by
+                        # the time we reach this branch, so the walk
+                        # always finds one.  Kept as a never-lose
+                        # backstop in case future code paths add a
+                        # data-less branch.
+                        self.eof_comments.append(c)
+
+    # _walk_to_ancestor {{{3
+    def _walk_to_ancestor(self, start, max_indent):
+        """Walk back through consumed data lines to find the closest one
+        whose depth does not exceed *max_indent*.  Returns the line, or
+        None if no such ancestor exists.  *start* is the data line to
+        start from; we walk through ``self._data_history`` in reverse,
+        beginning at the entry equal to *start* (or the end of the list
+        if *start* is not in the history).
+        """
+        history = self._data_history
+        for line in reversed(history):
+            if (line.depth or 0) <= max_indent:
+                return line
+        return None  # pragma: no cover
 
     # indentation_error {{{3
     def indentation_error(self, line, depth):
@@ -774,6 +830,25 @@ def _group_comments(comment_lines):
     return comments
 
 
+# _split_by_blank {{{2
+def _split_by_blank(buffer_lines):
+    """Split a list of Lines at every blank line into sub-lists of
+    non-blank lines.  Empty sub-lists are dropped.
+    """
+    parts = []
+    cur = []
+    for line in buffer_lines:
+        if line.kind == "blank":
+            if cur:
+                parts.append(cur)
+                cur = []
+        else:
+            cur.append(line)
+    if cur:
+        parts.append(cur)
+    return parts
+
+
 # _partition_header_leading {{{2
 def _partition_header_leading(buffer_lines):
     """Split a pre-data-line buffer into (header_lines, leading_lines).
@@ -806,10 +881,12 @@ class Location:
         self.key_line = key_line
         self.col = col
         self.key_col = key_col
+
         # Set by _add_keymap to the last data line consumed within this value's
         # scope (the source of value-trailing comments).  For leaf entries
         # this is ``line``; for nested values, the deepest descendant line.
         self.value_end_line = None
+
         # Comments are stored on the Location itself (not on the underlying
         # Line) so that two Locations that share a Line (parent and its
         # first child) do not inadvertently share comment lists.
@@ -817,14 +894,17 @@ class Location:
         self.key_trailing_comments = []
         self.value_leading_comments = []
         self.value_trailing_comments = []
+
         # Document-level comments only live on the keymap[()] Location.
         self.header_comments = []
         self.footer_comments = []
+
         # Per-Location dump spacing: when non-empty, replaces the dumps()
         # *spacing* argument for this Location's entire subtree.  Integer
         # keys are relative to this Location (0 == blanks between this
         # Location's direct children).  See get_spacing / set_spacing.
         self.spacing = {}
+
         # Per-slot comment providers.  Each (if not None) is a callable
         # with the signature ``provider(child_key) -> list[Comment]``,
         # invoked by the dumper for every child of this Location.  The
@@ -837,19 +917,24 @@ class Location:
         self.value_trailing_provider = None
 
     def __repr__(self):
-        components = []
+        components = {}
         if self.line:
-            components.append(f"lineno={self.line.lineno}")
-            components.append(f"colno={self.col}")
+            components["lineno"] = self.line.lineno
+            components["colno"] = self.col
             key_line = self.key_line
             if key_line is None:
                 key_line = self.line
-            components.append(f"key_lineno={key_line.lineno}")
+            components["key_lineno"] = key_line.lineno
             key_col = self.key_col
             if key_col is None:
                 key_col = self.col
-            components.append(f"key_colno={key_col}")
-        return f"{self.__class__.__name__}({', '.join(components)})"
+            components["key_colno"] = key_col
+        for key, value in self.__dict__.items():
+            if key.endswith("comments") or key.endswith("provider") or key == "spacing":
+                if value:
+                    components[key] = value
+        args = ', '.join(f"{k}={v!r}" for k, v in components.items())
+        return f"{self.__class__.__name__}({args})"
 
     # as_tuple() {{{3
     def as_tuple(self, kind="value"):
@@ -1468,6 +1553,7 @@ class NestedTextLoader:
             # The last data line consumed is the last line of this value's
             # scope, where trailing-after-value comments are staged.
             location.value_end_line = self.lines.prev_data_line
+
             # Claim any comments staged on the relevant Lines.  This makes
             # each Location own its comments outright -- two Locations that
             # share a Line (parent and its first child) cannot then
@@ -1478,6 +1564,7 @@ class NestedTextLoader:
             )
             vl = location.line
             ve = location.value_end_line
+
             # For a multi-line key, walk the chain of fragment lines via
             # next_line (set by Lines.read_lines only between consecutive
             # ``key item`` lines at the same depth) so that comments
@@ -1501,6 +1588,7 @@ class NestedTextLoader:
             ):
                 location.value_leading_comments = list(vl.leading_comments)
                 vl.leading_comments = []
+
             # key_trailing collects (a) leading_comments staged on each
             # *intermediate* key-fragment line -- these are comments that
             # appeared between fragments of the multi-line key, the
@@ -1510,6 +1598,7 @@ class NestedTextLoader:
             # the entire key+value is on one line (key_first == ve), the
             # trailing comments belong to value_trailing instead.
             kt = []
+
             # Inline-in-multi-line-key comments need to be indented past
             # the value's column so that a subsequent re-load classifies
             # them as key_trailing (rather than as value_leading on the
@@ -1667,12 +1756,14 @@ class NestedTextLoader:
             data.append(line.value)
             if line.depth != depth:
                 lines.indentation_error(line, depth)
+
         # Per the rules, inline comments (those that appear on continuation
         # lines of a multi-line string) are converted to trailing on the
         # value immediately on load.  After the loop, gather any leading
         # comments from continuation lines and move them onto the last
         # line's trailing slot, which is where the value's trailing
         # comments live (see Location.value_end_line).
+        #
         cur = first_line.next_line
         # Inline-in-multi-line-string comments need to be indented past
         # the value's column so that a subsequent re-load classifies
@@ -2141,6 +2232,7 @@ class NestedTextDumper:
             or key[:2] in ["- ", "> ", ": "]
             or ": " in key
         )
+
         # The key_trailing and value_leading comment slots only have a
         # rendering position in the multi-line dict-item *value* form
         # (between the key line and the value's first line).  If either
@@ -2206,6 +2298,8 @@ class NestedTextDumper:
 
     # render_inline_dict {{{3
     def render_inline_dict(self, obj, keys, values):
+        if self._inline_would_drop_comments(keys):
+            raise NotSuitableForInline from None
         exclude = set("\n\r[]{}:,")
         rendered = []
         for k, v in obj.items():
@@ -2226,6 +2320,8 @@ class NestedTextDumper:
 
     # render_inline_list {{{3
     def render_inline_list(self, obj, keys, values):
+        if self._inline_would_drop_comments(keys):
+            raise NotSuitableForInline from None
         rendered_values = []
         for i, v in enumerate(obj):
             rendered_value = self.render_inline_value(
@@ -2240,6 +2336,8 @@ class NestedTextDumper:
 
     # render_inline_scalar {{{3
     def render_inline_scalar(self, obj, exclude, keys, values):
+        if self._inline_would_drop_comments(keys):
+            raise NotSuitableForInline from None
         obj = self.convert(obj, keys)
         if self.is_a_str(obj):
             value = obj
@@ -2382,9 +2480,24 @@ class NestedTextDumper:
                 provider = getter()
                 if provider is None:
                     continue
-                extras = list(provider(child_key) or [])
+                produced = provider(child_key)
+                if produced is None:
+                    continue
+                # accept: a str (becomes one Comment), a Comment (becomes a
+                # one-element list), or any iterable of those.
+                if isinstance(produced, str):
+                    extras = [Comment(produced)]
+                elif isinstance(produced, Comment):
+                    extras = [produced]
+                else:
+                    extras = []
+                    for item in produced:
+                        if isinstance(item, str):
+                            extras.append(Comment(item))
+                        else:
+                            extras.append(item)
                 for c in extras:
-                    if c.tab is None:
+                    if c.tab is None and c.indent == 0:
                         c.tab = 0
                 target[:0] = extras
 
@@ -2394,11 +2507,13 @@ class NestedTextDumper:
         n = len(keys)
         key_natural = max(0, (n - 1) * self.indent)
         val_natural = n * self.indent
+        deep_natural = (n + 1) * self.indent
         leading = self._comments_to_lines(kl, natural=key_natural)
-        key_trailing = self._comments_to_lines(kt, natural=val_natural)
+        key_trailing = self._comments_to_lines(kt, natural=deep_natural)
         value_leading = self._comments_to_lines(vl, natural=val_natural)
-        trailing = self._comments_to_lines(vt, natural=val_natural)
+        trailing = self._comments_to_lines(vt, natural=deep_natural)
         value_lines = rendered_value.split("\n")
+
         # Inject key_trailing and value_leading between the rendered key
         # (which may span several lines for multi-line keys) and the
         # value's first line.  We detect the key's line count by counting
@@ -2531,6 +2646,34 @@ class NestedTextDumper:
             raise NestedTextError(obj, template=error, culprit=keys) from None
 
         return content
+
+    def _inline_would_drop_comments(self, keys):
+        if not is_mapping(self.map_keys):
+            return False
+
+        loc = self.map_keys.get(keys)
+        if not loc:
+            return False
+
+        has_provider = (
+            loc.get_key_leading_provider()
+            or loc.get_key_trailing_provider()
+            or loc.get_value_leading_provider()
+            or loc.get_value_trailing_provider()
+        )
+
+        # value-side comment or any provider at *path* makes inlining the
+        # collection at *path* itself unsafe
+        if (
+            has_provider
+            or loc.get_value_leading_comments()
+            or loc.get_value_trailing_comments()
+            or loc.get_key_leading_comments()
+            or loc.get_key_trailing_comments()
+        ):
+            return True
+        return False
+
 
     # check_for_cyclic_reference {{{3
     def check_for_cyclic_reference(self, obj, keys, values):
@@ -3427,13 +3570,22 @@ def annotate(
     +===================+=====================+
     | ``key_leading``   | ``(N - 1) * S``     |
     +-------------------+---------------------+
+    | ``value_leading`` | ``N * S``           |
+    +-------------------+---------------------+
     | ``key_trailing``, |                     |
-    | ``value_leading``,| ``N * S``           |
-    | ``value_trailing``|                     |
+    | ``value_trailing``| ``(N + 1) * S``     |
     +-------------------+---------------------+
     | ``header``,       | ``0``               |
     | ``footer``        |                     |
     +-------------------+---------------------+
+
+    The natural indent for ``key_trailing`` and ``value_trailing`` is
+    one level deeper than the value, which keeps the comment from being
+    mistaken for a sibling of the value when re-loaded.
+
+    If a :class:`Comment` is created with an explicit ``indent=N``
+    (and no ``tab``), that absolute indent is honored; ``annotate``
+    only assigns ``tab=0`` to Comments that have neither field set.
 
     Static lists in the per-key slots are not allowed at the root
     (``keys == ()``) since the root has no key line to attach to.  A
@@ -3507,9 +3659,13 @@ def annotate(
         keymap[keys] = loc
 
     def _tab_mode(comments):
+        # An explicit ``indent`` on a Comment is taken as an absolute
+        # position and wins over the slot's natural indent.  Only the
+        # ``Comment("text")`` shape (no tab, default indent of 0) gets
+        # the tab=0 default that renders at natural.
         out = []
         for c in comments:
-            if c.tab is None:
+            if c.tab is None and c.indent == 0:
                 c.tab = 0
             out.append(c)
         return out

@@ -13,6 +13,13 @@ Changes to the *NestedText* language are shown in :ref:`language changes`.
 Latest development version
 --------------------------
 
+| Version: 3.8
+| Released: 2025-12-26
+
+
+v3.9 (2026-??-??)
+-----------------
+
 - Added :class:`NestedTextDataError` exception, which is intended to be used to 
   report errors in data derived from a *NestedText* document.
 - Comment and spacing support has been added to keymaps.  Comments are now 
@@ -20,6 +27,10 @@ Latest development version
   dumper if supplied with the same keymap.  In between, the comments and spacing 
   can be adjusted or new comments added.  Comments are associated with adjacent 
   data items, and so travel with those items if the data is reorganized.
+  See :doc:`comments` for the full placement rules.
+- Inline dump form (``[ ]``/``{ }``) is suppressed when any data item in the
+  collection has comments attached via the keymap, so comments are never
+  silently dropped by the inliner.
 - Added the :class:`Comment` class, which is used to hold comments in keymaps.
 - Added a *spacing* argument to :func:`dumps` / :func:`dump` that controls
   vertical layout in the rendered output.  The spacing is specified based on the 
@@ -31,9 +42,6 @@ Latest development version
   *get_original_keys()*, and *join_keys()*.
 - Adds *inline_count* argument to :func:`dump` and :func:`dumps`.
 
-
-| Version: 3.8
-| Released: 2025-12-26
 
 v3.8 (2025-12-26)
 -----------------

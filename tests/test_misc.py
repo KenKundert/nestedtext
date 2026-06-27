@@ -508,7 +508,12 @@ def test_keymaps():
         assert location.as_line(offset=None) == rendered
         assert str(location.line) == doc_lines[lineno]
         assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
-        assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
+        # repr begins with the position fields; trailing fields for
+        # comments, providers, or spacing may appear when attached.
+        prefix = f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno}"
+        rep = repr(location)
+        assert rep.startswith(prefix), rep
+        assert rep.endswith(")"), rep
 
         # check line numbers as tuples
         assert nt.get_line_numbers(keys, keymap, kind='key') == (key_first_line, key_last_line), keys
@@ -683,7 +688,12 @@ def test_keymaps_with_duplicates():
         assert location.as_line('key') == rendered
         assert str(location.line) == doc_lines[lineno]
         assert repr(location.line) == f'Line({lineno+1}: ❬{doc_lines[lineno]}❭)'
-        assert repr(location) == f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno})"
+        # repr begins with the position fields; trailing fields for
+        # comments, providers, or spacing may appear when attached.
+        prefix = f"Location(lineno={lineno}, colno={colno}, key_lineno={key_lineno}, key_colno={key_colno}"
+        rep = repr(location)
+        assert rep.startswith(prefix), rep
+        assert rep.endswith(")"), rep
 
     # Without key normalization
     keymap = {}

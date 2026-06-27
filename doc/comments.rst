@@ -41,13 +41,20 @@ load.
 Types of Comments
 -----------------
 
-There are 5 types of comments:
+Each comment in a *NestedText* document falls into one of six slots,
+according to where it sits in the source:
 
-- *header* comments — found at the very top of the file, before any data.
-- *leading* comments — found before a data item, refer to that item.
-- *inline* comments — found within multiline strings.
-- *trailing* comments — found after a data item, refer to that item.
-- *footer* comments — found at the very end of the file, after all data.
+1. *header* — before all data, separated from data.
+2. *footer* — after all data, separated from data.
+3. *key leading* — before a key.
+4. *key trailing* — after a key.
+5. *value leading* — after a key, but before a value.
+6. *value trailing* — after a value.
+
+Inline comments — comments that appear inside a multiline string value —
+are converted to value-trailing comments on load.  They are a
+convenience for describing where comments are found in the source, not a
+distinct stored type.
 
 
 Comment Grouping
@@ -112,82 +119,85 @@ Leading and trailing comments associate with a particular data item:
 Disambiguation Rules
 --------------------
 
-Header / leading comments
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Header and leading
+~~~~~~~~~~~~~~~~~~
 
-All comments that occur before the first data item are partitioned into
-two groups: the first becomes the header, the second becomes the leading
-comment for the first data item.  The partition is at the *last blank
-line* in the buffer.  If there is no blank line, the entire content is
-leading on the first data item (no header).
+Partitioned by blank lines, only the last partition is eligible to be a
+leading comment, and would only be so if it were immediately adjacent to
+the first key or value.  Comments in a document that contains no data
+are all header comments.
 
-Leading / trailing comments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Trailing and leading
+~~~~~~~~~~~~~~~~~~~~
 
-Comments that occur between two data items are partitioned into two groups
-based on indentation.  If the indentation is less than or equal to the
-indentation of the next data item (key or value) then the comment is a
-leading comment for that item.  If the indentation is greater than the
-indentation of the next data item, then the comment is a trailing comment
-for the previous data item (key or value).
+A comment whose indent matches the indent of an adjacent value attaches
+to that value.  If the indent matches both the value above and below, it
+is taken to be a leading comment for the value below.
 
-This rule also disambiguates comments that sit between a key and its value
-when the value occupies its own line (a multiline value, or a list/dict
-child).  The same indentation comparison applies::
+A comment that does not satisfy any of the other rules attaches as a
+trailing comment to the closest data line above it whose indent does not
+exceed the comment's own.
+
+Examples::
 
     key:
-        # this is a leading comment for the value
+        # leading on the value
         > value
+
+The comment shares indent with the value below it — it leads the value.
+
+::
+
+    - first
+    # leading on the next list item
+    - second
+
+Same indent above and below: the rule prefers leading on the next item.
 
 ::
 
     key:
-            # this is a trailing comment for the key
+            # trailing on the key
         > value
 
-In the first case the comment's indent equals the value's indent, so it is
-a leading comment for the value.  In the second case the comment's indent
-is greater than the value's indent, so it is a trailing comment for the
-key.
+The comment's indent (8) does not match the value (4), nor any other
+adjacent data; the orphan rule attaches it to ``key`` (the closest data
+line above with indent ≤ 8) as a trailing comment.
 
-Key / value comments
-~~~~~~~~~~~~~~~~~~~~
+Key / value
+~~~~~~~~~~~
 
-If a key and value are found on the same line, then leading comments
-associate with the key and trailing comments associate with the value.
+When a key and value are on the same line, leading comments associate
+with the key and trailing comments associate with the value.
 
-Trailing / footer comments
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Footer and trailing
+~~~~~~~~~~~~~~~~~~~
 
-There is no ambiguity here -- trailing and footer comments are distinguished
-by their indentation level.  If the indentation is greater than the
-indentation of the previous data items, then the comment is a trailing comment 
-for the previous item.  If the indentation is less than or equal to the 
-indentation of the last data item, then the comment is a footer comment for the 
-document as a whole.
-
-No data
-~~~~~~~
-
-If there is no data in the file, then all comments are header comments.
+Partitioned by blank lines, only the first partition is eligible to be a
+trailing comment, and would only be so if it were immediately adjacent
+to its value with an equal or greater indent.
 
 
-Transformation Rules
---------------------
+Implementation Guarantees
+-------------------------
 
-Inline comments are converted to trailing comments immediately upon load,
-so the keymap exposes only header, leading, trailing, and footer comments.
-The *inline* name is a convenience for describing where the comments are
-found in the source; it is not a distinct stored type.
+Inline comments are converted to value-trailing comments immediately
+upon load, so the keymap exposes only header, leading, trailing, and
+footer comments.
 
-A comment found *within* a multi-line value lands in the corresponding
-``trailing`` slot (``value_trailing`` for a comment between ``>`` lines,
-``key_trailing`` for a comment between the fragments of a multi-line key).
-If such a comment's source indent is not already deeper than the value's
-column, the loader bumps its ``indent`` by one default tabstop so that a
-later re-load classifies it under the same slot rather than -- because of
-the indent-based partition rules -- as a leading comment on the next
-sibling or as a footer at end-of-file.
+A comment may be misplaced through a round trip but it is never lost
+and never causes an exception.  Some round-trip drift is unavoidable
+under these rules -- for example, two adjacent comments at the same
+indent in two different slots (such as a ``value_leading`` of one entry
+and a ``key_leading`` of the next) merge into a single Comment on
+re-load, and a ``value_trailing`` of a non-leaf entry may be
+re-attached to a child of that entry rather than the entry itself.
+
+Internally the loader splits "trailing of X" between X's
+``key_trailing`` and ``value_trailing`` slots based on whether the
+comment appeared before or after X's value in the source, so simple
+round-trips of comments that sit adjacent to their data item remain
+faithful.
 
 
 Comment Order

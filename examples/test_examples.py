@@ -240,7 +240,7 @@ def test_commenting():
 
             name: Zachery Farrell
             height: 6-2
-                # feet-inches
+                    # feet-inches
 
             diary:
 

@@ -35,7 +35,8 @@ it would simply check that the input matches the given type:
    :language: python
 
 This example uses the following code to adapt error reporting in *Voluptuous* to 
-*NestedText*.
+*NestedText* (this is a simplified version of *voluptuous_errors*,.the complete 
+version is available at voluptuous_errors_.
 
 .. literalinclude:: ../examples/validation/voluptuous_errors.py
    :language: python
@@ -711,4 +712,5 @@ combine long lines.
 
 
 .. _voluptuous: https://github.com/alecthomas/voluptuous
+.. _voluptuous_errors: https://github.com/KenKundert/voluptuous_errors
 .. _pydantic: https://pydantic-docs.helpmanual.io

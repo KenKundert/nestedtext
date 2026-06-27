@@ -79,11 +79,16 @@ def test_b02_leading_nested():
 
 
 def test_b03_leading_at_value_indent():
+    # Under the new disambiguation rule a comment at indent 0 sitting
+    # between ``server:`` (indent 0) and ``port:`` (indent 4) matches
+    # the previous data line's indent and therefore trails 'server',
+    # not leads 'port'.  The comment is before server's value, so it
+    # routes to server.key_trailing internally.
     _, km = load("b03_leading_at_value_indent.nt", top="dict")
-    # comment at indent 0, next data line is 'port' at indent 4 -> leads port
-    leading = km[("server", "port")].get_key_leading_comments()
-    assert len(leading) == 1
-    assert leading[0].text.startswith("a leading comment at indent 0")
+    trailing = km[("server",)].get_key_trailing_comments()
+    assert len(trailing) == 1
+    assert trailing[0].text.startswith("a leading comment at indent 0")
+    assert km[("server", "port")].get_key_leading_comments() == []
 
 
 def test_b04_trailing_simple():
@@ -249,19 +254,31 @@ def test_s11_gapG_comment_inside_multiline():
 
 
 def test_s12_outdented_comment():
+    # An outdented comment (indent 0) between port (4) and host (4)
+    # matches neither neighbor's indent.  By the new orphan rule it
+    # attaches to the closest data line above whose indent does not
+    # exceed the comment's -- ``server`` at indent 0 -- as a trailing
+    # comment.  Internally it routes to ``server``.key_trailing since
+    # the comment is in server's "before its value" region.
     _, km = load("s12_outdented_comment.nt", top="dict")
-    # block indent 0 <= host's indent 4 -> leading on host
-    leading = km[("server", "host")].get_key_leading_comments()
-    assert any("outdented" in (c.text or "") for c in leading)
+    kt = km[("server",)].get_key_trailing_comments()
+    assert any("outdented" in (c.text or "") for c in kt)
+    assert km[("server", "host")].get_key_leading_comments() == []
 
 
 def test_s13_mixed_indent_block():
-    # two adjacent comment lines at different indents -> two separate Comments,
-    # both leading on port (per rule 2).
+    # Two adjacent comment lines at different indents form two
+    # separate Comments (grouping breaks on indent change).  Under the
+    # new disambiguation rule the indent-0 line trails server (matches
+    # server's indent) while the indent-4 block leads port (matches
+    # port's indent).
     _, km = load("s13_mixed_indent_block.nt", top="dict")
+    kt = km[("server",)].get_key_trailing_comments()
     leading = km[("server", "port")].get_key_leading_comments()
-    assert len(leading) == 2
-    assert leading[0].indent != leading[1].indent
+    assert len(kt) == 1
+    assert kt[0].indent == 0
+    assert len(leading) == 1
+    assert leading[0].indent == 4
 
 
 def test_s14_key_trailing():
@@ -881,11 +898,17 @@ def test_keymap_to_jsonable_is_json_serializable():
 
 
 def test_keymap_from_jsonable_attaches_header_and_footer():
-    """Header and footer comments live on the root entry and must round-trip."""
+    """Header and footer comments live on the root entry and must
+    round-trip.  Under the new disambiguation rule a comment at the
+    same indent as the prev data line (no leading blank) attaches as
+    that line's trailing, not as footer, so the footer fixture here
+    uses a blank line to force footer.
+    """
     source = (
         "# top header\n"
         "\n"
         "key: value\n"
+        "\n"
         "# bottom footer\n"
     )
     keymap = {}
@@ -1228,7 +1251,10 @@ def test_dumper_multi_line_key_with_inner_multi_line_key():
     lines = out.split("\n")
     outer_a = lines.index(": a")
     outer_b = lines.index(": b")
-    kt = lines.index("        # outer kt")
+    # Natural indent of key_trailing is one level deeper than the
+    # value -- so for an outer key at depth 0 with value at depth 4,
+    # natural is 8.  With tab=1 the absolute indent becomes 12.
+    kt = lines.index("            # outer kt")
     inner_c = lines.index("    : c")
     inner_d = lines.index("    : d")
     # outer kt goes between the outer key's last fragment and the inner
@@ -1250,7 +1276,9 @@ def test_dumper_multi_line_key_places_kt_vl_after_all_fragments():
     lines = out.split("\n")
     a = lines.index(": a")
     b = lines.index(": b")
-    kt = lines.index("        # kt")
+    # key_trailing natural indent is one level deeper than the value
+    # (4 + 4 = 8); with tab=1, absolute = 12.
+    kt = lines.index("            # kt")
     vl = lines.index("    # vl")
     val = lines.index("    > v")
     # all key fragments precede the comments; comments precede the value
