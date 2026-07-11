@@ -22,7 +22,8 @@ strings.  As such, quoting strings is unnecessary, and without quoting there is
 no need for escaping.  While the decision to forego other types (integers, 
 reals, Booleans, etc.) may seem counter productive, it leads to simpler data 
 files and applications that are more robust.  And there is no need for quoting 
-or escaping.  For example,
+or escaping.  For example, here is a *NestedText* document containing regular 
+expressions:
 
 .. code-block:: nestedtext
 
