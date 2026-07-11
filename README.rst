@@ -32,6 +32,10 @@ expressions:
     strings: (["'])(?:\\.|(?!\1).)*\1
         # matches either single- or double-quoted strings with escaping
 
+If other types are needed, the reader can convert values on a per-field basis.  
+By having *NestedText* support only a single data type, it naturally 
+accommodates any data type through reader-defined conversions.
+
 *NestedText* is convenient for configuration files, data journals, address 
 books, account information, and the like.  Here is an example of a file that 
 contains a few addresses:
