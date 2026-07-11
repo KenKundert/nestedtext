@@ -31,7 +31,7 @@ repository = "https://github.com/kenkundert/nestedtext"
 changelog = "https://github.com/KenKundert/nestedtext/blob/master/doc/releases.rst"
 
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=2"]
 build-backend = "flit_core.buildapi"
 
 [tool.pytest.ini_options]

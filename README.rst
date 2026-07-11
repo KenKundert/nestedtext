@@ -21,7 +21,15 @@ A unique feature of this file format is that it only supports one scalar type:
 strings.  As such, quoting strings is unnecessary, and without quoting there is 
 no need for escaping.  While the decision to forego other types (integers, 
 reals, Booleans, etc.) may seem counter productive, it leads to simpler data 
-files and applications that are more robust.
+files and applications that are more robust.  And there is no need for quoting 
+or escaping.  For example,
+
+.. code-block:: nestedtext
+
+    path: C:\Users\Alice\Documents
+    numbers: ^\d+\.\d+$
+    strings: (["'])(?:\\.|(?!\1).)*\1
+        # matches either single- or double-quoted strings with escaping
 
 *NestedText* is convenient for configuration files, data journals, address 
 books, account information, and the like.  Here is an example of a file that 
@@ -54,6 +62,7 @@ contains a few addresses:
         additional roles:
             - new membership task force
             - accounting task force
+
 
 Typical Applications
 --------------------
@@ -98,35 +107,6 @@ are followed there is no way for any syntax or special characters in the values
 of your data to be confused with *NestedText* syntax.  In fact, it is possible 
 for *NestedText* to hold *NestedText* snippets without conflict.
 
-Another example of structured code is provided by the files that contain the 
-test cases used by `Parametrize From File`_, a PyTest_ plugin.
-*Parametrize From File* simplifies the task of specifying test cases for 
-*PyTest* by separating the test cases from the test code.  Here it is being 
-applied to test a command line program.  Its response is checked using regular 
-expressions.  Each entry includes a shell command to run the program and 
-a regular expression that must match the output for the test to pass::
-
-    -
-        cmd: emborg version
-        expected: emborg version: \d+\.\d+(\.\d+(\.?\w+\d+)?)?  \(\d\d\d\d-\d\d-\d\d\)
-        expected type: regex
-    -
-        cmd: emborg --quiet files -D
-        expected:
-            > Archive: home-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
-            > \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\d\d\d\d configs/subdir/(file|)
-            > \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\d\d\d\d configs/subdir/(file|)
-                # Unfortunately, we cannot check the order as they were both 
-                # created at the same time.
-        expected type: regex
-    -
-        cmd: emborg due --backup-days 1 --message "{elapsed} since last {action}"
-        expected: home: (\d+(\.\d)? (seconds|minutes)) since last backup\.
-        expected type: regex
-
-Notice that the regular expressions are given clean, without any additional 
-quoting or escaping.
-
 
 Composable Utilities
 """"""""""""""""""""
@@ -147,7 +127,7 @@ output particular fields on demand::
 This output could be fed directly into another program that accepts *NestedText* 
 as input::
 
-    > address --email | mail-to-list
+    > address --email | mail-to-list message
 
 
 Contributing
@@ -155,8 +135,8 @@ Contributing
 
 This package contains a Python reference implementation of *NestedText* and 
 a test suite.  Implementation in many languages is required for *NestedText* to 
-catch on widely.  If you like the format, please consider contributing 
-additional implementations.
+catch on widely.  Also required is support in popular editors. If you like the 
+format, please consider contributing in these areas.
 
 Also, please consider using *NestedText* for any applications you create.
 
