@@ -20,7 +20,7 @@ def normalize_key(key, parent_keys):
     return '_'.join(key.lower().split())
 
 def render_contact(data, keymap=None):
-    text = nt.dumps(data, map_keys=keymap, spacing={0:1})
+    text = nt.dumps(data, keymap=keymap, spacing={0:1})
     return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
 
 cmdline = docopt(__doc__)

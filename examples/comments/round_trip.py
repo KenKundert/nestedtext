@@ -36,7 +36,7 @@ def main():
             data["server"].setdefault("port", "8080")
 
     # Pass the keymap to dumps to reinstate the comments and spacing.
-    print(nt.dumps(data, map_keys=keymap))
+    print(nt.dumps(data, keymap=keymap))
 
 
 if __name__ == "__main__":

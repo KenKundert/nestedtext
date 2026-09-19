@@ -10,6 +10,9 @@ def de_dup(key, state):
     state[key] += 1
     return f"{key} #{state[key]}"
 
+def format_key(key, parent_keys):
+    return ', '.join(reversed(key.rsplit(maxsplit=1)))
+
 try:
     # read contacts database
     data = nt.load(filename, 'dict', on_dup=de_dup, keymap=(keymap:={}))
@@ -21,7 +24,12 @@ try:
     # display contact using original keys
     display()
     display("ORIGINAL KEYS:")
-    display(nt.dumps(data, map_keys=keymap))
+    display(nt.dumps(data, keymap=keymap))
+
+    # display contact using original keys
+    display()
+    display("MODIFIED KEYS:")
+    display(nt.dumps(data, keymap=keymap, format_key=format_key))
 
 except nt.NestedTextError as e:
     e.terminate()

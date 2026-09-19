@@ -216,7 +216,7 @@ class NestedTextError(Error, ValueError):
                   ▲
     '''
 
-# NT_DataError {{{2
+# NestedTextDataError {{{2
 class NestedTextDataError(NestedTextError):
     '''
     This exception is not emitted by NestedText itself, rather it is made
@@ -246,17 +246,22 @@ class NestedTextDataError(NestedTextError):
         show_line (bool):
             Whether or not to show the line in the NestedText document that
             contains the error.
+        zero_based_indices (bool):
+            If true, list indices are returned as zero-based.  If false, they
+            are returned as one-based.  This argument has no effect if the keys
+            do not contain list indices.
+
     '''
 
     # constructor {{{3
     def __init__(
         self, *args,
         source='', keymap=None, keys=None,
-        kind="value", offset=None, show_line=True,
+        kind="value", offset=None, show_line=True, zero_based_indices=True,
         culprit=(), codicil=(),
         **kwargs
     ):
-        # Users can use NestedTextError for their own errors.  To do so they
+        # Users can use NestedTextDataError for their own errors.  To do so they
         # would pass a message or a message template along with the source, the
         # keymap, the offending keys, whether the problem is in the key or the
         # value, and perhaps an offset, and the information will be converted
@@ -271,7 +276,11 @@ class NestedTextDataError(NestedTextError):
             line_nums = loc.get_line_numbers(kind=kind, sep='-')
             if line_nums:
                 source += f"@{line_nums}"
-            orig_keys = get_keys(keys, keymap, sep="›")
+            orig_keys = get_keys(
+                keys, keymap,
+                sep = "›",
+                zero_based_indices = zero_based_indices
+            )
             culprit = (source or None,) + (orig_keys,) + culprit
             kwargs['culprit'] = culprit
 
@@ -1059,7 +1068,7 @@ class Location:
         return str(first_lineno+1)
 
     # _get_original_key() {{{3
-    def _get_original_key(self, key, strict):
+    def _get_original_key(self, key):
         try:
             line = self.key_line
             if line.kind == "key item":
@@ -2159,7 +2168,8 @@ class NestedTextDumper:
         converters,
         default,
         spacing,
-        map_keys,
+        keymap,
+        format_key,
         width,
         inline_level,
         inline_count,
@@ -2168,7 +2178,8 @@ class NestedTextDumper:
         assert indent > 0
         self.indent = indent
         self.converters = converters
-        self.map_keys = map_keys
+        self.keymap = keymap
+        self.format_key = format_key
         self.default = default
         self.spacing = spacing or {}
         self.width = width
@@ -2271,14 +2282,14 @@ class NestedTextDumper:
         on this Location, or a parent provider for either slot -- will
         contribute Comments that need the multi-line dict-item form.
         """
-        if not is_mapping(self.map_keys):
+        if not self.keymap:
             return False
-        loc = self.map_keys.get(keys)
+        loc = self.keymap.get(keys)
         if loc is not None:
             if loc.get_key_trailing_comments() or loc.get_value_leading_comments():
                 return True
         if keys:
-            parent_loc = self.map_keys.get(keys[:-1])
+            parent_loc = self.keymap.get(keys[:-1])
             if parent_loc is not None:
                 if (
                     parent_loc.get_key_trailing_provider() is not None
@@ -2411,9 +2422,9 @@ class NestedTextDumper:
         non-empty spacing.
         """
         depth = len(keys)
-        if is_mapping(self.map_keys):
+        if self.keymap:
             for i in range(depth, -1, -1):
-                loc = self.map_keys.get(keys[:i])
+                loc = self.keymap.get(keys[:i])
                 if loc is not None:
                     sp = getattr(loc, "spacing", None)
                     if sp:
@@ -2450,14 +2461,12 @@ class NestedTextDumper:
         comments at that slot.  Comments returned by a provider with
         ``tab=None`` are normalized to ``tab=0``.
 
-        Only applies when ``map_keys`` is a keymap dict (the form
-        returned by load).  When ``map_keys`` is a callable (key
-        transformer), there are no comments to apply.
+        Only applies when a *keymap* was supplied to the dumper.
         """
-        if not is_mapping(self.map_keys):
+        if not self.keymap:
             return rendered_value
-        loc = self.map_keys.get(keys)
-        parent_loc = self.map_keys.get(keys[:-1]) if keys else None
+        loc = self.keymap.get(keys)
+        parent_loc = self.keymap.get(keys[:-1]) if keys else None
 
         # gather child's static comments (if any) {{{4
         if loc is not None:
@@ -2648,10 +2657,10 @@ class NestedTextDumper:
         return content
 
     def _inline_would_drop_comments(self, keys):
-        if not is_mapping(self.map_keys):
+        if not self.keymap:
             return False
 
-        loc = self.map_keys.get(keys)
+        loc = self.keymap.get(keys)
         if not loc:
             return False
 
@@ -2703,31 +2712,24 @@ class NestedTextDumper:
         return obj
 
     # map_key {{{3
-    # apply externally supplied mapping to convert key to desired form
+    # apply keymap and/or format_key to convert key to desired form
     def map_key(self, key, keys):
-        mapper = self.map_keys
-        if not mapper:
-            return key
-        if callable(mapper):
-            new_key = mapper(key, keys[:-1])
-            if new_key is None:
-                return key
-            return new_key
-        elif is_mapping(mapper):
+        # Step 1: recover original key from keymap
+        if self.keymap:
             try:
-                loc = mapper.get(keys)
+                loc = self.keymap.get(keys)
                 if loc:
-                    return loc._get_original_key(key, strict=False)
-                else:
-                    return key
+                    key = loc._get_original_key(key)
             except AttributeError:    # pragma: no cover
                 raise AssertionError(
-                    "if map_keys is a dictionary, it must be a keymap"
+                    "keymap must be a keymap dict as returned by load/loads"
                 ) from None
-        else:  # pragma: no cover
-            raise AssertionError(
-                "map_keys must be a callable or a dictionary"
-            ) from None
+        # Step 2: apply format_key transformer (if any)
+        if self.format_key:
+            new_key = self.format_key(key, keys[:-1])
+            if new_key is not None:
+                key = new_key
+        return key
 
 
 # dumps {{{2
@@ -2739,7 +2741,8 @@ def dumps(
     converters = None,
     default = None,
     spacing = None,
-    map_keys = None,
+    keymap = None,
+    format_key = None,
     width = 0,
     inline_level = 0,
     inline_count = 1,
@@ -2812,24 +2815,23 @@ def dumps(
             between the last data item and the document's footer comments.
             One number applies to both.  Defaults to zero.
 
-        map_keys (func or keymap):
-            This argument is used to modify the way keys are rendered, and,
-            when it is a keymap, to preserve comments and blank-line spacing
-            on round trip.
+        keymap (dict):
+            A keymap previously returned by :func:`load` or :func:`loads`
+            (or built with :func:`annotate`).  When supplied, keys are
+            rendered into their original form — before any normalization or
+            de-duplication was applied on load.  In addition, any comments
+            captured by the loader and stored on the keymap are re-emitted
+            around their associated keys.  Document-level header and footer
+            comments are stored on the root Location (``keymap[()]``) and
+            emitted at the top and bottom of the document.
 
-            It may be a keymap that was created by :func:`load` or
-            :func:`loads`, in which case keys are rendered into their original
-            form, before any normalization or de-duplication was performed by
-            the load functions.  In addition, any comments captured by the
-            loader and stored on the keymap are re-emitted around their
-            associated keys.  Document-level header and footer comments are
-            stored on the root Location (``keymap[()]``) and emitted at the
-            top and bottom of the document.
-
-            It may also be a function that takes two arguments: the key after
-            any needed conversion has been performed, and the tuple of parent
-            keys.  The value returned is used as the key and so must be a
-            string.  If no value is returned, the key is not modified.
+        format_key (func):
+            A function that takes two arguments: the key after any keymap
+            recovery has been applied, and the tuple of parent keys.  The
+            value returned is used as the key and so must be a string.  If
+            *None* is returned, the key is not modified.  Applied after
+            *keymap* recovery. If both are specified, *format_key* operates on
+            the original key.
 
         width (int):
             Enables inline lists and dictionaries if greater than zero and if
@@ -3055,23 +3057,23 @@ def dumps(
         priority over the built-in types and *default*.  When a function is
         specified as *default*, it is always applied as a last resort.
 
-        Use the *map_keys* argument to format the keys as you wish.  For
+        Use the *format_key* argument to format the keys as you wish.  For
         example, you may wish to render the keys at the first level of hierarchy
         in upper case:
 
         .. code-block:: python
 
-            >>> def map_keys(key, parent_keys):
+            >>> def to_upper_case(key, parent_keys):
             ...     if len(parent_keys) == 0:
             ...         return key.upper()
 
-            >>> print(nt.dumps(transaction, converters=converters, map_keys=map_keys))
+            >>> print(nt.dumps(transaction, converters=converters, format_key=to_upper_case))
             DATE: 7 May 2013
             DESCRIPTION: Incoming wire from Publisher’s Clearing House
             CREDIT: $12,345.67
 
-        It can also be used map the keys back to their original form when
-        round-tripping a dataset when using key normalization or key
+        Use the *keymap* argument to map keys back to their original form when
+        round-tripping a dataset that used key normalization or key
         de-duplication:
 
         .. code-block:: python
@@ -3079,10 +3081,13 @@ def dumps(
             >>> content = """
             ... Michael Jordan:
             ...     occupation: basketball player
+            ...         # Chicago Bulls
             ... Michael Jordan:
             ...     occupation: actor
+            ...         # Black Panther
             ... Michael Jordan:
             ...     occupation: football player
+            ...         # Philadelphia Eagles
             ... """
 
             >>> def de_dup(key, state):
@@ -3101,29 +3106,50 @@ def dumps(
             Michael Jordan  ⟪#3⟫:
                 occupation: football player
 
-            >>> print(nt.dumps(people, map_keys=keymap))
+            >>> print(nt.dumps(people, keymap=keymap))
             Michael Jordan:
                 occupation: basketball player
+                    # Chicago Bulls
             Michael Jordan:
                 occupation: actor
+                    # Black Panther
             Michael Jordan:
                 occupation: football player
+                    # Philadelphia Eagles
 
+        When *format_key* is used with *keymap* the keymap is applied first, so
+        *format_key* is applied to the original key.
+
+        .. code-block:: python
+
+            >>> def reverse_names(key, parent_keys):
+            ...     return ', '.join(reversed(key.rsplit(maxsplit=1)))
+
+            >>> print(nt.dumps(people, keymap=keymap, format_key=reverse_names))
+            Jordan, Michael:
+                occupation: basketball player
+                    # Chicago Bulls
+            Jordan, Michael:
+                occupation: actor
+                    # Black Panther
+            Jordan, Michael:
+                occupation: football player
+                    # Philadelphia Eagles
     '''
 
     # code {{{3
     dumper = NestedTextDumper(
         indent, sort_keys, converters, default, spacing,
-        map_keys, width, inline_level, inline_count, dialect
+        keymap, format_key, width, inline_level, inline_count, dialect
     )
     content = dumper.render_value(obj, (), ())
 
-    # prepend header / append footer comments when map_keys is a keymap dict
-    # carrying a document-root Location.  The blank-line gap between header
+    # prepend header / append footer comments when a keymap carrying a
+    # document-root Location is supplied.  The blank-line gap between header
     # and body (and between body and footer) is taken from spacing["edges"]
     # if present, else zero.
-    if is_mapping(map_keys):
-        root = map_keys.get(())
+    if keymap:
+        root = keymap.get(())
         header = root.get_header_comments() if root is not None else None
         footer = root.get_footer_comments() if root is not None else None
         root_spacing = root.get_spacing() if root is not None else None
@@ -3243,7 +3269,7 @@ def dump(obj, dest, **kwargs):
 # Extras that are useful when using NestedText.
 
 # get_keys {{{2
-def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
+def get_keys(keys, keymap, *, original=True, strict=True, zero_based_indices=True, sep=None):
     # description {{{3
     '''
     Returns a key sequence given a normalized key sequence.
@@ -3260,17 +3286,17 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
     to *keys*, a normalized key sequence.
 
     Args:
-        keys:
+        keys (tuple):
             The sequence of normalized keys that identify a value in the
             dataset.
-        keymap:
+        keymap (dict):
             The keymap returned from :meth:`load` or :meth:`loads`.
-        original:
+        original (bool):
             If true, return keys as originally given in the NestedText document
             (pre-normalization). Otherwise return keys as they exist in the
             dataset (post-normalization).  The value of this argument has no
             effect if the keys were not normalized.
-        strict:
+        strict (bool or str):
             *strict* controls what happens if the given keys are not found in
             *keymap*.
 
@@ -3291,7 +3317,12 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
             their original form if *original* is true,  The missing keys are
             always returned as given.
 
-        sep:
+        zero_based_indices (bool):
+            If true, list indices are returned as zero-based.  If false, they
+            are returned as one-based.  This argument has no effect if the keys
+            do not contain list indices.
+
+        sep (str):
             A join string.  If given the keys are interleaved with *sep* and
             joined into a string before being returned.
 
@@ -3315,27 +3346,27 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
 
             >>> data = nt.loads(contents, "dict", normalize_key=normalize_key, keymap=(keymap:={}))
 
-            >>> print(get_keys(("names", "given"), keymap))
+            >>> print(nt.get_keys(("names", "given"), keymap))
             ('Names', 'Given')
 
-            >>> print(get_keys(("names", "given"), keymap, sep="❭"))
+            >>> print(nt.get_keys(("names", "given"), keymap, sep="❭"))
             Names❭Given
 
-            >>> print(get_keys(("names", "given"), keymap, original=False))
+            >>> print(nt.get_keys(("names", "given"), keymap, original=False))
             ('names', 'given')
 
-            >>> keys = get_keys(("names", "surname"), keymap, strict=True)
+            >>> keys = nt.get_keys(("names", "surname"), keymap, strict=True)
             Traceback (most recent call last):
             ...
             KeyError: ('names', 'surname')
 
-            >>> print(get_keys(("names", "surname"), keymap, strict="found"))
+            >>> print(nt.get_keys(("names", "surname"), keymap, strict="found"))
             ('Names',)
 
-            >>> print(get_keys(("names", "surname"), keymap, strict="missing"))
+            >>> print(nt.get_keys(("names", "surname"), keymap, strict="missing"))
             ('surname',)
 
-            >>> print(get_keys(("names", "surname"), keymap, strict="all"))
+            >>> print(nt.get_keys(("names", "surname"), keymap, strict="all"))
             ('Names', 'surname')
 
     '''
@@ -3349,14 +3380,19 @@ def get_keys(keys, keymap, *, original=True, strict=True, sep=None):
     for i in range(len(keys)):
         try:
             loc = keymap[tuple(keys[:i+1])]
-            key = loc._get_original_key(keys[i], strict) if original else keys[i]
+            key = loc._get_original_key(keys[i]) if original else keys[i]
+            if isinstance(key, int) and not zero_based_indices:
+                key += 1
             if strict != "missing":
                 to_return += key,
         except (KeyError, IndexError):
             if strict in [True, "error"]:
                 raise
             if strict != "found":
-                to_return += keys[i],
+                key = keys[i]
+                if isinstance(key, int) and not zero_based_indices:
+                    key += 1
+                to_return += key,
     if sep:
         return sep.join(str(k) for k in to_return)
     return to_return
@@ -3699,7 +3735,7 @@ class _RestoredLocation(Location):
         super().__init__()
         self._original_key = original_key
 
-    def _get_original_key(self, key, strict):
+    def _get_original_key(self, key):
         if self._original_key is not None:
             return self._original_key
         return key
@@ -3730,7 +3766,7 @@ def keymap_to_jsonable(keymap, **kwargs):
     '''Reduce a keymap to a JSON-serializable structure for use with :func:`dumps`.
 
     Captures only what :func:`dumps` needs from the keymap to reconstruct
-    the original file: the original key strings (so ``map_keys`` can
+    the original file: the original key strings (so ``keymap`` can
     restore them) and the per-entry comment slots, plus the document
     header / footer on ``keymap[()]``.  Source line/column information is
     discarded.  Per-slot provider callables (set via
@@ -3761,13 +3797,13 @@ def keymap_to_jsonable(keymap, **kwargs):
     Returns:
         A JSON-serializable ``dict``.  Pass it to :func:`keymap_from_jsonable`
         to rebuild a keymap that can be given to :func:`dumps` as
-        ``map_keys=``.
+        ``keymap=``.
     '''
     entries = []
     for keys, loc in keymap.items():
         entry = {"keys": list(keys)}
         if keys and isinstance(keys[-1], str):
-            entry["original_key"] = loc._get_original_key(keys[-1], strict=False)
+            entry["original_key"] = loc._get_original_key(keys[-1])
         for attr, label in (
             ("key_leading_comments",   "key_leading"),
             ("key_trailing_comments",  "key_trailing"),
@@ -3795,7 +3831,7 @@ def keymap_from_jsonable(data):
     '''Rebuild a keymap from the output of :func:`keymap_to_jsonable`.
 
     The returned mapping is suitable for passing to :func:`dumps` (or
-    :func:`dump`) as ``map_keys=``; it will restore the original key
+    :func:`dump`) as ``keymap=``; it will restore the original key
     strings and inject the captured comments.  Locations in the rebuilt
     keymap do *not* carry source line/column information.
 

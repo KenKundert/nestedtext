@@ -36,11 +36,26 @@ v3.9 (2026-??-??)
   vertical layout in the rendered output.  The spacing is specified based on the 
   nesting level of the data, and can be overridden by spacing rules specified in 
   a keymap.
-- Added :func:`annotate()`, a function that is used to build or modify 
+- Added :func:`annotate()`, a function that is used to build or modify
   the keymaps passed to a dumper in order to add comments and spacing rules.
+- The *map_keys* argument of :func:`dump` and :func:`dumps` has been replaced
+  by two arguments: *keymap* (a keymap dict, for original-key recovery and
+  comment re-emission) and *format_key* (a callable, for key presentation
+  transforms such as reformatting or colorizing).  When both are given, *keymap*
+  is applied first and *format_key* receives the recovered original key.
 - Removed *get_value_from_keys()*, *get_lines_from_keys()*,
   *get_original_keys()*, and *join_keys()*.
 - Adds *inline_count* argument to :func:`dump` and :func:`dumps`.
+
+.. warning::
+
+    The *map_keys* argument to :func:`dump` and :func:`dumps` has been replaced 
+    by two arguments: *keymap* and *format_key*.  Previously *maps_keys* could 
+    be a keymap or a function, but you could only choose one.  By separating it 
+    into two arguments, you can now specify both.  Generally *keymap* does the 
+    heavy lifting of restoring keys to their original form and inserting 
+    comments.  Then *format_keys* can be used to tweak the keys if desired 
+    before outputting the *NestedText* document.
 
 
 v3.8 (2025-12-26)
@@ -85,6 +100,9 @@ v3.6 (2023-05-30)
 - De-duplicating with the *on_dup* argument to :func:`loads` now works well for 
   error reporting with keymaps.
 - The *map_keys* argument has been added to :func:`dump` and :func:`dumps`.
+  In v3.9 this was split into two arguments: *keymap* (dict only, for comment
+  and original-key recovery) and *format_key* (callable only, for key
+  presentation transforms).  *map_keys* has been removed.
 
 .. warning::
 

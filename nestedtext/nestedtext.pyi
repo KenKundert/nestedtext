@@ -173,7 +173,8 @@ def dumps(
     indent: int = ...,
     converters: dict[Type, Callable] | None = ...,
     default: str | Callable | None = ...,
-    map_keys: dict[tuple[str | int, ...], Any] | Callable = ...,
+    keymap: dict[tuple[str | int, ...], Any] | None = ...,
+    format_key: Callable | None = ...,
     spacing: dict = ...,
 ) -> str:
     ...
@@ -191,6 +192,7 @@ def get_keys(
     keymap: dict[tuple[str | int, ...], Location],
     original: bool = ...,
     strict: bool | str = ...,
+    zero_based_indices: bool = ...,
     sep: str = ...,
 ) -> tuple[str | int, ...] | str:
     ...

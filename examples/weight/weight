@@ -46,5 +46,5 @@ nt.annotate(('diary',), keymap=keymap, key_leading=[nt.Comment(None, before=1)])
 nt.annotate(("diary",), keymap=keymap, key_leading=add_section_headings)
 
 # dump version with and without comments
-nt.dump(data, "commented.nt", map_keys=keymap)
+nt.dump(data, "commented.nt", keymap=keymap)
 nt.dump(data, 'plain.nt')

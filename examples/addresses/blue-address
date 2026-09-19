@@ -27,7 +27,7 @@ def format_key(key, parent_keys):
     return blue(orig_keys[-1])
 
 def render_contact(data, keymap=None):
-    text = nt.dumps(data, map_keys=format_key)
+    text = nt.dumps(data, format_key=format_key)
     return re.sub(r'^(\s*)[>:][ ]?(.*)$', r'\1\2', text, flags=re.M)
 
 cmdline = docopt(__doc__)

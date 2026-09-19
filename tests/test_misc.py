@@ -1522,8 +1522,8 @@ def test_dump_cycle_detection():
     assert exception.value.culprit == ('a', 3, 0)
     assert 'circular reference' in str(exception.value)
 
-# test_dump_map_keys_keymap {{{2
-def test_dump_map_keys_keymap():
+# test_dump_keymap {{{2
+def test_dump_keymap():
     document = dedent("""
         Michael Jordan:
             occupation: basketball player
@@ -1553,7 +1553,7 @@ def test_dump_map_keys_keymap():
     people = nt.loads(document, on_dup=de_dup, keymap=keymap)
     output = nt.dumps(people)
     assert output == expected
-    output = nt.dumps(people, map_keys=keymap)
+    output = nt.dumps(people, keymap=keymap)
     assert output == document
 
     # with key normalization
@@ -1564,16 +1564,16 @@ def test_dump_map_keys_keymap():
     people = nt.loads(document, on_dup=de_dup, keymap=keymap, normalize_key=normalize_key)
     output = nt.dumps(people)
     assert output == expected.lower()
-    output = nt.dumps(people, map_keys=keymap)
+    output = nt.dumps(people, keymap=keymap)
     assert output == document
 
     # check error handling
     people['michael jordan'].update(dict(level='goat'))
-    output = nt.dumps(people, map_keys=keymap)
+    output = nt.dumps(people, keymap=keymap)
     assert 'level: goat' in output
 
-# test_dump_map_keys_func {{{2
-def test_dump_map_keys_func():
+# test_dump_format_key {{{2
+def test_dump_format_key():
     document = dedent("""
         declarations:
             count:
@@ -1589,12 +1589,12 @@ def test_dump_map_keys_func():
     for each in ["declarations", "behavior"]:
         expected = expected.replace(each, each.upper())
 
-    def map_keys(key, parent_keys):
+    def to_upper_case(key, parent_keys):
         if len(parent_keys) == 0:
             return key.upper()
 
     code = nt.loads(document)
-    output = nt.dumps(code, map_keys=map_keys)
+    output = nt.dumps(code, format_key=to_upper_case)
     assert output == expected
 
 # test_dump_dialect {{{2

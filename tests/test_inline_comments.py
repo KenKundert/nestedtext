@@ -28,13 +28,13 @@ def _strip(s):
 
 
 def _dump(keymap):
-    return nt.dumps(DATA, width=90, map_keys=keymap)
+    return nt.dumps(DATA, width=90, keymap=keymap)
 
 
 def _roundtrip(text):
     keymap = {}
     data = nt.loads(text, top=list, keymap=keymap)
-    return nt.dumps(data, width=90, map_keys=keymap)
+    return nt.dumps(data, width=90, keymap=keymap)
 
 
 # ---------------------------------------------------------------------------

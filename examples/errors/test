@@ -22,17 +22,19 @@ for i, case in enumerate(expressions):
             except SyntaxError as e:
                 raise nt.NestedTextDataError(
                     e, source=source, keys=(i, key), keymap=keymap,
-                    offset=e.offset
+                    offset=e.offset, zero_based_indices=False
                 )
             except Exception as e:
                 raise nt.NestedTextDataError(
                     e, source=source, keys=(i, key), keymap=keymap,
+                    zero_based_indices=False
                 )
         if evaluated['expr'] != evaluated['expected']:
             raise nt.NestedTextDataError(
                 "test failed.", culprit=f"expr={case['expr']}",
                 codicil=f"result={evaluated['expr']} ≠ expected={evaluated['expected']}",
-                source=source, keys=(i, key), keymap=keymap, show_line=False
+                source=source, keys=(i, key), keymap=keymap, show_line=False,
+                zero_based_indices=False
             )
     except nt.NestedTextDataError as e:
         e.report()

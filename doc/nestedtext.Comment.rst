@@ -8,8 +8,8 @@ specific keys or values.  Comments are automatically captured and attached to
 a keymap entry by :func:`load` / :func:`loads` when a *keymap* is supplied.  It 
 is also possible to build a keymap up from scratch and attach comments using 
 :func:`annotate`.  Then, the output of :func:`dump` / :func:`dumps` via 
-``map_keys=`` is adorned with the comments when such a *keymap* is passed in via 
-``map_keys=``.  See :doc:`comments` for the full story (attribution rules,
+``keymap=`` is adorned with the comments when such a *keymap* is passed in via
+``keymap=``.  See :doc:`comments` for the full story (attribution rules,
 read/write API, and round-tripping).
 
 .. autoclass:: Comment

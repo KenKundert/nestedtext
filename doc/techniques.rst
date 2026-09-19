@@ -346,14 +346,14 @@ keys are all identical, and so the original order is retained.
 Key Presentation
 ================
 
-When generating a *NestedText* document, it is sometimes desirable to transform 
-the keys upon output.  Generally one transforms the keys in order to change the 
-presentation of the key, not the meaning.  For example, you may want change its 
-case, rearrange it (ex: swap first and last names), translate it, etc.  These 
-are done by passing a function to the *map_keys* argument.  This function takes
-two arguments: the key after it has been rendered to a string and the tuple of 
-parent keys.  It is expected to return the transformed string.  For example, 
-lets print the address book again, this time with names printed with the last 
+When generating a *NestedText* document, it is sometimes desirable to transform
+the keys upon output.  Generally one transforms the keys in order to change the
+presentation of the key, not the meaning.  For example, you may want change its
+case, rearrange it (ex: swap first and last names), translate it, etc.  These
+are done by passing a function to the *format_key* argument.  This function takes
+two arguments: the key after it has been rendered to a string and the tuple of
+parent keys.  It is expected to return the transformed string.  For example,
+lets print the address book again, this time with names printed with the last
 name first.
 
 .. code-block:: python
@@ -367,7 +367,7 @@ name first.
     >>> def sort_key(key, parent_keys):
     ...     return key if len(parent_keys) == 0 else ''  # only sort first level keys
 
-    >>> print(nt.dumps(addresses, map_keys=last_name_first, sort_keys=sort_key))
+    >>> print(nt.dumps(addresses, format_key=last_name_first, sort_keys=sort_key))
     Hodge, Margaret:
         position: vice president
         address:
@@ -403,8 +403,8 @@ When round-tripping a *NestedText* document (reading the document and then later
 writing it back out), one often wants to undo any changes that were made to the 
 keys when reading the documents.  These modifications would be due to key 
 normalization or key de-duplication.  This is easily accomplished by simply 
-retaining the keymap from the original load and passing it to the dumper by way 
-of the *map_keys* argument.
+retaining the keymap from the original load and passing it to the dumper via
+the *keymap* argument.
 
 .. code-block:: python
 
@@ -432,7 +432,7 @@ of the *map_keys* argument.
         additional_roles:
             - accounting task force
 
-    >>> print(nt.dumps(filtered, map_keys=keymap))
+    >>> print(nt.dumps(filtered, keymap=keymap))
     # Contact information for our officers
     <BLANKLINE>
     Fumiko Purvis:
@@ -446,27 +446,29 @@ of the *map_keys* argument.
         Additional  Roles:
             - accounting task force
 
-Notice that the keys differ between the two.  The normalized key are output in 
-the former and original keys in the latter.  Also notice that in the comments 
+Notice that the keys differ between the two.  The normalized keys are output in
+the former and the original keys in the latter.  Also notice that the comments
 were included in the second output.
 
-Finally consider the case where you want to do both things; you want to return 
-to the original keys but you also want to change the presentation.  For example, 
-imagine wanting to display the original keys in blue.  That can be done as 
-follows:
+Finally consider the case where you want to do both things: return to the
+original keys *and* change the presentation.  For example, imagine wanting to
+display the original keys in blue.  Supply both *keymap* (to recover original
+keys) and *format_key* (to colorize them):
 
 .. code-block:: python
 
     >>> from inform import Color
     >>> blue = Color('blue', enable=Color.isTTY())
 
-    >>> def format_key(key, parent_keys):
-    ...    orig_keys = nt.get_keys(parent_keys + (key,), keymap)
-    ...    return blue(orig_keys[-1])
+    >>> def colorize(key, parent_keys):
+    ...    return blue(key)
 
-    >>> print(nt.dumps(filtered, map_keys=format_key))
+    >>> print(nt.dumps(filtered, keymap=keymap, format_key=colorize))
+    # Contact information for our officers
+    <BLANKLINE>
     Fumiko Purvis:
         Position: Treasurer
+            # Fumiko's term is ending at the end of the year.
         Address:
             > 3636 Buffalo Ave
             > Topeka, Kansas 20692
@@ -475,8 +477,9 @@ follows:
         Additional  Roles:
             - accounting task force
 
-The result looks identical in the documentation, but if you ran this program in 
-a terminal you would see the keys in blue.
+The result looks identical in the documentation, but if you ran this program in
+a terminal you would see the keys in blue.  Because *keymap* is also supplied,
+comments are preserved.
 
 
 .. _adding comments:
@@ -587,10 +590,10 @@ the example below.
 
 There are two challenges to overcome when processing include files.  First is 
 merging the data from the various include files in the face of conflicts. The 
-data in this case is a collection of tables, each of which contains rows and 
-column.  Tables should be merged, but rows are atomic, so a row replaces an 
-earlier row rather than inserting new columns in it.  This is handled by 
-*merge_to_depth()*.
+data in this case is a collection of tables, each of which contains one or more 
+rows, and each row contains one or more columns.  Tables should be merged, but 
+rows are atomic, so a row replaces an earlier row rather than inserting new 
+columns in it.  This is handled by *merge_to_depth()*.
 
 The second challenge is error reporting.  Error reports must point to the file 
 that contains the error.  This is handled by *find_keymap()*, which searches 
@@ -642,7 +645,7 @@ stripping leading multiline string tags.
 
 Stripping leading multiline string tags results in the output no longer being 
 valid *NestedText* and so should not be done if the output needs to be readable 
-later as *NestedText*..
+later as *NestedText*.
 
 
 .. _long lines example:

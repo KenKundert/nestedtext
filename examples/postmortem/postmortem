@@ -136,7 +136,7 @@ try:
         )
 
         # show the resulting settings
-        print(nt.dumps(settings, map_keys=keymap, default=str))
+        print(nt.dumps(settings, keymap=keymap, default=str))
 
 except nt.NestedTextError as e:
     e.report()

@@ -292,7 +292,7 @@ slot's natural indent rather than in absolute spaces.
     ... )
 
     >>> data = {'database': 'production'}
-    >>> print(nt.dumps(data, map_keys=keymap))
+    >>> print(nt.dumps(data, keymap=keymap))
     # application config
     <BLANKLINE>
     # database server
@@ -342,7 +342,7 @@ section headings:
     >>> _ = annotate((), keymap, key_leading=classify)
 
     >>> data = {'db_host': 'localhost', 'db_port': '5432', 'log_level': 'info'}
-    >>> print(nt.dumps(data, map_keys=keymap))
+    >>> print(nt.dumps(data, keymap=keymap))
     # Database
     db_host: localhost
     db_port: 5432
@@ -374,7 +374,7 @@ a diary:
     ...     "2024-02-04": "second",
     ...     "2025-01-09": "third",
     ... }
-    >>> print(nt.dumps(data, map_keys=keymap))
+    >>> print(nt.dumps(data, keymap=keymap))
     # === 2024 ===
     # --- 01 ---
     2024-01-15: first
@@ -416,7 +416,7 @@ The load → modify → dump cycle uses the same keymap on both sides:
     >>> data = nt.loads(source, top='dict', keymap=keymap)
     >>> data['retry_delay'] = '10'
 
-    >>> print(nt.dumps(data, map_keys=keymap, spacing={0: 1, "edges": 1}))
+    >>> print(nt.dumps(data, keymap=keymap, spacing={0: 1, "edges": 1}))
     # production deployment
     <BLANKLINE>
     # database server
@@ -448,8 +448,8 @@ JSON-serializable data:
     >>> import json
     >>> blob = json.dumps(nt.keymap_to_jsonable(keymap))
     >>> rebuilt = nt.keymap_from_jsonable(json.loads(blob))
-    >>> dumped_via_rebuilt = nt.dumps(data, map_keys=rebuilt, spacing={0: 1, "edges": 1})
-    >>> dumped_via_original = nt.dumps(data, map_keys=keymap, spacing={0: 1, "edges": 1})
+    >>> dumped_via_rebuilt = nt.dumps(data, keymap=rebuilt, spacing={0: 1, "edges": 1})
+    >>> dumped_via_original = nt.dumps(data, keymap=keymap, spacing={0: 1, "edges": 1})
     >>> dumped_via_rebuilt == dumped_via_original
     True
 

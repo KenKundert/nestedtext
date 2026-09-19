@@ -401,7 +401,7 @@ def test_round_trip(fixture):
     text = (EXAMPLES / fixture).read_text()
     keymap1 = {}
     data1 = nt.loads(text, top="any", keymap=keymap1)
-    out = nt.dumps(data1, map_keys=keymap1, spacing={"edges": 1})
+    out = nt.dumps(data1, keymap=keymap1, spacing={"edges": 1})
     keymap2 = {}
     data2 = nt.loads(out, top="any", keymap=keymap2)
     assert data1 == data2, f"data mismatch in {fixture}"
@@ -419,7 +419,7 @@ def test_dump_without_keymap_unchanged():
 def test_dump_with_empty_keymap_no_comments():
     """An empty keymap should produce the same output as no keymap."""
     data = {"a": "1", "b": "2"}
-    assert nt.dumps(data, map_keys={}) == "a: 1\nb: 2"
+    assert nt.dumps(data, keymap={}) == "a: 1\nb: 2"
 
 
 def test_dump_spacing_top_level():
@@ -449,26 +449,25 @@ def test_dump_spacing_edges():
     keymap[()].set_header_comments([Comment("the header", indent=0)])
     keymap[()].set_footer_comments([Comment("the footer", indent=0)])
     data = {"a": "1"}
-    out_no_edges = nt.dumps(data, map_keys=keymap)
+    out_no_edges = nt.dumps(data, keymap=keymap)
     assert out_no_edges == "# the header\n\na: 1\n\n# the footer"
-    out_with_edges = nt.dumps(data, map_keys=keymap, spacing={"edges": 0})
+    out_with_edges = nt.dumps(data, keymap=keymap, spacing={"edges": 0})
     assert out_with_edges == "# the header\na: 1\n# the footer"
-    out_with_edges = nt.dumps(data, map_keys=keymap, spacing={"edges": 1})
+    out_with_edges = nt.dumps(data, keymap=keymap, spacing={"edges": 1})
     assert out_no_edges == "# the header\n\na: 1\n\n# the footer"
-    out_two = nt.dumps(data, map_keys=keymap, spacing={"edges": 2})
+    out_two = nt.dumps(data, keymap=keymap, spacing={"edges": 2})
     assert out_two == "# the header\n\n\na: 1\n\n\n# the footer"
 
 
-def test_dump_map_keys_callable_still_works():
-    """Passing a callable to map_keys (existing behaviour) must still work
-    with the new comment-aware code paths."""
+def test_dump_format_key():
+    """format_key applies a callable transformation to keys."""
     data = {"alpha": "1", "beta": "2"}
 
     def upper_top_keys(key, parent_keys):
         if len(parent_keys) == 0:
             return key.upper()
 
-    assert nt.dumps(data, map_keys=upper_top_keys) == "ALPHA: 1\nBETA: 2"
+    assert nt.dumps(data, format_key=upper_top_keys) == "ALPHA: 1\nBETA: 2"
 
 
 # ---------------------------------------------------------------------------
@@ -489,7 +488,7 @@ def test_location_spacing_relative_to_attached_key():
     data = {"section": {"x": "1", "y": "2", "z": "3"}}
     keymap = _make_keymap(("section",))
     keymap[("section",)].set_spacing({0: 1})
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # one blank line between x, y, z (section's direct children)
     assert out == "section:\n    x: 1\n\n    y: 2\n\n    z: 3"
 
@@ -503,7 +502,7 @@ def test_location_spacing_replaces_global_in_subtree():
     # Section overrides: only depth 1 (relative => grandchildren of section
     # are NOT joined, but section's direct children get 2 blanks).
     keymap[("section",)].set_spacing({0: 2})
-    out = nt.dumps(data, map_keys=keymap, spacing={1: 5, 2: 5})
+    out = nt.dumps(data, keymap=keymap, spacing={1: 5, 2: 5})
     # section's children (a, b) get 2 blanks; their children (i, ii) get
     # 0 (NOT 5 from global -- replace, not merge).
     assert out == (
@@ -527,7 +526,7 @@ def test_location_spacing_does_not_leak_to_siblings():
     }
     keymap = _make_keymap(("first",), ("second",))
     keymap[("first",)].set_spacing({0: 2})
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # first's children separated by 2 blanks; second's by 0 (no spacing)
     assert out == (
         "first:\n"
@@ -550,7 +549,7 @@ def test_root_location_spacing_overrides_global():
     keymap[()].set_spacing({0: 2, "edges": 1})
     data = {"a": "1", "b": "2"}
     # Pass an aggressive global -- it must be IGNORED because root has spacing.
-    out = nt.dumps(data, map_keys=keymap, spacing={0: 9, "edges": 9})
+    out = nt.dumps(data, keymap=keymap, spacing={0: 9, "edges": 9})
     assert out == "# hdr\n\na: 1\n\n\nb: 2\n\n# ftr"
 
 
@@ -560,7 +559,7 @@ def test_edges_ignored_on_non_root_location():
     keymap = _make_keymap(("section",))
     keymap[("section",)].set_spacing({0: 1, "edges": 9})
     data = {"section": {"x": "1", "y": "2"}}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # 'edges' on section is silently ignored; depth 0 still controls
     # section's child spacing.
     assert out == "section:\n    x: 1\n\n    y: 2"
@@ -573,7 +572,7 @@ def test_empty_spacing_dict_does_not_trigger_replace():
     keymap[("section",)].set_spacing({})  # explicitly empty
     data = {"section": {"x": "1", "y": "2"}}
     # With section's spacing empty, the global spacing[1] applies.
-    out = nt.dumps(data, map_keys=keymap, spacing={1: 1})
+    out = nt.dumps(data, keymap=keymap, spacing={1: 1})
     assert out == "section:\n    x: 1\n\n    y: 2"
 
 
@@ -589,7 +588,7 @@ def test_inner_location_spacing_overrides_outer():
     keymap = _make_keymap(("outer",), ("outer", "alpha"))
     keymap[("outer",)].set_spacing({0: 1, 1: 0})       # outer governs
     keymap[("outer", "alpha")].set_spacing({0: 2})     # alpha overrides
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # alpha's children separated by 2 (alpha's spacing[0])
     # beta's children separated by 0 (outer's spacing[1], NOT alpha's)
     # outer's children (alpha, beta) separated by 1 (outer's spacing[0])
@@ -615,9 +614,9 @@ def test_spacing_round_trips_through_jsonable():
     keymap[()].set_spacing({"edges": 1})
     keymap[()].set_header_comments([Comment("hdr", indent=0)])
     data = {"section": {"a": {"i": "1"}, "b": {"i": "2"}}}
-    expected = nt.dumps(data, map_keys=keymap)
+    expected = nt.dumps(data, keymap=keymap)
     rebuilt = nt.keymap_from_jsonable(nt.keymap_to_jsonable(keymap))
-    assert nt.dumps(data, map_keys=rebuilt) == expected
+    assert nt.dumps(data, keymap=rebuilt) == expected
     # Spacing dict contents survived (depth keys round-tripped as int)
     assert rebuilt[("section",)].get_spacing() == {0: 2, 1: 1}
     assert rebuilt[()].get_spacing() == {"edges": 1}
@@ -771,7 +770,7 @@ def test_comment_with_empty_inner_line():
     source = "# alpha\n#\n# beta\nkey: value\n"
     keymap = {}
     data = nt.loads(source, top="dict", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # The empty middle line is rendered as a `#` on its own line.
     assert "# alpha\n#\n# beta\nkey: value" == out
 
@@ -787,7 +786,7 @@ def test_spacing_with_trailing_comment_on_first_item():
     )
     keymap = {}
     data = nt.loads(source, top="dict", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap, spacing={0: 2})
+    out = nt.dumps(data, keymap=keymap, spacing={0: 2})
     # spacing[0] = 2 -> exactly two blank lines between a's block and b
     assert "# trailing on a\n\n\nb: 2" in out
 
@@ -797,14 +796,14 @@ def test_dumps_empty_data_with_footer():
     the footer comments (the empty-content branch in dumps)."""
     root = Location()
     root.set_footer_comments([Comment("just a footer", indent=0)])
-    assert nt.dumps(None, map_keys={(): root}) == "# just a footer"
+    assert nt.dumps(None, keymap={(): root}) == "# just a footer"
 
 
 def test_dumps_empty_data_with_header():
     """Mirror of the above for the empty-content + header path."""
     root = Location()
     root.set_header_comments([Comment("just a header", indent=0)])
-    assert nt.dumps(None, map_keys={(): root}) == "# just a header"
+    assert nt.dumps(None, keymap={(): root}) == "# just a header"
 
 
 def test_s11_inline_converted_to_trailing_on_dump():
@@ -817,7 +816,7 @@ def test_s11_inline_converted_to_trailing_on_dump():
     text = (EXAMPLES / "s11_gapG_comment_inside_multiline.nt").read_text()
     keymap = {}
     data = nt.loads(text, top="any", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert out == (
         "notice:\n"
         "    > the cache layer is being decommissioned\n"
@@ -852,12 +851,12 @@ def test_keymap_jsonable_round_trip_preserves_comments_and_keys():
     )
     keymap1 = {}
     data1 = nt.loads(source, top="any", keymap=keymap1)
-    out1 = nt.dumps(data1, map_keys=keymap1, spacing={"edges": 1})
+    out1 = nt.dumps(data1, keymap=keymap1, spacing={"edges": 1})
 
     jsonable = nt.keymap_to_jsonable(keymap1)
     assert isinstance(jsonable, dict)
     keymap2 = nt.keymap_from_jsonable(jsonable)
-    out2 = nt.dumps(data1, map_keys=keymap2, spacing={"edges": 1})
+    out2 = nt.dumps(data1, keymap=keymap2, spacing={"edges": 1})
 
     # Output via the rebuilt keymap should match output via the original.
     assert out1 == out2
@@ -880,7 +879,7 @@ def test_keymap_from_jsonable_restores_original_keys_after_normalization():
 
     jsonable = nt.keymap_to_jsonable(keymap)
     rebuilt = nt.keymap_from_jsonable(jsonable)
-    out = nt.dumps(data, map_keys=rebuilt)
+    out = nt.dumps(data, keymap=rebuilt)
     assert "Title:" in out
     assert "Authors:" in out
     assert "title:" not in out
@@ -944,7 +943,7 @@ def test_restored_location_returns_passed_key_for_list_items():
     nt.loads("- a\n- b\n", top="list", keymap=keymap)
     rebuilt = nt.keymap_from_jsonable(nt.keymap_to_jsonable(keymap))
     loc = rebuilt[(0,)]
-    assert loc._get_original_key(0, strict=False) == 0
+    assert loc._get_original_key(0) == 0
 
 
 def test_keymap_to_jsonable_handles_bare_location():
@@ -953,7 +952,7 @@ def test_keymap_to_jsonable_handles_bare_location():
     loc = Location()
     keymap = {("foo",): loc}
     rebuilt = nt.keymap_from_jsonable(nt.keymap_to_jsonable(keymap))
-    assert rebuilt[("foo",)]._get_original_key("foo", strict=False) == "foo"
+    assert rebuilt[("foo",)]._get_original_key("foo") == "foo"
 
 
 # ---------------------------------------------------------------------------
@@ -979,7 +978,7 @@ def test_annotate_tab_zero_uses_natural_indent():
     keymap = {}
     annotate(("section", "a"), keymap, key_leading=[Comment("alpha")])
     data = {"section": {"a": "1"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     # natural for key_leading at depth 2 is (2-1)*4 = 4
     assert "    # alpha" in out
     assert "        # alpha" not in out
@@ -990,7 +989,7 @@ def test_annotate_tab_positive_offsets_natural():
     keymap = {}
     annotate(("section", "a"), keymap, key_leading=[Comment("alpha", tab=1)])
     data = {"section": {"a": "1"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     # natural 4 + 1*4 = 8
     assert "        # alpha" in out
 
@@ -1000,7 +999,7 @@ def test_annotate_tab_negative_clamps_at_zero():
     keymap = {}
     annotate(("section", "a"), keymap, key_leading=[Comment("alpha", tab=-99)])
     data = {"section": {"a": "1"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     # natural would be 4; negative tab clamped to 0 column
     assert "\n# alpha" in out or out.startswith("# alpha")
 
@@ -1010,8 +1009,8 @@ def test_annotate_responds_to_dumps_indent():
     keymap = {}
     annotate(("section", "a"), keymap, key_leading=[Comment("alpha")])
     data = {"section": {"a": "1"}}
-    out4 = nt.dumps(data, map_keys=keymap, indent=4)
-    out2 = nt.dumps(data, map_keys=keymap, indent=2)
+    out4 = nt.dumps(data, keymap=keymap, indent=4)
+    out2 = nt.dumps(data, keymap=keymap, indent=2)
     assert "    # alpha" in out4
     assert "  # alpha" in out2
     assert "    # alpha" not in out2
@@ -1023,7 +1022,7 @@ def test_loader_built_comments_unaffected_by_dumps_indent():
     src = "section:\n    # loaded comment\n    a: 1\n"
     keymap = {}
     nt.loads(src, top="dict", keymap=keymap)
-    out4 = nt.dumps({"section": {"a": "1"}}, map_keys=keymap, indent=4)
+    out4 = nt.dumps({"section": {"a": "1"}}, keymap=keymap, indent=4)
     # The loaded comment has indent=4 absolute; should appear at column 4
     # even though we're dumping with indent=4 (same column either way).
     assert "    # loaded comment" in out4
@@ -1037,7 +1036,7 @@ def test_annotate_blanks_before_after():
     data = {"section": {"a": "1"}, "other": "2"}
     # Put 'other' before 'section' so we have something before:
     data = {"other": "2", "section": {"a": "1"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     # Expect: other: 2 \n <blank> \n # intro \n <blank> \n section: ...
     lines = out.split("\n")
     intro_idx = lines.index("# intro")
@@ -1056,7 +1055,7 @@ def test_same_indent_comments_emit_contiguously():
         Comment("second"),
     ])
     data = {"section": "x"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     lines = out.split("\n")
     first_idx = lines.index("# first")
     second_idx = lines.index("# second")
@@ -1072,7 +1071,7 @@ def test_annotate_blanks_explicit_before():
         Comment("second", before=2),
     ])
     data = {"section": "x"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     lines = out.split("\n")
     first_idx = lines.index("# first")
     second_idx = lines.index("# second")
@@ -1092,7 +1091,7 @@ def test_comment_with_none_text_emits_only_blanks():
         Comment("second"),
     ])
     data = {"section": "x"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     lines = out.split("\n")
     first = lines.index("# first")
     second = lines.index("# second")
@@ -1113,7 +1112,7 @@ def test_comment_with_none_text_no_args_is_inert():
         Comment("second"),
     ])
     data = {"section": "x"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # No blank between the two real comments either; the None entry is
     # transparent for adjacency tracking too.
     lines = out.split("\n")
@@ -1132,7 +1131,7 @@ def test_comment_with_none_text_in_provider():
     keymap = {}
     annotate((), keymap, key_leading=header)
     data = {"2024-01": "a", "2024-02": "b", "2025-01": "c"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # blank lines appear before "# start of 2024" and "# start of 2025"
     assert "# start of 2024" in out
     assert "# start of 2025" in out
@@ -1213,7 +1212,7 @@ def test_inline_indent_bump_makes_round_trip_stable():
     )
     keymap1 = {}
     nt.loads(src, top="dict", keymap=keymap1)
-    out = nt.dumps({"k1\nk2": "a\nb"}, map_keys=keymap1)
+    out = nt.dumps({"k1\nk2": "a\nb"}, keymap=keymap1)
     keymap2 = {}
     nt.loads(out, top="dict", keymap=keymap2)
     loc1 = keymap1[("k1\nk2",)]
@@ -1247,7 +1246,7 @@ def test_dumper_multi_line_key_with_inner_multi_line_key():
     keymap = {}
     annotate(("a\nb",), keymap, key_trailing=[Comment("outer kt", tab=1)])
     data = {"a\nb": {"c\nd": "v"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     lines = out.split("\n")
     outer_a = lines.index(": a")
     outer_b = lines.index(": b")
@@ -1272,7 +1271,7 @@ def test_dumper_multi_line_key_places_kt_vl_after_all_fragments():
         value_leading=[Comment("vl", tab=0)],
     )
     data = {"a\nb": "v"}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     lines = out.split("\n")
     a = lines.index(": a")
     b = lines.index(": b")
@@ -1303,7 +1302,7 @@ def test_round_trip_preserves_key_trailing_and_value_leading():
     )
     keymap = {}
     data = nt.loads(src, top="any", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # Re-load and compare keymaps + data — semantic preservation.
     keymap2 = {}
     data2 = nt.loads(out, top="any", keymap=keymap2)
@@ -1327,7 +1326,7 @@ def test_force_multiline_for_dict_value_with_kt_or_vl():
     )
     keymap = {}
     data = nt.loads(src, top="any", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     keymap2 = {}
     nt.loads(out, top="any", keymap=keymap2)
     assert [c.text for c in keymap2[("outer",)].get_key_trailing_comments()] == [
@@ -1341,7 +1340,7 @@ def test_force_multiline_value_for_non_string_scalar():
     keymap = {}
     annotate(("count",), keymap, key_trailing=[Comment("must be int")])
     data = {"count": 42}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # The 42 must end up on its own line (with `> ` leader), not inline.
     assert "count: 42" not in out
     assert "count:" in out
@@ -1358,7 +1357,7 @@ def test_force_multiline_with_parent_provider():
     keymap = {}
     annotate((), keymap, key_trailing=kt)
     data = {"verbose": "yes", "quiet": "no"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     # verbose: comment lands; the value is on its own line.
     assert "# trail verbose" in out
     # 'verbose' and 'quiet' both rendered in multi-line form (provider
@@ -1379,7 +1378,7 @@ def test_loader_same_slot_same_indent_comments_merge_on_dump_reload():
         Comment("second"),
     ])
     data = {"section": "x"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert "# first\n# second" in out
     keymap2 = {}
     nt.loads(out, top="dict", keymap=keymap2)
@@ -1433,7 +1432,7 @@ def test_annotate_root_header_footer():
         footer=[Comment("bottom")],
     )
     data = {"a": "1"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert "# top" in out
     assert "# bottom" in out
     assert out.index("# top") < out.index("a: 1") < out.index("# bottom")
@@ -1449,9 +1448,9 @@ def test_annotate_round_trips_through_jsonable():
         Comment("deeper", tab=1),
     ])
     data = {"section": {"a": "1"}}
-    expected = nt.dumps(data, map_keys=keymap, indent=4)
+    expected = nt.dumps(data, keymap=keymap, indent=4)
     rebuilt = nt.keymap_from_jsonable(nt.keymap_to_jsonable(keymap))
-    assert nt.dumps(data, map_keys=rebuilt, indent=4) == expected
+    assert nt.dumps(data, keymap=rebuilt, indent=4) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -1468,7 +1467,7 @@ def test_provider_invoked_per_child_with_child_key():
     keymap = {}
     annotate((), keymap, key_leading=provider)
     data = {"alpha": "1", "bravo": "2"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert seen == ["alpha", "bravo"]
     assert "# k=alpha" in out
     assert "# k=bravo" in out
@@ -1496,7 +1495,7 @@ def test_provider_closure_dedup_for_diary():
         "2024-02-04": "c",
         "2025-01-09": "d",
     }
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert out.count("# === 2024 ===") == 1
     assert out.count("# === 2025 ===") == 1
     assert out.count("# --- 01 ---") == 2   # once in 2024, once in 2025
@@ -1521,7 +1520,7 @@ def test_provider_classifier_pattern():
     keymap = {}
     annotate((), keymap, key_leading=classify)
     data = {"db_host": "x", "db_port": "y", "log_level": "z", "misc": "w"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert out.count("# Database") == 1
     assert out.count("# Logging") == 1
     assert out.count("# Other") == 1
@@ -1537,7 +1536,7 @@ def test_provider_prepends_to_child_static_key_leading():
     annotate((), keymap, key_leading=lambda k: [Comment("from parent")])
     annotate(("alpha",), keymap, key_leading=[Comment("from child")])
     data = {"alpha": "1"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert out.index("# from parent") < out.index("# from child") < out.index("alpha: 1")
 
 
@@ -1546,7 +1545,7 @@ def test_provider_returning_empty_list_emits_nothing():
     keymap = {}
     annotate((), keymap, key_leading=lambda k: [] if k == "skip" else [Comment(f"#{k}")])
     data = {"skip": "x", "show": "y"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert "# #skip" not in out
     assert "# #show" in out
 
@@ -1557,7 +1556,7 @@ def test_provider_returning_none_emits_nothing():
     keymap = {}
     annotate((), keymap, key_leading=lambda k: None if k == "skip" else [Comment(f"#{k}")])
     data = {"skip": "x", "show": "y"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert "# #skip" not in out
     assert "# #show" in out
 
@@ -1568,7 +1567,7 @@ def test_provider_at_nested_parent_indents_at_child_column():
     keymap = {}
     annotate(("section",), keymap, key_leading=lambda k: [Comment("hdr")])
     data = {"section": {"alpha": "1", "bravo": "2"}}
-    out = nt.dumps(data, map_keys=keymap, indent=4)
+    out = nt.dumps(data, keymap=keymap, indent=4)
     # children are at column 4 → '# hdr' should appear there.
     assert "    # hdr" in out
 
@@ -1580,7 +1579,7 @@ def test_provider_on_list_receives_integer_index():
         key_leading=lambda i: [Comment(f"item {i}")] if i % 2 == 0 else [],
     )
     data = {"items": ["a", "b", "c", "d"]}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert "# item 0" in out
     assert "# item 2" in out
     assert "# item 1" not in out
@@ -1594,7 +1593,7 @@ def test_provider_on_value_trailing_slot():
         value_trailing=lambda k: [Comment(f"after {k}")],
     )
     data = {"alpha": "1", "bravo": "2"}
-    out = nt.dumps(data, map_keys=keymap)
+    out = nt.dumps(data, keymap=keymap)
     assert out.index("alpha: 1") < out.index("# after alpha") < out.index("bravo: 2")
 
 
@@ -1616,7 +1615,7 @@ def test_provider_dropped_from_jsonable():
     annotate((), keymap, key_leading=lambda k: [Comment("Provider")])
     data = {"a": "1"}
     rebuilt = nt.keymap_from_jsonable(nt.keymap_to_jsonable(keymap))
-    out = nt.dumps(data, map_keys=rebuilt)
+    out = nt.dumps(data, keymap=rebuilt)
     assert "# Provider" not in out
 
 
@@ -1651,7 +1650,7 @@ def test_loader_built_comments_round_trip_unchanged():
     )
     keymap = {}
     data = nt.loads(src, top="dict", keymap=keymap)
-    out = nt.dumps(data, map_keys=keymap, spacing={"edges": 1})
+    out = nt.dumps(data, keymap=keymap, spacing={"edges": 1})
     # the dump should have the comments at their original positions
     assert "# header" in out
     assert "# leading on key" in out

@@ -75,7 +75,7 @@ def test_canonical_example():
         # footer
     """).strip("\n")
 
-    result = nt.dumps(data, width=90, map_keys=keymap)
+    result = nt.dumps(data, width=90, keymap=keymap)
     assert result == expected
 
 
@@ -116,14 +116,14 @@ def test_canonical_example_reaches_fixed_point():
     annotate(("k0b",), keymap, value_trailing=(Comment("k0b: value trailing"),))
     annotate((), keymap, footer=(Comment("footer"),))
 
-    first = nt.dumps(data, width=90, map_keys=keymap)
+    first = nt.dumps(data, width=90, keymap=keymap)
 
     km1 = {}
     nt.loads(first, top="dict", keymap=km1)
-    second = nt.dumps(nt.loads(first, top="dict"), width=90, map_keys=km1)
+    second = nt.dumps(nt.loads(first, top="dict"), width=90, keymap=km1)
 
     km2 = {}
     nt.loads(second, top="dict", keymap=km2)
-    third = nt.dumps(nt.loads(second, top="dict"), width=90, map_keys=km2)
+    third = nt.dumps(nt.loads(second, top="dict"), width=90, keymap=km2)
 
     assert second == third
