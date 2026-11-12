@@ -119,6 +119,14 @@ Rust
 `Rust <https://www.rust-lang.org>`_ implementation of *NestedText* with
 serde integration. Supports :ref:`NestedText v3.8 <v3.8>`.
 
+`serde_nt <https://crates.io/crates/serde_nt>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Rust <https://www.rust-lang.org>`_ implementation of *NestedText* with
+`serde <https://serde.rs>`_ support, and with the same error messages and line
+numbers as the Python implementation.  It passes the complete official test
+suite.  Supports :ref:`NestedText v3.8 <v3.8>`.
+
 
 Zig
 """
