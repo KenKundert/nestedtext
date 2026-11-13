@@ -1,4 +1,8 @@
 autoclasstoc >= 1.6
-docutils
+sphinx==5.3.0
+docutils==0.16
+    # There is an incompatibility between Sphinx and docutils version 0.18.
+    # Also, newer version than 0.16 or perhaps 1.17 do not render bullets in bullet lists
 sphinx_toolbox
-sphinx_rtd_theme
+sphinx_rtd_theme==2.0.0
+sphinx-llms-txt

@@ -4,21 +4,21 @@ Related projects
 Reference Material
 ------------------
 
-`NestedText Documentation <https://nestedtext.org>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedText Documentation <NestedText_documentation_>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 *NestedText* documentation and language specification.
 
 
-`NestedText Source <https://github.com/kenkundert/nestedtext>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedText Source <NestedText_source_>`_
+"""""""""""""""""""""""""""""""""""""""""
 Source code repository for language documentation and Python implementation.  
 Report any issues here.
 
 
-`NestedText Tests <https://github.com/kenkundert/nestedtext_tests>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedText Tests <NestedText_tests_>`_
+"""""""""""""""""""""""""""""""""""""""
 Official *NestedText* test suite.  Also included as submodule in
-`nestedtext <https://github.com/kenkundert/nestedtext>`_.
+`nestedtext <NestedText_source_>`_.
 
 
 Implementations
@@ -27,8 +27,8 @@ Implementations
 C
 """"
 
-`nt4c <https://github.com/1Hyena/nt4c>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`nt4c <1Hyena_nt4c_>`_
+^^^^^^^^^^^^^^^^^^^^^^
 
 `C <https://www.c-language.org/>`_ implementation of *Minimal NestedText*.
 Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
@@ -37,14 +37,15 @@ Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
 Go
 ""
 
-`nestedtext <https://github.com/danielledeleo/nestedtext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`NestedText <danielledeleo_nestedtext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Go <https://golang.org/>`_ implementation of *NestedText* with idiomatic API.
 Supports :ref:`NestedText v3.8 <v3.8>`.
 
-`nestext <https://github.com/npillmayer/nestext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`nestext <npillmayer_nestext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Go <https://golang.org/>`_ implementation of *NestedText*.
 Supports :ref:`NestedText v3.1 <v3.1>`.
@@ -53,8 +54,8 @@ Supports :ref:`NestedText v3.1 <v3.1>`.
 Janet
 """""
 
-`janet-nested-text <https://github.com/andrewchambers/janet-nested-text>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`Janet NestedText <andrewchambers_janet-nested-text_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Janet <https://janet-lang.org/>`_ implementation of *NestedText*.
 Supports :ref:`NestedText v3.0 <v3.0>`.
@@ -63,8 +64,8 @@ Supports :ref:`NestedText v3.0 <v3.0>`.
 Java
 """"
 
-`nestedtext-min-java <https://github.com/loxlylabs/nestedtext-min-java>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`nestedtext-min-java <loxlylabs_nestedtext-min-java_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Java <https://www.java.com/>`_ implementation of *Minimal NestedText*.
 Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
@@ -73,8 +74,8 @@ Supports :ref:`Minimal NestedText v3.7 <v3.7>`.
 JavaScript
 """"""""""
 
-`NestedText <https://www.npmjs.com/package/nestedtext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`NestedText <npmjs_nestedtext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Native JavaScript implementation of *NestedText*. It's not a WASM build of 
 a compiled project, so it is significantly lighter in weight than 
@@ -82,8 +83,9 @@ a compiled project, so it is significantly lighter in weight than
 <https://github.com/fidian/nestedtext>`_.  Supports :ref:`NestedText v3.0 
 <v3.0>`.
 
-`@rmw/nestedtext <https://www.npmjs.com/package/@rmw/nestedtext>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`nestedtext <rmw_nestedtext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 NodeJS (es module) implementation of *NestedText*.  Uses `WASM 
 <https://en.wikipedia.org/wiki/WebAssembly>`_ for *NestedText* decode.  Supports 
@@ -93,8 +95,8 @@ NodeJS (es module) implementation of *NestedText*.  Uses `WASM
 .NET
 """"
 
-`NestedText <https://www.nuget.org/packages/NestedText>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`NestedText <nuget_nestedtext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `.NET <https://dotnet.microsoft.com/>`_ implementation of *NestedText*.
 Supports :ref:`NestedText v3.7 <v3.7>`.
@@ -103,8 +105,8 @@ Supports :ref:`NestedText v3.7 <v3.7>`.
 Ruby
 """"
 
-`nestedtext-ruby <https://github.com/erikw/nestedtext-ruby>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`NestedText Ruby Library <erikw_nestedtext-ruby_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Ruby <https://www.ruby-lang.org/en/>`_ implementation of *NestedText*.  
 Supports :ref:`NestedText v3.0 <v3.0>`.
@@ -113,14 +115,15 @@ Supports :ref:`NestedText v3.0 <v3.0>`.
 Rust
 """"
 
-`nested-text <https://github.com/hansstimer/nested-text>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`nested-text <hansstimer_nested-text_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Rust <https://www.rust-lang.org>`_ implementation of *NestedText* with
 serde integration. Supports :ref:`NestedText v3.8 <v3.8>`.
 
-`serde_nt <https://crates.io/crates/serde_nt>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`serde_nt <i18nsite_serde_nt_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Rust <https://www.rust-lang.org>`_ implementation of *NestedText* with
 `serde <https://serde.rs>`_ support, and with the same error messages and line
@@ -131,8 +134,8 @@ suite.  Supports :ref:`NestedText v3.8 <v3.8>`.
 Zig
 """
 
-`zig-nestedtext <https://github.com/LewisGaul/zig-nestedtext>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`zig-nestedtext <lewisgaul_zig-nestedtext_>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Zig <https://ziglang.org>`_ implementation of *NestedText*
 (slight subset of :ref:`NestedText v2.0 <v2.0>`).  Also contains *nt-cli*, an 
@@ -142,39 +145,40 @@ efficient command line utility for converting between *NestedText* and *JSON*.
 Utilities
 ---------
 
-`NestedTextTo <https://github.com/AndydeCleyre/nestedtextto>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedTextTo <andydecleyre_nestedtextto_>`_
+""""""""""""""""""""""""""""""""""""""""""""
 Command line utilities for converting between *NestedText*, *JSON*, *YAML*, and 
 *TOML*.
 
 
-`ntLog <https://github.com/KenKundert/ntlog>`_
-""""""""""""""""""""""""""""""""""""""""""""""
+`ntLog <kenkundert_ntlog_>`_
+""""""""""""""""""""""""""""
 *ntlog* is a *NestedText* logfile aggregation utility.
 
 
-`parametrize from file <https://github.com/kalekundert/parametrize_from_file>`_
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`Parmetrize From File <kalekundert_parametrize-from-file_>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Separate your test cases, held in *NestedText*,
 from your `PyTest <https://docs.pytest.org>`_ test code.
 
 
-`pygments <https://github.com/KenKundert/pygments>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""
+`Pygments <kenkundert_pygments_>`_
+""""""""""""""""""""""""""""""""""
 Version of the popular *pygments* Python library that supports :ref:`NestedText 
 v3.0 <v3.0>`.
 
-`sublimetext-nestedtext <https://github.com/AndydeCleyre/sublimetext-nestedtext>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+`NestedText Syntax Definition for Sublime Text <andydecleyre_sublimetext-nestedtext_>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 `Sublime syntax files <https://packagecontrol.io/packages/NestedText>`_ for 
 *NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
 
 
-`vim-nestedtext <https://github.com/kenkundert/vim-nestedtext>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`NestedText plugin for Vim <kenkundert_vim-nestedtext_>`_
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Vim syntax files for *NestedText* (supports :ref:`NestedText v3.0 <v3.0>`).
 
 
-`visual studio code <https://marketplace.visualstudio.com/items?itemName=bmarkovic17.nestedtext>`_
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+`Visual Studio Code NestedText <bmarkovic17_nestedtext_>`_
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Syntax files for *Visual Studio Code* (supports :ref:`NestedText v3.0 <v3.0>`).

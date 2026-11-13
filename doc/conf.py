@@ -22,6 +22,7 @@ extensions = '''\
     sphinx.ext.napoleon
     sphinx.ext.viewcode
     sphinx_rtd_theme
+    sphinx_llms_txt
     sphinx_toolbox.collapse
 '''.split()
 
@@ -45,3 +46,8 @@ if os.environ.get("READTHEDOCS", "") == "True":
     if "html_context" not in globals():
         html_context = {}
     html_context["READTHEDOCS"] = True
+
+# include links in every rst file
+rst_epilog = """
+.. include:: links.rst
+"""
